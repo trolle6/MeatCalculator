@@ -9,7 +9,7 @@ Free, **open-source** brisket **pull-and-hold planner**: probe render %, hot-box
 
 Built with **ASP.NET Core 8** (API + static export) and a vanilla UI in `meat calculator/wwwroot/`.
 
-![Smoke Lab — probe temp and cook plan](meat%20calculator/wwwroot/og-image.png)
+![Smoke Lab — research dashboard (Steve Gow / open-source BBQ science)](meat%20calculator/wwwroot/og-image.png)
 
 ## Features
 
