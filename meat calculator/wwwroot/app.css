@@ -336,18 +336,26 @@ footer {
   color: inherit;
 }
 
-.temp-big-wrap .temp-dual-val {
+.temp-big-wrap .temp-hero-primary {
   font-family: var(--mono);
-  font-size: clamp(2rem, 7vw, 2.75rem);
+  font-size: clamp(2.25rem, 8vw, 3rem);
   font-weight: 500;
   color: var(--gold);
+  line-height: 1;
+}
+
+.temp-big-wrap .temp-hero-secondary {
+  font-family: var(--mono);
+  font-size: clamp(1.15rem, 4vw, 1.4rem);
+  font-weight: 500;
+  color: var(--muted);
   line-height: 1.1;
 }
 
-.temp-big-wrap .temp-dual-sep {
+.temp-big-wrap .temp-hero-sep {
   margin: 0 0.35rem;
-  font-size: 1.5rem;
-  color: var(--muted);
+  font-size: 1.35rem;
+  color: var(--smoke);
   font-weight: 400;
 }
 

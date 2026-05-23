@@ -145,7 +145,7 @@ function syncFieldUnits() {
   });
 }
 
-/** Dual °C/°F with equal styling; primary unit first per header toggle */
+/** Hero: big gold primary + smaller secondary; inline: balanced pair */
 function tempHtml(c, { big = false, showBoth = true } = {}) {
   const cStr = `${Number(c).toFixed(1)} °C`;
   const fStr = `${cToF(c).toFixed(0)} °F`;
@@ -156,23 +156,23 @@ function tempHtml(c, { big = false, showBoth = true } = {}) {
       : `<span class="temp-single">${cStr}</span>`;
   }
 
-  const cPart =
-    big
-      ? `<span class="temp-dual-val">${cStr}</span>`
-      : `<span class="temp-pair-val">${cStr}</span>`;
-  const fPart =
-    big
-      ? `<span class="temp-dual-val">${fStr}</span>`
-      : `<span class="temp-pair-val">${fStr}</span>`;
-  const sep = big
-    ? `<span class="temp-dual-sep" aria-hidden="true">·</span>`
-    : `<span class="temp-pair-sep" aria-hidden="true">·</span>`;
+  if (big) {
+    const primary =
+      state.tempUnit === "f"
+        ? `<span class="temp-hero-primary">${fStr}</span>`
+        : `<span class="temp-hero-primary">${cStr}</span>`;
+    const secondary =
+      state.tempUnit === "f"
+        ? `<span class="temp-hero-secondary">${cStr}</span>`
+        : `<span class="temp-hero-secondary">${fStr}</span>`;
+    return `${primary}<span class="temp-hero-sep" aria-hidden="true">·</span>${secondary}`;
+  }
 
+  const cPart = `<span class="temp-pair-val">${cStr}</span>`;
+  const fPart = `<span class="temp-pair-val">${fStr}</span>`;
   const first = state.tempUnit === "f" ? fPart : cPart;
   const second = state.tempUnit === "f" ? cPart : fPart;
-
-  if (big) return `${first}${sep}${second}`;
-  return `<span class="temp-pair">${first}${sep}${second}</span>`;
+  return `<span class="temp-pair">${first}<span class="temp-pair-sep" aria-hidden="true">·</span>${second}</span>`;
 }
 
 function tempText(c) {
