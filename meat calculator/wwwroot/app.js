@@ -145,20 +145,34 @@ function syncFieldUnits() {
   });
 }
 
-/** Primary unit follows header toggle; other unit in parentheses */
+/** Dual °C/°F with equal styling; primary unit first per header toggle */
 function tempHtml(c, { big = false, showBoth = true } = {}) {
-  if (state.tempUnit === "f") {
-    const fStr = cToF(c).toFixed(0);
-    const fClass = big ? "temp-f" : "temp-f-inline";
-    const main = `<span class="temp-primary">${fStr} °F</span>`;
-    if (!showBoth) return main;
-    return `${main}<span class="${fClass}">(${Number(c).toFixed(1)} °C)</span>`;
+  const cStr = `${Number(c).toFixed(1)} °C`;
+  const fStr = `${cToF(c).toFixed(0)} °F`;
+
+  if (!showBoth) {
+    return state.tempUnit === "f"
+      ? `<span class="temp-single">${fStr}</span>`
+      : `<span class="temp-single">${cStr}</span>`;
   }
-  const cStr = Number(c).toFixed(1);
-  const fClass = big ? "temp-f" : "temp-f-inline";
-  const main = `<span class="temp-c">${cStr} °C</span>`;
-  if (!showBoth) return main;
-  return `${main}<span class="${fClass}">(${cToF(c).toFixed(0)} °F)</span>`;
+
+  const cPart =
+    big
+      ? `<span class="temp-dual-val">${cStr}</span>`
+      : `<span class="temp-pair-val">${cStr}</span>`;
+  const fPart =
+    big
+      ? `<span class="temp-dual-val">${fStr}</span>`
+      : `<span class="temp-pair-val">${fStr}</span>`;
+  const sep = big
+    ? `<span class="temp-dual-sep" aria-hidden="true">·</span>`
+    : `<span class="temp-pair-sep" aria-hidden="true">·</span>`;
+
+  const first = state.tempUnit === "f" ? fPart : cPart;
+  const second = state.tempUnit === "f" ? cPart : fPart;
+
+  if (big) return `${first}${sep}${second}`;
+  return `<span class="temp-pair">${first}${sep}${second}</span>`;
 }
 
 function tempText(c) {

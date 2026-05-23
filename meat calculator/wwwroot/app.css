@@ -329,22 +329,48 @@ footer {
   font-size: 0.85em;
 }
 
-.temp-big-wrap .temp-c,
-.temp-big-wrap .temp-primary {
-  font-family: var(--mono);
-  font-size: 3rem;
-  font-weight: 500;
-  color: var(--gold);
-  line-height: 1;
+.temp-big-wrap .temp-f,
+.temp-big-wrap .temp-f-inline,
+.temp-pair .temp-f-inline {
+  font-size: inherit;
+  color: inherit;
 }
 
-.temp-big-wrap .temp-f,
-.temp-big-wrap .temp-f-inline {
+.temp-big-wrap .temp-dual-val {
   font-family: var(--mono);
-  font-size: 1.25rem;
-  margin-left: 0.35rem;
+  font-size: clamp(2rem, 7vw, 2.75rem);
+  font-weight: 500;
+  color: var(--gold);
+  line-height: 1.1;
+}
+
+.temp-big-wrap .temp-dual-sep {
+  margin: 0 0.35rem;
+  font-size: 1.5rem;
+  color: var(--muted);
   font-weight: 400;
-  color: var(--smoke);
+}
+
+.temp-pair {
+  display: inline-flex;
+  align-items: baseline;
+  flex-wrap: wrap;
+  gap: 0.2rem 0.35rem;
+}
+
+.temp-pair-val {
+  font-family: var(--mono);
+  font-weight: 500;
+  color: var(--text);
+}
+
+.temp-pair-sep {
+  color: var(--muted);
+}
+
+.temp-single {
+  font-family: var(--mono);
+  font-weight: 500;
 }
 
 .grade-us {
@@ -796,8 +822,15 @@ footer {
   display: flex;
   align-items: baseline;
   flex-wrap: wrap;
+  justify-content: flex-start;
   gap: 0.25rem;
   margin-bottom: 0.5rem;
+}
+
+@media (max-width: 480px) {
+  .temp-display {
+    justify-content: center;
+  }
 }
 
 .field input[type="range"] {
