@@ -1,0 +1,68 @@
+name: Deploy GitHub Pages
+
+on:
+  push:
+    branches: [main, master]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+
+concurrency:
+  group: pages
+  cancel-in-progress: true
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: "8.0.x"
+
+      - name: Build
+        run: dotnet build "meat calculator/meat calculator.csproj" -c Release
+
+      - name: Export static site + API JSON
+        run: |
+          set -e
+          dotnet run --project "meat calculator/meat calculator.csproj" -c Release --no-build \
+            --urls "http://127.0.0.1:5050" &
+          PID=$!
+          for i in $(seq 1 40); do
+            if curl -sf "http://127.0.0.1:5050/api/data" >/dev/null; then break; fi
+            sleep 1
+          done
+          curl -sf "http://127.0.0.1:5050/api/data" || { echo "API did not start"; kill $PID 2>/dev/null; exit 1; }
+
+          mkdir -p _site/api/rest
+          cp -r "meat calculator/wwwroot/"* _site/
+
+          curl -sf "http://127.0.0.1:5050/api/data" -o _site/api/data.json
+          curl -sf "http://127.0.0.1:5050/api/timeline" -o _site/api/timeline.json
+          curl -sf "http://127.0.0.1:5050/api/science" -o _site/api/science.json
+          curl -sf "http://127.0.0.1:5050/api/recipes" -o _site/api/recipes.json
+          curl -sf "http://127.0.0.1:5050/api/guide" -o _site/api/guide.json
+          curl -sf "http://127.0.0.1:5050/api/profiles" -o _site/api/profiles.json
+          curl -sf "http://127.0.0.1:5050/api/rest/environments" -o _site/api/rest/environments.json
+
+          kill $PID 2>/dev/null || true
+          wait $PID 2>/dev/null || true
+
+      - uses: actions/upload-pages-artifact@v3
+        with:
+          path: _site
+
+  deploy:
+    needs: build
+    runs-on: ubuntu-latest
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    steps:
+      - id: deployment
+        uses: actions/deploy-pages@v4
