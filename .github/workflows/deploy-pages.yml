@@ -50,6 +50,7 @@ jobs:
           curl -sf "http://127.0.0.1:5050/api/recipes" -o _site/api/recipes.json
           curl -sf "http://127.0.0.1:5050/api/guide" -o _site/api/guide.json
           curl -sf "http://127.0.0.1:5050/api/profiles" -o _site/api/profiles.json
+          curl -sf "http://127.0.0.1:5050/api/sources" -o _site/api/sources.json
           curl -sf "http://127.0.0.1:5050/api/rest/environments" -o _site/api/rest/environments.json
 
           kill $PID 2>/dev/null || true
@@ -59,6 +60,7 @@ jobs:
         run: |
           test -s _site/api/data.json
           test -s _site/api/profiles.json
+          test -s _site/api/sources.json
           node -e "JSON.parse(require('fs').readFileSync('_site/api/data.json','utf8'))"
 
       - name: Publish to gh-pages branch

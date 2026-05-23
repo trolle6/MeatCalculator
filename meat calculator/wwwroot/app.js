@@ -72,6 +72,8 @@ const cToF = (c) => (c * 9) / 5 + 32;
 const fToC = (f) => ((f - 32) * 5) / 9;
 
 const COOK_STORAGE_KEY = "smokeLabCook";
+const DEFAULT_GRADE_ID = "us_choice";
+const GRADE_REGION_ORDER = ["us", "uk", "jp", "au"];
 const PROFILE_IDS = new Set(["juicy", "balanced", "traditional"]);
 let cookStateRestoring = false;
 
@@ -110,7 +112,7 @@ function collectCookState() {
     loss: Number.isFinite(loss) ? loss : 35,
     target: Number.isFinite(target) ? target : 100,
     profile: state.activeProfileId || detectActiveProfileId() || null,
-    grade: $("grade")?.value || "fk34",
+    grade: $("grade")?.value || DEFAULT_GRADE_ID,
   };
 }
 
@@ -140,7 +142,7 @@ function cookStateToSearchParams() {
   if (s.target !== 100) p.set("target", String(Math.round(s.target)));
   if (s.profile && PROFILE_IDS.has(s.profile)) p.set("profile", s.profile);
   if (s.weight === "lb") p.set("weight", "lb");
-  if (s.grade && s.grade !== "fk34") p.set("grade", s.grade);
+  if (s.grade && s.grade !== DEFAULT_GRADE_ID) p.set("grade", s.grade);
   return p;
 }
 
@@ -175,7 +177,7 @@ function parseUrlCookState() {
   if (Number.isFinite(loss) && loss >= 30 && loss <= 43) data.loss = loss;
   if (Number.isFinite(target) && target >= 80 && target <= 120) data.target = target;
   if (profile && PROFILE_IDS.has(profile)) data.profile = profile;
-  if (grade) data.grade = grade;
+  if (grade) data.grade = normalizeGradeId(grade);
 
   return data;
 }
@@ -190,10 +192,12 @@ function parseStoredCookState() {
       u.hold == null &&
       u.kg == null &&
       u.loss == null &&
-      !u.profile
+      !u.profile &&
+      !u.grade
     ) {
       return null;
     }
+    if (u.grade) u.grade = normalizeGradeId(u.grade);
     return u;
   } catch {
     return null;
@@ -209,7 +213,7 @@ function applyCookState(data) {
     if (data.profile && PROFILE_IDS.has(data.profile)) {
       applyCookProfile(data.profile);
       if (data.kg != null) configureWeightInput({ kg: data.kg });
-      if (data.grade && $("grade")) $("grade").value = data.grade;
+      if (data.grade) populateGradeSelect(normalizeGradeId(data.grade));
     } else {
       if (data.kg != null) configureWeightInput({ kg: data.kg });
       else configureWeightInput();
@@ -225,7 +229,7 @@ function applyCookState(data) {
         $("lossDisplay").textContent = `${data.loss}%`;
       }
       if (data.target != null && $("targetPercent")) $("targetPercent").value = data.target;
-      if (data.grade && $("grade")) $("grade").value = data.grade;
+      if (data.grade) populateGradeSelect(normalizeGradeId(data.grade));
       syncProbeSliderUnits();
       onTempSliderInput();
       syncActiveProfileUI();
@@ -412,22 +416,81 @@ function setTempHtml(el, c, opts) {
   el.innerHTML = tempHtml(c, opts);
 }
 
-function gradeRefsLine(g) {
-  const uk = g.ukReference ?? g.gradeUk;
-  const jp = g.japanReference ?? g.gradeJapan;
-  const parts = [uk, jp].filter(Boolean);
-  return parts.length ? parts.join(" · ") : "";
+function normalizeGradeId(id) {
+  if (!id) return DEFAULT_GRADE_ID;
+  const key = String(id).toLowerCase();
+  if (key === "fk2") return "us_select";
+  if (key === "fk34") return "us_choice";
+  if (key === "fk45") return "us_prime";
+  return id;
 }
 
-function gradeLabel(g, { forSelect = false } = {}) {
-  const fat = `${g.marblingMin}–${g.marblingMax}% intramuscular fat`;
-  const refs = gradeRefsLine(g);
-  if (forSelect) {
-    return refs ? `${g.name} — ${fat} (${refs})` : `${g.name} — ${fat}`;
+function gradeOptionLabel(g) {
+  return `${g.name} — ${g.marblingMin}–${g.marblingMax}% intramuscular fat`;
+}
+
+function gradeLabel(g) {
+  return g.name;
+}
+
+function populateGradeSelect(selectedId = DEFAULT_GRADE_ID) {
+  const gradeSelect = $("grade");
+  if (!gradeSelect || !state.grades.length) return;
+
+  const byRegion = new Map();
+  for (const g of state.grades) {
+    const region = g.region || "us";
+    if (!byRegion.has(region)) byRegion.set(region, []);
+    byRegion.get(region).push(g);
   }
-  return refs
-    ? `${g.name} <span class="grade-ref">${refs}</span>`
-    : g.name;
+
+  const html = GRADE_REGION_ORDER.filter((r) => byRegion.has(r))
+    .map((region) => {
+      const items = byRegion.get(region);
+      const label = items[0].regionLabel || region;
+      const options = items
+        .map((g) => `<option value="${g.id}">${gradeOptionLabel(g)}</option>`)
+        .join("");
+      return `<optgroup label="${label}">${options}</optgroup>`;
+    })
+    .join("");
+
+  gradeSelect.innerHTML = html;
+  const normalized = normalizeGradeId(selectedId);
+  const exists = state.grades.some((g) => g.id === normalized);
+  gradeSelect.value = exists ? normalized : DEFAULT_GRADE_ID;
+}
+
+function buildGradeBars() {
+  const container = $("gradeBars");
+  if (!container || !state.grades.length) return;
+
+  const byRegion = new Map();
+  for (const g of state.grades) {
+    const region = g.region || "us";
+    if (!byRegion.has(region)) byRegion.set(region, []);
+    byRegion.get(region).push(g);
+  }
+
+  container.innerHTML = GRADE_REGION_ORDER.filter((r) => byRegion.has(r))
+    .map((region) => {
+      const items = byRegion.get(region);
+      const heading = items[0].regionLabel || region;
+      const rows = items
+        .map(
+          (g) => `
+    <div class="grade-row">
+      <label>${gradeLabel(g)}</label>
+      <div class="grade-track">
+        <div class="grade-fill" style="left:${g.marblingMin * 5}%; width:${(g.marblingMax - g.marblingMin) * 5}%"></div>
+      </div>
+      <div class="grade-range">${g.marblingMin}% – ${g.marblingMax}% intramuscular fat</div>
+    </div>`
+        )
+        .join("");
+      return `<section class="grade-region-block"><h3 class="grade-region-heading">${heading}</h3>${rows}</section>`;
+    })
+    .join("");
 }
 
 // Tabs
@@ -627,11 +690,7 @@ async function loadData() {
   state.grades = data.grades;
   state.constants = data.constants;
 
-  const gradeSelect = $("grade");
-  gradeSelect.innerHTML = state.grades
-    .map((g) => `<option value="${g.id}">${gradeLabel(g, { forSelect: true })}</option>`)
-    .join("");
-  gradeSelect.value = "fk34";
+  populateGradeSelect(DEFAULT_GRADE_ID);
 
   buildStageTable();
   buildGradeBars();
@@ -661,21 +720,6 @@ function buildStageTable() {
   const full = $("stageTable")?.querySelector("tbody");
   if (preview) preview.innerHTML = state.stages.slice(0, 5).map(rowHtml).join("");
   if (full) full.innerHTML = state.stages.map(rowHtml).join("");
-}
-
-function buildGradeBars() {
-  $("gradeBars").innerHTML = state.grades
-    .map(
-      (g) => `
-    <div class="grade-row">
-      <label>${gradeLabel(g)}</label>
-      <div class="grade-track">
-        <div class="grade-fill" style="left:${g.marblingMin * 5}%; width:${(g.marblingMax - g.marblingMin) * 5}%"></div>
-      </div>
-      <div class="grade-range">${g.marblingMin}% – ${g.marblingMax}% intramuscular fat · ${gradeRefsLine(g)}</div>
-    </div>`
-    )
-    .join("");
 }
 
 async function buildTimeline() {
@@ -953,7 +997,7 @@ async function updateYield() {
   $("yieldStats").innerHTML = `
     <div><dt>Grade</dt><dd>${y.grade}</dd></div>
     <div><dt>Marbling band</dt><dd>${y.marblingMin}–${y.marblingMax}% intramuscular fat</dd></div>
-    <div><dt>UK / Japan (ref.)</dt><dd>${[y.gradeUk, y.gradeJapan].filter(Boolean).join(" · ") || "—"}</dd></div>
+    <div><dt>Grading system</dt><dd>${y.gradeRegionLabel || y.gradeRegion || "—"}</dd></div>
     <div><dt>Weight lost</dt><dd>${formatWeight(y.lostKg)}</dd></div>
     <div><dt>Raw water content</dt><dd>~${y.waterContentPercent}%</dd></div>
     <div><dt>Typical loss band</dt><dd>30–43%</dd></div>
@@ -1533,7 +1577,7 @@ function applyCookProfile(id) {
         pullTempC: 90.5,
         holdTempC: 65.5,
         lossPercent: 35,
-        gradeId: "fk34",
+        gradeId: "us_choice",
         targetPercent: 100,
         rationale: "",
       },
@@ -1541,7 +1585,7 @@ function applyCookProfile(id) {
         pullTempC: 92.8,
         holdTempC: 65.5,
         lossPercent: 37.5,
-        gradeId: "fk34",
+        gradeId: "us_choice",
         targetPercent: 100,
         rationale:
           "Midpoint between 90.5 °C and 95 °C pull, same 65.5 °C hold, ~37.5% shrink.",
@@ -1550,7 +1594,7 @@ function applyCookProfile(id) {
         pullTempC: 95,
         holdTempC: 65.5,
         lossPercent: 40,
-        gradeId: "fk34",
+        gradeId: "us_choice",
         targetPercent: 100,
         rationale: "",
       },
@@ -1566,7 +1610,7 @@ function applyCookProfile(id) {
   $("targetPercent").value = profile.targetPercent ?? 100;
   $("lossPercent").value = profile.lossPercent;
   $("lossDisplay").textContent = `${profile.lossPercent}%`;
-  if ($("grade")) $("grade").value = profile.gradeId ?? "fk34";
+  if ($("grade")) populateGradeSelect(normalizeGradeId(profile.gradeId ?? DEFAULT_GRADE_ID));
   $("tempSlider").value = profile.pullTempC;
 
   const rationale = $("profileRationale");
@@ -1685,8 +1729,8 @@ async function fetchYieldPlan(kg, grade, loss) {
     cookedKg: cooked,
     lostKg: kg - cooked,
     grade: g?.name ?? grade,
-    gradeUk: g?.ukReference ?? "",
-    gradeJapan: g?.japanReference ?? "",
+    gradeRegion: g?.region ?? "",
+    gradeRegionLabel: g?.regionLabel ?? "",
     marblingMin: g?.marblingMin,
     marblingMax: g?.marblingMax,
     waterContentPercent: 70,
@@ -1740,7 +1784,7 @@ async function updatePlanSummary() {
   const target = parseFloat($("targetPercent")?.value) || 100;
   const kg = readWeightKg();
   const loss = parseFloat($("lossPercent")?.value) || 35;
-  const gradeId = $("grade")?.value || "fk34";
+  const gradeId = $("grade")?.value || DEFAULT_GRADE_ID;
 
   const [holdData, yieldData] = await Promise.all([
     fetchHoldPlan(pull, hold, target),
@@ -1762,8 +1806,9 @@ async function updatePlanSummary() {
 
   const meatRaw = formatWeight(yieldData.startKg, { showBoth: true });
   const meatCooked = formatWeight(yieldData.cookedKg, { showBoth: true });
-  const gradeRefs = [yieldData.gradeUk, yieldData.gradeJapan].filter(Boolean).join(" · ");
-  const gradeLine = gradeRefs ? `${yieldData.grade} (${gradeRefs})` : yieldData.grade;
+  const gradeLine = yieldData.gradeRegionLabel
+    ? `${yieldData.grade} (${yieldData.gradeRegionLabel})`
+    : yieldData.grade;
 
   const checklist = [
     `Trim & season the night before (dry brine if you use it)`,
@@ -1948,6 +1993,69 @@ function initPlan() {
   $("refreshPlan")?.addEventListener("click", () => updatePlanSummary());
 }
 
+function sourceWatchUrl(s) {
+  if (s.url) return s.url;
+  const q = encodeURIComponent(`Steve Gow Smoke Trails ${s.title}`);
+  return `https://www.youtube.com/results?search_query=${q}`;
+}
+
+function escapeHtml(str) {
+  return String(str)
+    .replace(/&/g, "&amp;")
+    .replace(/</g, "&lt;")
+    .replace(/>/g, "&gt;")
+    .replace(/"/g, "&quot;");
+}
+
+function renderSources(data) {
+  const intro = $("sourcesIntro");
+  const list = $("sourcesList");
+  if (!intro || !list) return;
+
+  intro.textContent = data.intro || "";
+
+  const items = data.sources || [];
+  list.innerHTML = items
+    .map((s) => {
+      const url = escapeHtml(sourceWatchUrl(s));
+      const label = s.url ? "Watch ↗" : "Find video ↗";
+      const primary = s.isPrimary
+        ? '<span class="source-primary-badge">Primary model source</span>'
+        : "";
+      return `<li class="source-item${s.isPrimary ? " source-item-primary" : ""}">
+        <div class="source-item-body">
+          <strong class="source-title">${escapeHtml(s.title)}</strong>
+          ${primary}
+          <p class="source-summary">${escapeHtml(s.summary)}</p>
+        </div>
+        <a href="${url}" class="source-link-btn" rel="noopener noreferrer" target="_blank">${label}</a>
+      </li>`;
+    })
+    .join("");
+}
+
+async function loadSources() {
+  try {
+    const data = await apiGet("/api/sources");
+    renderSources(data);
+  } catch {
+    const intro = $("sourcesIntro");
+    if (intro) {
+      intro.textContent =
+        "Sources list loads from the server on localhost, or from api/sources.json on GitHub Pages.";
+    }
+  }
+}
+
+function openSourcesPanel() {
+  goToTab("reference");
+  const section = $("sourcesSection");
+  if (section) {
+    section.open = true;
+    setTimeout(() => section.scrollIntoView({ behavior: "smooth", block: "start" }), 80);
+  }
+}
+
 function initRest() {
   wireRestEnvBar();
   renderRestEnvPicker(REST_ENV_DEFAULTS, $("restEnv").value || "hold150");
@@ -1986,6 +2094,7 @@ loadData()
     initExpandSections();
     wireGlobalNav();
     wireShareLinks();
+    $("openSources")?.addEventListener("click", openSourcesPanel);
     $("openCookPlanFromDash")?.addEventListener("click", () => {
       goToTab("hold");
       applyCookProfile("balanced");
@@ -2000,6 +2109,7 @@ loadData()
       loadRecipes(),
       loadRestEnvironments(),
       loadProfiles(),
+      loadSources(),
     ])
   )
   .then(() => {

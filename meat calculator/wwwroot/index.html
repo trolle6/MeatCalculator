@@ -10,6 +10,7 @@
   <meta name="theme-color" content="#0d0c0b" />
   <meta property="og:type" content="website" />
   <meta property="og:url" content="https://trolle6.github.io/MeatCalculator/" />
+  <link rel="canonical" href="https://trolle6.github.io/MeatCalculator/" />
   <meta property="og:image" content="https://trolle6.github.io/MeatCalculator/og-image.png" />
   <meta property="og:image:width" content="1200" />
   <meta property="og:image:height" content="630" />
@@ -462,7 +463,8 @@
             <span class="hint" id="weightAltHint"></span>
           </div>
           <div class="field">
-            <label for="grade">Fat grade (optional)</label>
+            <label for="grade">Beef grade (optional)</label>
+            <p class="hint grade-region-hint">USDA is the default; pick your country’s grading sticker if you shop elsewhere.</p>
             <select id="grade"></select>
           </div>
           <div class="field">
@@ -558,10 +560,28 @@
         </details>
       </article>
       <details class="expand-section">
-        <summary>USDA grade &amp; marbling (UK / Japan reference)</summary>
+        <summary>Beef grading by region (US, UK, Japan, Australia)</summary>
         <div class="expand-body">
           <article class="card">
             <div class="grade-bars" id="gradeBars"></div>
+          </article>
+        </div>
+      </details>
+      <details class="expand-section sources-section" id="sourcesSection">
+        <summary>Research &amp; video sources</summary>
+        <div class="expand-body">
+          <article class="card sources-card">
+            <p class="sources-intro" id="sourcesIntro">Loading sources…</p>
+            <ul class="sources-list" id="sourcesList"></ul>
+            <p class="sources-channel">
+              <a href="https://www.youtube.com/@SteveGowSmokeTrailsBBQ" class="source-link-btn" rel="noopener noreferrer" target="_blank">Steve Gow — YouTube channel ↗</a>
+            </p>
+            <p class="hint sources-repo">
+              Full list on GitHub:
+              <a href="https://github.com/trolle6/MeatCalculator/blob/main/SOURCES.md" rel="noopener noreferrer" target="_blank">SOURCES.md</a>
+              ·
+              <a href="https://github.com/trolle6/MeatCalculator/blob/main/LICENSE" rel="noopener noreferrer" target="_blank">MIT License</a>
+            </p>
           </article>
         </div>
       </details>
@@ -570,9 +590,17 @@
 
   <footer class="site-footer">
     <p class="footer-share">Share with pit friends → <strong id="shareUrlDisplay">trolle6.github.io/MeatCalculator</strong> <button type="button" class="btn-share-link btn-share-link-small" id="copyShareLinkFooter">Copy</button></p>
-    <p>Smoke Lab · free brisket pull-and-hold planner · °C &amp; °F · <span class="footer-version">v1.0 — share links, USDA grades</span></p>
+    <p>Smoke Lab · free open-source brisket planner · °C &amp; °F · <span class="footer-version">v1.1</span></p>
+    <nav class="footer-links" aria-label="Project links">
+      <a href="https://github.com/trolle6/MeatCalculator" rel="noopener noreferrer" target="_blank">Open source</a>
+      <span class="footer-links-sep" aria-hidden="true">·</span>
+      <button type="button" class="ref-link footer-link-btn" id="openSources">Sources</button>
+      <span class="footer-links-sep" aria-hidden="true">·</span>
+      <a href="https://github.com/trolle6/MeatCalculator/issues" rel="noopener noreferrer" target="_blank">Issues</a>
+      <span class="footer-links-sep" aria-hidden="true">·</span>
+      <a href="https://github.com/trolle6/MeatCalculator/blob/main/LICENSE" rel="noopener noreferrer" target="_blank">MIT License</a>
+    </nav>
     <p class="footer-fine">Modeled tenderness and hold times are for planning only — verify with probe and feel on your cooker.</p>
-    <p class="footer-feedback"><a href="https://github.com/trolle6/MeatCalculator/issues" rel="noopener noreferrer" target="_blank">Feedback &amp; bugs → GitHub Issues</a></p>
     <p class="footer-attribution">
       Smoke Lab was built with AI assistance. Pull-and-hold temps and the collagen model are based on public brisket teaching by
       <a href="https://www.youtube.com/@SteveGowSmokeTrailsBBQ" rel="noopener noreferrer" target="_blank">Steve Gow (Smoke Trails BBQ)</a>
@@ -581,6 +609,6 @@
   </footer>
 
   <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
-  <script src="app.js?v=16"></script>
+  <script src="app.js?v=18"></script>
 </body>
 </html>

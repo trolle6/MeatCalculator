@@ -1,0 +1,23 @@
+name: Bug report
+description: Something broke or looks wrong
+labels: ["bug"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Thanks for helping improve Smoke Lab. Include a **Copy link** URL if the bug involves saved temps.
+  - type: textarea
+    id: what-happened
+    attributes:
+      label: What happened?
+    validations:
+      required: true
+  - type: input
+    id: browser
+    attributes:
+      label: Browser / device
+      placeholder: e.g. Chrome on Android
+  - type: input
+    id: share-url
+    attributes:
+      label: Share URL (optional)

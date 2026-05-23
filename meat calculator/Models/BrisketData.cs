@@ -10,10 +10,12 @@ public sealed record RenderingStage(
 public sealed record GradeInfo(
     string Id,
     string Name,
-    string UkReference,
-    string JapanReference,
+    string Region,
+    string RegionLabel,
+    int Tier,
     double MarblingMin,
-    double MarblingMax);
+    double MarblingMax,
+    string? Note = null);
 
 public static class BrisketData
 {
@@ -84,13 +86,24 @@ public static class BrisketData
     public const double HoldRecommendedMinC = 57;
     public const double HoldRecommendedMaxC = 60;
 
-    /// <summary>USDA marbling bands (primary); UK fat class and Japan BMS shown as reference only.</summary>
+    /// <summary>Regional grading systems; marbling bands are planning references (USDA default).</summary>
     public static readonly GradeInfo[] Grades =
     [
-        new("fk2", "USDA Select", "UK fat class ~2", "Japan BMS ~2–3", 2, 4),
-        new("fk34", "USDA Choice", "UK fat class ~3–4", "Japan BMS ~4–6", 4, 10),
-        new("fk45", "USDA Prime", "UK fat class ~4–5", "Japan BMS ~8+", 8, 13)
+        new("us_select", "USDA Select", "us", "United States (USDA)", 0, 2, 4, "Scored on ribeye, not brisket"),
+        new("us_choice", "USDA Choice", "us", "United States (USDA)", 1, 4, 10, "Scored on ribeye, not brisket"),
+        new("us_prime", "USDA Prime", "us", "United States (USDA)", 2, 8, 13, "Scored on ribeye, not brisket"),
+        new("uk_fat2", "Fat class 2", "uk", "United Kingdom", 0, 2, 4, "Carcass fat class — rough marbling band"),
+        new("uk_fat34", "Fat class 3–4", "uk", "United Kingdom", 1, 4, 10, "Carcass fat class — rough marbling band"),
+        new("uk_fat45", "Fat class 4–5", "uk", "United Kingdom", 2, 8, 13, "Carcass fat class — rough marbling band"),
+        new("jp_bms23", "BMS 2–3", "jp", "Japan (JMGA BMS)", 0, 2, 4, "Beef Marbling Standard"),
+        new("jp_bms46", "BMS 4–6", "jp", "Japan (JMGA BMS)", 1, 4, 10, "Beef Marbling Standard"),
+        new("jp_bms8", "BMS 8+", "jp", "Japan (JMGA BMS)", 2, 8, 13, "Beef Marbling Standard"),
+        new("au_msa300", "MSA marbling ~300", "au", "Australia (MSA)", 0, 2, 4, "MSA marbling score — approximate"),
+        new("au_msa400", "MSA marbling ~400", "au", "Australia (MSA)", 1, 4, 10, "MSA marbling score — approximate"),
+        new("au_msa500", "MSA marbling ~500+", "au", "Australia (MSA)", 2, 8, 13, "MSA marbling score — approximate")
     ];
+
+    public const string DefaultGradeId = "us_choice";
 
     public static readonly RenderingStage[] RenderingStages =
     [

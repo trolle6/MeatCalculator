@@ -162,7 +162,7 @@ app.MapPost("/api/hold", (HoldRequest req) =>
 
 app.MapPost("/api/yield", (YieldRequest req) =>
 {
-    var est = engine.CalculateYield(req.WeightKg, req.Grade ?? "fk34", req.LossPercent ?? 35);
+    var est = engine.CalculateYield(req.WeightKg, req.Grade ?? BrisketData.DefaultGradeId, req.LossPercent ?? 35);
     return est;
 });
 
@@ -213,6 +213,21 @@ app.MapGet("/api/profiles", () =>
 app.MapGet("/api/guide", () => new { sections = BrisketGuide.Sections });
 
 app.MapGet("/api/recipes", () => new { recipes = BrisketRecipes.All });
+
+app.MapGet("/api/sources", () => new
+{
+    channelUrl = BrisketSources.ChannelUrl,
+    channelTitle = BrisketSources.ChannelTitle,
+    intro = BrisketSources.Intro,
+    sources = BrisketSources.Items.Select(s => new
+    {
+        s.Id,
+        s.Title,
+        s.Summary,
+        s.Url,
+        s.IsPrimary
+    })
+});
 
 app.MapGet("/api/rest/environments", () => RestEnvironments.All);
 

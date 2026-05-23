@@ -81,10 +81,8 @@ public sealed class BrisketEngine
         var normalized = NormalizeGradeKey(grade);
         return BrisketData.Grades.FirstOrDefault(g =>
             g.Id.Equals(normalized, StringComparison.OrdinalIgnoreCase) ||
-            g.Name.Equals(normalized, StringComparison.OrdinalIgnoreCase) ||
-            g.UkReference.Equals(normalized, StringComparison.OrdinalIgnoreCase) ||
-            g.JapanReference.Equals(normalized, StringComparison.OrdinalIgnoreCase))
-            ?? BrisketData.Grades[1];
+            g.Name.Equals(normalized, StringComparison.OrdinalIgnoreCase))
+            ?? BrisketData.Grades.First(g => g.Id == BrisketData.DefaultGradeId);
     }
 
     static string NormalizeGradeKey(string? grade)
@@ -93,9 +91,9 @@ public sealed class BrisketEngine
         var key = grade.Trim();
         return key.ToLowerInvariant() switch
         {
-            "select" or "usda select" or "fettklass 2" => "fk2",
-            "choice" or "usda choice" or "fettklass 3–4" or "fettklass 3-4" => "fk34",
-            "prime" or "usda prime" or "fettklass 4–5" or "fettklass 4-5" => "fk45",
+            "fk2" or "select" or "usda select" or "fettklass 2" => "us_select",
+            "fk34" or "choice" or "usda choice" or "fettklass 3–4" or "fettklass 3-4" => "us_choice",
+            "fk45" or "prime" or "usda prime" or "fettklass 4–5" or "fettklass 4-5" => "us_prime",
             _ => key
         };
     }
@@ -108,8 +106,8 @@ public sealed class BrisketEngine
             startWeightKg,
             gradeInfo.Id,
             gradeInfo.Name,
-            gradeInfo.UkReference,
-            gradeInfo.JapanReference,
+            gradeInfo.Region,
+            gradeInfo.RegionLabel,
             gradeInfo.MarblingMin,
             gradeInfo.MarblingMax,
             lossPercent,
@@ -179,8 +177,8 @@ public sealed record YieldEstimate(
     double StartKg,
     string GradeId,
     string Grade,
-    string GradeUk,
-    string GradeJapan,
+    string GradeRegion,
+    string GradeRegionLabel,
     double MarblingMin,
     double MarblingMax,
     double LossPercent,
