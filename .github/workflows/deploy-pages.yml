@@ -5,7 +5,6 @@ on:
     branches: [main, master]
   workflow_dispatch:
 
-# Publishes the static site to the gh-pages branch (see README for one-time Settings).
 permissions:
   contents: write
 
@@ -53,10 +52,11 @@ jobs:
           kill $PID 2>/dev/null || true
           wait $PID 2>/dev/null || true
 
-      - name: Publish to gh-pages branch
+      - name: Publish to docs/ on main (GitHub Pages)
         uses: peaceiris/actions-gh-pages@v4
         with:
           github_token: ${{ secrets.GITHUB_TOKEN }}
           publish_dir: ./_site
-          publish_branch: gh-pages
-          force_orphan: true
+          publish_branch: main
+          destination_dir: docs
+          keep_files: true

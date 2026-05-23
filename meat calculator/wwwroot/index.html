@@ -3,47 +3,56 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>Smoke Lab — learn before you cook</title>
+  <title>Smoke Lab — brisket pull &amp; hold planner</title>
+  <meta name="description" content="Brisket pull-and-hold planner: collagen render %, hot-box hours, yield, and a printable cook sheet. Built for long-hold offset cooks — probe and feel still rule." />
+  <meta property="og:title" content="Smoke Lab — brisket pull &amp; hold planner" />
+  <meta property="og:description" content="Model 195°F pull vs 203°F, plan your hot hold, export a cook sheet. Free tool for serious backyard smoke." />
+  <meta property="og:type" content="website" />
+  <meta property="og:url" content="https://trolle6.github.io/MeatCalculator/" />
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
   <link href="https://fonts.googleapis.com/css2?family=DM+Sans:ital,opsz,wght@0,9..40,400;0,9..40,600;0,9..40,700;1,9..40,400&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet" />
   <link rel="stylesheet" href="app.css" />
 </head>
 <body>
-  
   <div class="smoke-bg" aria-hidden="true"></div>
+
+  <aside id="pagesSetupBanner" class="pages-setup-banner" hidden>
+    <p><strong>Site not published yet.</strong> Repo owner: enable <a href="https://github.com/trolle6/MeatCalculator/settings/pages">GitHub Pages</a> → branch <code>main</code>, folder <code>/docs</code>, then wait a minute.</p>
+  </aside>
+
   <header class="site-header">
     <div class="brand">
-      <span class="brand-icon">◉</span>
+      <span class="brand-icon" aria-hidden="true">◉</span>
       <div>
         <h1>Smoke Lab</h1>
-        <p class="tagline">Learn before cook day — not a live pit timer</p>
+        <p class="tagline">Pull-and-hold brisket · collagen model · not a wireless probe</p>
       </div>
     </div>
-    <p class="unit-hint">°C first <span class="temp-f-inline">(°F in parentheses)</span></p>
+    <p class="unit-hint">°C primary <span class="temp-f-inline">(°F alongside)</span></p>
   </header>
 
   <nav class="tabs" role="tablist" aria-label="Sections">
-    <button class="tab active" data-panel="dashboard" role="tab">Start here</button>
-    <button class="tab" data-panel="science" role="tab">The big idea</button>
-    <button class="tab" data-panel="hold" role="tab">Plan a hold</button>
-    <button class="tab" data-panel="plan" role="tab">My cook plan</button>
-    <button class="tab tab-secondary" data-panel="rest" role="tab">Cooling off</button>
-    <button class="tab tab-secondary" data-panel="yield" role="tab">How much meat</button>
-    <button class="tab tab-secondary" data-panel="guide" role="tab">Notes</button>
-    <button class="tab tab-secondary" data-panel="recipes" role="tab">Methods</button>
-    <button class="tab tab-secondary" data-panel="reference" role="tab">All numbers</button>
+    <button class="tab active" data-panel="dashboard" role="tab">Pull planner</button>
+    <button class="tab" data-panel="science" role="tab">195 vs 203</button>
+    <button class="tab" data-panel="hold" role="tab">Hold box</button>
+    <button class="tab" data-panel="plan" role="tab">Cook sheet</button>
+    <button class="tab tab-secondary" data-panel="rest" role="tab">Rest curve</button>
+    <button class="tab tab-secondary" data-panel="yield" role="tab">Yield</button>
+    <button class="tab tab-secondary" data-panel="guide" role="tab">Pit notes</button>
+    <button class="tab tab-secondary" data-panel="recipes" role="tab">Techniques</button>
+    <button class="tab tab-secondary" data-panel="reference" role="tab">Data</button>
   </nav>
 
   <main>
     <section id="panel-dashboard" class="panel active">
-      <aside class="learn-banner learn-banner-short">
-        <p class="learn-banner-lead">Study at home before cook day — drag the slider, then build <a href="#" class="inline-tab-link" data-goto-tab="plan">My cook plan</a>.</p>
+      <aside class="learn-banner learn-banner-short intro-banner">
+        <p class="learn-banner-lead">Plan at the kitchen table — drag probe temp, compare pull vs hot hold, export a <a href="#" class="inline-tab-link" data-goto-tab="plan">cook sheet</a> for the pit crew.</p>
       </aside>
 
       <article class="card card-hero dashboard-focus">
-        <h2>What if I pull at this temp?</h2>
-        <p class="card-desc gauge-context">The arc is <strong>how much tenderness is built inside</strong>.</p>
+        <h2>Probe temp → collagen rendered</h2>
+        <p class="card-desc gauge-context">Arc = modeled tenderness built <em>at pull</em> (40% @ 90.5&nbsp;°C / 195&nbsp;°F is normal for pull-and-hold).</p>
         <div class="temp-display temp-big-wrap" id="tempDisplay"></div>
         <input type="range" id="tempSlider" min="55" max="99" step="0.1" value="90.5" class="slider-ember" aria-describedby="gaugeLegend" />
         <div class="slider-labels"><span>Cool</span><span>Stall</span><span>Very hot</span></div>
@@ -61,35 +70,35 @@
             <path class="gauge-track" d="M 34 102 A 76 76 0 0 1 186 102" />
             <circle class="gauge-marker" id="gaugeMarker" r="7" cx="34" cy="102" />
             <text class="gauge-zone-label gauge-label-pit">
-              <textPath href="#gaugeLabelPit" startOffset="50%" text-anchor="middle">Keep smoking</textPath>
+              <textPath href="#gaugeLabelPit" startOffset="50%" text-anchor="middle">On smoke</textPath>
             </text>
             <text class="gauge-zone-label gauge-label-hold">
-              <textPath href="#gaugeLabelHold" startOffset="50%" text-anchor="middle">Hold overnight</textPath>
+              <textPath href="#gaugeLabelHold" startOffset="50%" text-anchor="middle">Wrap &amp; hold</textPath>
             </text>
             <text class="gauge-zone-label gauge-label-tender">
-              <textPath href="#gaugeLabelTender" startOffset="50%" text-anchor="middle">Slice nicely</textPath>
+              <textPath href="#gaugeLabelTender" startOffset="50%" text-anchor="middle">Slice window</textPath>
             </text>
             <text x="110" y="90" class="gauge-value" id="gaugePercent">40%</text>
             <text x="110" y="108" class="gauge-label" id="gaugeSublabel">tenderness at pull</text>
           </svg>
-          <p class="gauge-legend" id="gaugeLegend">You are in the pull &amp; hold band</p>
+          <p class="gauge-legend" id="gaugeLegend">Pull-and-hold band</p>
         </div>
 
         <div class="stat-row-compact" id="renderStatsCompact"></div>
-        <button type="button" class="btn-primary-cta" id="openCookPlanFromDash">Build my cook plan →</button>
+        <button type="button" class="btn-primary-cta" id="openCookPlanFromDash">Build cook sheet →</button>
       </article>
 
       <details class="expand-section">
-        <summary>Compare at pull vs after hold</summary>
+        <summary>At pull vs after hot hold</summary>
         <div class="expand-body">
           <details class="gauge-help">
-            <summary>Plain English</summary>
-            <p>Connective tissue breaks down with <strong>time + heat</strong>. We show that as a % — roughly 40% at 90.5 °C pull is normal for the juicy method.</p>
-            <p><strong>Orange</strong> = keep smoking. <strong>Blue</strong> = take off, wrap, hold overnight. <strong>Green</strong> = nice window to slice.</p>
+            <summary>How to read the arc</summary>
+            <p>Modeled <strong>collagen → gelatin</strong> render — exponential in time and temp. ~40% at a 90.5&nbsp;°C (195&nbsp;°F) pull is intentional; the hot box finishes the flat.</p>
+            <p><strong>Orange</strong> = still on smoke. <strong>Blue</strong> = wrap, cambro, or oven hold. <strong>Green</strong> = slice window after rest.</p>
           </details>
           <div class="gauge-mode" role="group" aria-label="Show tenderness">
-            <label class="gauge-mode-opt"><input type="radio" name="gaugeMode" value="pull" checked /> When I take it off the pit</label>
-            <label class="gauge-mode-opt"><input type="radio" name="gaugeMode" value="afterHold" /> After the long hold (next morning)</label>
+            <label class="gauge-mode-opt"><input type="radio" name="gaugeMode" value="pull" checked /> At pull off the grate</label>
+            <label class="gauge-mode-opt"><input type="radio" name="gaugeMode" value="afterHold" /> After modeled long hold</label>
           </div>
           
           <div class="stat-row stat-row-detail" id="renderStats"></div>
@@ -97,10 +106,10 @@
       </details>
 
       <details class="expand-section">
-        <summary>How fast tenderness builds (chart)</summary>
+        <summary>Render rate vs steady probe temp</summary>
         <div class="expand-body">
           <article class="card">
-            <p class="card-desc">Higher internal temp → more % per hour at steady temp</p>
+            <p class="card-desc">Steady internal temp → modeled % collagen render per hour</p>
             <canvas id="rateChart" height="220"></canvas>
             <div class="chart-marker" id="chartMarker"></div>
           </article>
@@ -108,10 +117,10 @@
       </details>
 
       <details class="expand-section">
-        <summary>Rough shape of a brisket day</summary>
+        <summary>Typical brisket timeline (illustrative)</summary>
         <div class="expand-body">
           <article class="card timeline-card">
-            <p class="card-desc">~10–12 hr on the pit, then hold — not a schedule</p>
+            <p class="card-desc">~10–12 hr on the cooker, then hot hold — not a substitute for your cook log</p>
             <div class="timeline" id="cookTimeline"></div>
             <div class="stall-band">
               <span class="stall-label">Stall zone</span>
@@ -122,23 +131,23 @@
       </details>
 
       <details class="expand-section">
-        <summary>Quick notes (smoke myth, probe feel, default temps)</summary>
+        <summary>Pit reminders (smoke, probe, default hold)</summary>
         <div class="expand-body info-cards">
           <div class="info-card">
-            <h3>Your default plan</h3>
-            <p>Pull around <strong id="refPull"></strong>, wrap, hold at <strong id="refHold"></strong> for about <strong>18 hr</strong>.</p>
-            <button type="button" class="btn-ghost" id="applyLongHold">Open hold planner with these temps</button>
-            <button type="button" class="btn-ghost" id="openCookPlan">My cook plan</button>
+            <h3>Reference hold plan</h3>
+            <p>Pull ~<strong id="refPull"></strong>, wrap, hot hold <strong id="refHold"></strong> — often <strong>12–18 hr</strong> in the model.</p>
+            <button type="button" class="btn-ghost" id="applyLongHold">Load into Hold box</button>
+            <button type="button" class="btn-ghost" id="openCookPlan">Cook sheet</button>
           </div>
           <div class="info-card">
-            <h3>Smoke keeps going</h3>
-            <p>Meat still takes smoke above 60 °C (140 °F) — the “smoke stops at 140” thing is a myth.</p>
+            <h3>Smoke past 140&nbsp;°F</h3>
+            <p>Smoke ring chemistry ≠ smoke flavor stopping at 60&nbsp;°C (140&nbsp;°F). Pellet/wood flavor still develops with airflow and bark.</p>
           </div>
           <div class="info-card">
-            <h3>Probe feel</h3>
-            <p>From ~82 °C (180 °F), poke the flat. You want <strong>soft butter</strong>, not jelly.</p>
-            <button type="button" class="btn-ghost" id="openGuide">More notes</button>
-            <button type="button" class="btn-ghost" id="openRecipes">Cook methods</button>
+            <h3>Probe the flat</h3>
+            <p>From ~82&nbsp;°C (180&nbsp;°F), you want <strong>glide-in butter</strong> on the flat — not mush, not cold resistance.</p>
+            <button type="button" class="btn-ghost" id="openGuide">Pit notes</button>
+            <button type="button" class="btn-ghost" id="openRecipes">Techniques</button>
           </div>
         </div>
       </details>
@@ -148,7 +157,7 @@
       <header class="science-hero">
         <h2 id="scienceTitle">Why 90.5 °C pull beats 95 °C</h2>
         <p class="science-title-alt" id="scienceTitleAlt">(195 °F vs 203 °F)</p>
-        <p class="science-sub">Read this once before your cook: pull earlier, finish tenderness slowly in the hold — keeps more juice.</p>
+        <p class="science-sub">Pull-and-hold: render on the grate, finish collagen in the hot box — less moisture loss than riding to 203&nbsp;°F on smoke.</p>
       </header>
 
       <div class="science-focus">
@@ -179,7 +188,7 @@
             
             <div class="compare-cards" id="comparePulls"></div>
           </div>
-          <button type="button" class="btn-ghost btn-wide" id="scienceToHold">Plan a hold with these temps</button>
+          <button type="button" class="btn-ghost btn-wide" id="scienceToHold">Open Hold box with these temps</button>
         </article>
 
         <details class="expand-section">
@@ -232,14 +241,14 @@
     <section id="panel-hold" class="panel">
       <div class="grid-2">
         <article class="card">
-          <h2>How long in the hold?</h2>
-          <p class="card-desc">Pick a preset or dial in your own temps</p>
+          <h2>Hot-box hours</h2>
+          <p class="card-desc">Presets (juicy / in-between / hotter pull) or your own pull &amp; hold temps</p>
           <div class="profile-picker" id="profilePicker"></div>
           <div class="preset-row preset-row-secondary">
             <button type="button" class="btn-preset" data-pull="76.5" data-hold="76.5">Stall rescue (~76.5 °C)</button>
           </div>
           <div class="field">
-            <label for="pullTemp">Temp when you take it off the pit</label>
+            <label for="pullTemp">Pull temp (probe in flat)</label>
             
             <div class="input-row">
               <input type="number" id="pullTemp" value="76.5" step="0.5" min="55" max="99" />
@@ -247,21 +256,21 @@
             </div>
           </div>
           <div class="field">
-            <label for="holdTemp">Hold box / oven temp</label>
+            <label for="holdTemp">Hot hold (cambro / oven / CVAP)</label>
             <div class="input-row">
               <input type="number" id="holdTemp" value="76.5" step="0.5" min="57" max="90" />
               <span class="field-unit">°C <span class="temp-f-inline">(°F)</span></span>
             </div>
           </div>
           <div class="field">
-            <label for="targetPercent">How “done inside” you want (usually 100%)</label>
+            <label for="targetPercent">Target collagen render % (usually 100)</label>
             <input type="number" id="targetPercent" value="100" min="80" max="120" step="5" />
           </div>
         </article>
         <article class="card result-card">
-          <h2>Answer</h2>
+          <h2>Hold time</h2>
           <div id="holdResults" class="hold-results">
-            <p class="placeholder">Pick temps above — you’ll get hold hours here.</p>
+            <p class="placeholder">Set pull + hold — modeled hours to target render appears here.</p>
           </div>
           <details class="expand-section" id="holdDetailsExpand">
             <summary>See the breakdown</summary>
@@ -269,7 +278,7 @@
               
               <div id="holdBreakdown"></div>
               <div class="carry-viz" id="carryViz" hidden>
-                <h3>While it cools on the way to hold temp</h3>
+                <h3>Carry-over while the pack cools to hold temp</h3>
                 <div class="carry-steps" id="carrySteps"></div>
               </div>
             </div>
@@ -280,8 +289,8 @@
 
     <section id="panel-plan" class="panel">
       <header class="guide-hero plan-hero">
-        <h2>My cook plan</h2>
-        <p class="guide-sub">Screenshot or copy before cook day. Use <strong>In between</strong> on Plan a hold if you want the midpoint between juicy and hotter pull.</p>
+        <h2>Cook sheet</h2>
+        <p class="guide-sub">Screenshot or copy for the pit — fridge-door friendly. Try <strong>In between</strong> on Hold box for midpoint between 195&nbsp;°F and 203&nbsp;°F pull styles.</p>
         <div class="plan-toolbar">
           <button type="button" class="btn-ghost" id="copyPlan">Copy plan</button>
           <button type="button" class="btn-ghost" id="refreshPlan">Refresh</button>
@@ -294,14 +303,14 @@
 
     <section id="panel-rest" class="panel">
       <header class="guide-hero">
-        <h2>What happens while it sits?</h2>
-        <p class="guide-sub">Optional deep-dive: pulled hot → counter vs cambro vs fridge for X hours.</p>
+        <h2>Rest &amp; hold curve</h2>
+        <p class="guide-sub">Pulled hot → cambro, counter, or fridge: modeled temp drift and extra render %.</p>
       </header>
       <div class="grid-2">
         <article class="card">
           <h3>Your scenario</h3>
           <div class="field">
-            <label for="restStartTemp">Meat temp when it comes off the pit (°C)</label>
+            <label for="restStartTemp">Temp when it leaves the cooker (°C)</label>
             <div class="input-row">
               <input type="number" id="restStartTemp" value="90.5" step="0.5" min="40" max="100" />
               <button type="button" class="btn-ghost" id="restUseDashboard">Same as slider</button>
@@ -343,18 +352,18 @@
     <section id="panel-yield" class="panel">
       <div class="grid-2">
         <article class="card">
-          <h2>How much meat is left?</h2>
+          <h2>Yield after trim &amp; cook</h2>
           <div class="field">
             <label for="startWeight">Raw weight (kg)</label>
             <input type="number" id="startWeight" value="6" min="1" max="20" step="0.1" />
             <span class="hint" id="weightLbHint"></span>
           </div>
           <div class="field">
-            <label for="grade">Köttklass (EU/Sverige)</label>
+            <label for="grade">Marbling grade (EU labels, US equivalent in details)</label>
             <select id="grade"></select>
           </div>
           <div class="field">
-            <label for="lossPercent">How much weight you lose in the cook</label>
+            <label for="lossPercent">Cook shrink % (trim + moisture + render)</label>
             <input type="range" id="lossPercent" min="30" max="43" value="35" class="slider-ember" />
             <output id="lossDisplay">35%</output>
           </div>
@@ -383,8 +392,8 @@
 
     <section id="panel-guide" class="panel">
       <header class="guide-hero">
-        <h2>Your notes &amp; techniques</h2>
-        <p class="guide-sub">Saved ideas from videos and your cooks — read when planning, not at the pit.</p>
+        <h2>Pit notes</h2>
+        <p class="guide-sub">Wrap, bark, fuel, and hold notes — for planning, not mid-cook scrolling.</p>
       </header>
       <nav class="guide-nav" id="guideNav" aria-label="Guide sections"></nav>
       <div class="guide-sections" id="guideSections"></div>
@@ -392,16 +401,16 @@
 
     <section id="panel-recipes" class="panel">
       <header class="guide-hero">
-        <h2>Ways to cook it</h2>
-        <p class="guide-sub">Foil boat, long hold, confit, reverse smoke, pork loin log — pick one to study.</p>
+        <h2>Techniques</h2>
+        <p class="guide-sub">Foil boat, long hold, confit, reverse smoke, pork loin log — cross-check against your rig.</p>
       </header>
       <div class="recipe-grid" id="recipeGrid"></div>
     </section>
 
     <section id="panel-reference" class="panel">
       <article class="card">
-        <h2>Temperature table</h2>
-        <p class="card-desc">Each hour at steady internal temp adds the % in the last column. “Done” band ≈ <strong>80–120%</strong> total.</p>
+        <h2>Render table</h2>
+        <p class="card-desc">Steady probe temp → modeled % render per hour. Slice-ready band ≈ <strong>80–120%</strong> total render.</p>
         <div class="reference-preview-wrap">
           <div class="table-wrap">
             <table class="data-table" id="stageTablePreview">
@@ -449,8 +458,9 @@
     </section>
   </main>
 
-  <footer>
-    <p>Study tool for brisket &amp; smoke · °C (°F) · Swedish köttklass on yield tab</p>
+  <footer class="site-footer">
+    <p>Smoke Lab — brisket pull-and-hold model · °C (°F) · Free to share · Probe + feel always win</p>
+    <p class="footer-fine">Educational model inspired by long-hold brisket science (e.g. pull-and-hold masterclass style). Not affiliated with Smoke Trails BBQ or any channel.</p>
   </footer>
 
   <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>

@@ -156,21 +156,21 @@ function gaugeZone(percent) {
   if (percent < 40) {
     return {
       id: "pit",
-      label: "Keep smoking",
-      hint: "Not enough tenderness built yet — leave it on the pit.",
+      label: "On smoke",
+      hint: "Low render % — flat still needs time on the cooker.",
     };
   }
   if (percent < 80) {
     return {
       id: "hold",
-      label: "Hold overnight",
-      hint: "Normal for a 90.5 °C pull — wrap and finish in the cambro (~65.5 °C).",
+      label: "Wrap & hold",
+      hint: "Typical after a ~90.5 °C (195 °F) pull — finish in the hot box (~65 °C / 150 °F).",
     };
   }
   return {
     id: "tender",
-    label: "Slice nicely",
-    hint: "In the model this is the slice window — you can still eat tender brisket earlier.",
+    label: "Slice window",
+    hint: "Modeled slice-ready band — rest and probe still decide when you cut.",
   };
 }
 
@@ -254,8 +254,19 @@ function debounce(fn, ms) {
   };
 }
 
+function showPagesSetupBanner() {
+  const el = $("pagesSetupBanner");
+  if (el) el.hidden = false;
+}
+
 async function loadData() {
-  const data = await apiGet("/api/data");
+  let data;
+  try {
+    data = await apiGet("/api/data");
+  } catch (err) {
+    if (USE_STATIC_API) showPagesSetupBanner();
+    throw err;
+  }
   state.stages = data.stages;
   state.grades = data.grades;
   state.constants = data.constants;
@@ -339,7 +350,7 @@ function initChart() {
       labels,
       datasets: [
         {
-          label: "% tenderness per hour",
+          label: "% collagen render / hr",
           data: values,
           borderColor: "#e85d04",
           backgroundColor: "rgba(232, 93, 4, 0.15)",
@@ -447,7 +458,7 @@ async function updateRendering() {
   $("renderStats").innerHTML = `
     <div class="stat"><span class="stat-label">Speed at this temp</span><span class="stat-value">+${stage.percentPerHour}% / hour</span></div>
     <div class="stat"><span class="stat-label">OK to eat?</span><span class="stat-value ${ready.eat.cls}">${ready.eat.text}</span></div>
-    <div class="stat stat-span-2"><span class="stat-label">Remember</span><span class="stat-value hold">A 90.5 °C pull often shows ~40% here — that’s <em>on purpose</em>. The hold finishes the job.</span></div>
+    <div class="stat stat-span-2"><span class="stat-label">Pull-and-hold</span><span class="stat-value hold">~40% at 90.5&nbsp;°C (195&nbsp;°F) is expected — hot hold finishes the flat.</span></div>
   `;
 
   const chartNote =
@@ -492,8 +503,8 @@ async function updateHold() {
   const holdNum = typeof holdHrs === "number" ? holdHrs.toFixed(1) : holdHrs;
   $("holdResults").innerHTML = `
             <div class="big-number">${holdNum} hr</div>
-    <p class="hold-answer-lead">in the hold box at ${tempHtml(hold)} until ~${target}% tenderness (model)</p>
-    <button type="button" class="btn-ghost btn-wide plan-goto-btn">Open My cook plan →</button>
+    <p class="hold-answer-lead">in hot hold at ${tempHtml(hold)} until ~${target}% modeled render</p>
+    <button type="button" class="btn-ghost btn-wide plan-goto-btn">Open cook sheet →</button>
   `;
   $("holdResults").querySelector(".plan-goto-btn")?.addEventListener("click", () => goToTab("plan"));
 
@@ -1101,7 +1112,7 @@ function renderProfilePicker() {
   }
 
   container.innerHTML = `
-    <p class="profile-picker-lead">Study preset — fills pull, hold, shrink, and the Start here slider.</p>
+    <p class="profile-picker-lead">Pull style presets — sets pull, hot hold, shrink %, and syncs the Pull planner slider.</p>
     <div class="profile-row" role="group" aria-label="Cook presets">
       ${state.profiles
         .map((p) => {
@@ -1290,7 +1301,7 @@ async function fetchYieldPlan(kg, grade, loss) {
 }
 
 function buildPlanPlainText(parts, profileName) {
-  const lines = ["SMOKE LAB — MY COOK PLAN"];
+  const lines = ["SMOKE LAB — BRISKET COOK SHEET"];
   if (profileName) lines.push(`Preset: ${profileName}`);
   lines.push(
     "",
@@ -1306,7 +1317,7 @@ function buildPlanPlainText(parts, profileName) {
     "",
     "PULL OFF",
     `• Internal ${parts.pullTemp} — ~${parts.tendernessPull}% tenderness built`,
-    `• Probe: soft butter, not mush`,
+    `• Probe: glide-in butter on the flat — not mush`,
     "",
     "HOLD",
     `• ${parts.holdWhere} at ${parts.holdTemp}`,
@@ -1391,9 +1402,9 @@ async function updatePlanSummary() {
 
   sheet.innerHTML = `
     <article class="plan-block plan-block-highlight">
-      <h3>Your brisket day in one glance ${profileBadge}</h3>
+      <h3>Brisket cook sheet ${profileBadge}</h3>
       <p class="plan-lead">${meatRaw} raw → about <strong>${yieldData.cookedKg.toFixed(1)} kg</strong> cooked · pull ${tempHtml(pull)} · hold ${tempHtml(hold)} · <strong>${holdHoursText}</strong></p>
-      ${activeProfile?.isBetween ? `<p class="hint">In-between preset: midpoint between juicy (90.5 °C) and hotter pull (95 °C).</p>` : ""}
+      ${activeProfile?.isBetween ? `<p class="hint">In-between: midpoint between 195&nbsp;°F juicy pull and 203&nbsp;°F grate-done pull.</p>` : ""}
     </article>
 
     <article class="plan-block plan-checklist-block">

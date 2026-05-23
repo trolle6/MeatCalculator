@@ -73,6 +73,39 @@ footer {
   filter: drop-shadow(0 0 8px rgba(232, 93, 4, 0.5));
 }
 
+.pages-setup-banner {
+  position: relative;
+  z-index: 2;
+  max-width: 1100px;
+  margin: 0 auto 0.75rem;
+  padding: 0.75rem 1.25rem;
+  background: rgba(230, 57, 70, 0.15);
+  border: 1px solid var(--danger);
+  border-radius: var(--radius);
+  font-size: 0.9rem;
+}
+
+.pages-setup-banner a {
+  color: var(--gold);
+}
+
+.pages-setup-banner code {
+  font-family: var(--mono);
+  font-size: 0.85em;
+}
+
+.site-footer {
+  text-align: center;
+  padding-bottom: 2rem;
+}
+
+.site-footer .footer-fine {
+  font-size: 0.8rem;
+  color: var(--muted);
+  max-width: 42rem;
+  margin: 0.5rem auto 0;
+}
+
 .brand h1 {
   margin: 0;
   font-size: 1.5rem;
