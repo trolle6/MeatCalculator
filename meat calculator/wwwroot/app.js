@@ -90,7 +90,8 @@ document.querySelectorAll(".tab").forEach((tab) => {
     document.querySelectorAll(".tab").forEach((t) => t.classList.remove("active"));
     document.querySelectorAll(".panel").forEach((p) => p.classList.remove("active"));
     tab.classList.add("active");
-    $(`panel-${tab.dataset.panel}`).classList.add("active");
+    const panel = document.getElementById(`panel-${tab.dataset.panel}`);
+    if (panel) panel.classList.add("active");
     if (tab.dataset.panel === "plan") updatePlanSummary();
   });
 });
@@ -1332,7 +1333,8 @@ function buildPlanPlainText(parts, profileName) {
     "",
     "DAY-OF CHECKLIST",
     ...parts.checklist.map((c) => `☐ ${c}`),
-  ].join("\n");
+  );
+  return lines.join("\n");
 }
 
 async function updatePlanSummary() {
