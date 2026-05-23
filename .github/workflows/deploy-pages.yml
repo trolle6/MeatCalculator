@@ -25,6 +25,9 @@ jobs:
       - name: Build
         run: dotnet build "meat calculator/meat calculator.csproj" -c Release
 
+      - name: Lint client script
+        run: node --check "meat calculator/wwwroot/app.js"
+
       - name: Export static site + API JSON
         run: |
           set -e
@@ -51,6 +54,12 @@ jobs:
 
           kill $PID 2>/dev/null || true
           wait $PID 2>/dev/null || true
+
+      - name: Verify exported API JSON
+        run: |
+          test -s _site/api/data.json
+          test -s _site/api/profiles.json
+          node -e "JSON.parse(require('fs').readFileSync('_site/api/data.json','utf8'))"
 
       - name: Publish to gh-pages branch
         uses: peaceiris/actions-gh-pages@v4

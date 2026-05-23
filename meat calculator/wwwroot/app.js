@@ -18,6 +18,14 @@ const state = {
 
 const $ = (id) => document.getElementById(id);
 
+function debounce(fn, ms) {
+  let timer;
+  return (...args) => {
+    clearTimeout(timer);
+    timer = setTimeout(() => fn(...args), ms);
+  };
+}
+
 /** GitHub Pages = static files only; GET /api/* → prebuilt JSON, POST uses client math. */
 function getPagesBase() {
   if (!location.hostname.endsWith("github.io")) return "";
@@ -63,20 +71,194 @@ function clientRenderingAt(tempC) {
 const cToF = (c) => (c * 9) / 5 + 32;
 const fToC = (f) => ((f - 32) * 5) / 9;
 
-function loadUnitPrefs() {
+const COOK_STORAGE_KEY = "smokeLabCook";
+const PROFILE_IDS = new Set(["juicy", "balanced", "traditional"]);
+let cookStateRestoring = false;
+
+function migrateCookStorage() {
   try {
-    const u = JSON.parse(localStorage.getItem("smokeLabUnits") || "{}");
+    const legacy = JSON.parse(localStorage.getItem("smokeLabUnits") || "{}");
+    const cur = JSON.parse(localStorage.getItem(COOK_STORAGE_KEY) || "{}");
+    if ((legacy.weight === "kg" || legacy.weight === "lb") && !cur.weight) {
+      cur.weight = legacy.weight;
+      localStorage.setItem(COOK_STORAGE_KEY, JSON.stringify(cur));
+    }
+  } catch {
+    /* ignore */
+  }
+}
+
+function loadUnitPrefs() {
+  migrateCookStorage();
+  try {
+    const u = JSON.parse(localStorage.getItem(COOK_STORAGE_KEY) || "{}");
     if (u.weight === "kg" || u.weight === "lb") state.weightUnit = u.weight;
   } catch {
     /* ignore */
   }
 }
 
+function collectCookState() {
+  const loss = parseFloat($("lossPercent")?.value);
+  const target = parseFloat($("targetPercent")?.value);
+  return {
+    weight: state.weightUnit,
+    pull: tempInputValueC($("pullTemp")),
+    hold: tempInputValueC($("holdTemp")),
+    probe: getSliderTempC(),
+    kg: readWeightKg(),
+    loss: Number.isFinite(loss) ? loss : 35,
+    target: Number.isFinite(target) ? target : 100,
+    profile: state.activeProfileId || detectActiveProfileId() || null,
+    grade: $("grade")?.value || "fk34",
+  };
+}
+
+function saveCookPrefs() {
+  if (cookStateRestoring) return;
+  try {
+    localStorage.setItem(COOK_STORAGE_KEY, JSON.stringify(collectCookState()));
+  } catch {
+    /* ignore quota */
+  }
+}
+
+const saveCookPrefsDebounced = debounce(saveCookPrefs, 400);
+
 function saveUnitPrefs() {
-  localStorage.setItem(
-    "smokeLabUnits",
-    JSON.stringify({ weight: state.weightUnit })
+  saveCookPrefs();
+}
+
+function cookStateToSearchParams() {
+  const s = collectCookState();
+  const p = new URLSearchParams();
+  p.set("pull", s.pull.toFixed(1));
+  p.set("hold", s.hold.toFixed(1));
+  if (Math.abs(s.probe - s.pull) > 0.05) p.set("probe", s.probe.toFixed(1));
+  p.set("kg", s.kg.toFixed(1));
+  p.set("loss", String(Math.round(s.loss)));
+  if (s.target !== 100) p.set("target", String(Math.round(s.target)));
+  if (s.profile && PROFILE_IDS.has(s.profile)) p.set("profile", s.profile);
+  if (s.weight === "lb") p.set("weight", "lb");
+  if (s.grade && s.grade !== "fk34") p.set("grade", s.grade);
+  return p;
+}
+
+function parseUrlCookState() {
+  const p = new URLSearchParams(location.search);
+  if (!p.toString()) return null;
+
+  const tab = p.get("tab");
+  const validTab = ["dashboard", "hold", "plan", "yield"].includes(tab) ? tab : null;
+
+  const hasCook = ["pull", "hold", "kg", "loss", "profile", "probe", "weight", "target", "grade"].some(
+    (k) => p.has(k)
   );
+  if (!hasCook) return validTab ? { tab: validTab } : null;
+
+  const data = { tab: validTab };
+  const pull = parseFloat(p.get("pull"));
+  const hold = parseFloat(p.get("hold"));
+  const probe = parseFloat(p.get("probe"));
+  const kg = parseFloat(p.get("kg"));
+  const loss = parseFloat(p.get("loss"));
+  const target = parseFloat(p.get("target"));
+  const w = p.get("weight");
+  const profile = p.get("profile");
+  const grade = p.get("grade");
+
+  if (w === "kg" || w === "lb") data.weight = w;
+  if (Number.isFinite(pull) && pull >= 55 && pull <= 99) data.pull = pull;
+  if (Number.isFinite(hold) && hold >= 57 && hold <= 90) data.hold = hold;
+  if (Number.isFinite(probe) && probe >= 55 && probe <= 99) data.probe = probe;
+  if (Number.isFinite(kg) && kg > 0 && kg < 50) data.kg = kg;
+  if (Number.isFinite(loss) && loss >= 30 && loss <= 43) data.loss = loss;
+  if (Number.isFinite(target) && target >= 80 && target <= 120) data.target = target;
+  if (profile && PROFILE_IDS.has(profile)) data.profile = profile;
+  if (grade) data.grade = grade;
+
+  return data;
+}
+
+function parseStoredCookState() {
+  migrateCookStorage();
+  try {
+    const u = JSON.parse(localStorage.getItem(COOK_STORAGE_KEY) || "{}");
+    if (!u || typeof u !== "object") return null;
+    if (
+      u.pull == null &&
+      u.hold == null &&
+      u.kg == null &&
+      u.loss == null &&
+      !u.profile
+    ) {
+      return null;
+    }
+    return u;
+  } catch {
+    return null;
+  }
+}
+
+function applyCookState(data) {
+  if (!data) return;
+  cookStateRestoring = true;
+  try {
+    if (data.weight === "kg" || data.weight === "lb") state.weightUnit = data.weight;
+
+    if (data.profile && PROFILE_IDS.has(data.profile)) {
+      applyCookProfile(data.profile);
+      if (data.kg != null) configureWeightInput({ kg: data.kg });
+      if (data.grade && $("grade")) $("grade").value = data.grade;
+    } else {
+      if (data.kg != null) configureWeightInput({ kg: data.kg });
+      else configureWeightInput();
+      if (data.pull != null) setTempInputFromC($("pullTemp"), data.pull);
+      if (data.hold != null) setTempInputFromC($("holdTemp"), data.hold);
+      const probe = data.probe ?? data.pull;
+      if (probe != null && $("tempSlider")) {
+        $("tempSlider").dataset.c = String(probe);
+        $("tempSlider").value = Number(probe).toFixed(1);
+      }
+      if (data.loss != null && $("lossPercent")) {
+        $("lossPercent").value = data.loss;
+        $("lossDisplay").textContent = `${data.loss}%`;
+      }
+      if (data.target != null && $("targetPercent")) $("targetPercent").value = data.target;
+      if (data.grade && $("grade")) $("grade").value = data.grade;
+      syncProbeSliderUnits();
+      onTempSliderInput();
+      syncActiveProfileUI();
+      updateHold();
+      void updateYield();
+    }
+
+    if (data.tab) goToTab(data.tab);
+  } finally {
+    cookStateRestoring = false;
+    saveCookPrefs();
+  }
+}
+
+function restoreCookStateAfterLoad() {
+  const fromUrl = parseUrlCookState();
+  if (fromUrl) {
+    applyCookState(fromUrl);
+    return;
+  }
+  const stored = parseStoredCookState();
+  if (stored) applyCookState(stored);
+}
+
+function wireCookStatePersistence() {
+  const save = () => saveCookPrefsDebounced();
+  ["pullTemp", "holdTemp", "targetPercent", "lossPercent", "grade", "startWeight"].forEach((id) => {
+    const el = $(id);
+    if (!el) return;
+    el.addEventListener("input", save);
+    el.addEventListener("change", save);
+  });
+  $("tempSlider")?.addEventListener("change", save);
 }
 
 function formatWeight(kg, { showBoth = false } = {}) {
@@ -230,12 +412,22 @@ function setTempHtml(el, c, opts) {
   el.innerHTML = tempHtml(c, opts);
 }
 
+function gradeRefsLine(g) {
+  const uk = g.ukReference ?? g.gradeUk;
+  const jp = g.japanReference ?? g.gradeJapan;
+  const parts = [uk, jp].filter(Boolean);
+  return parts.length ? parts.join(" · ") : "";
+}
+
 function gradeLabel(g, { forSelect = false } = {}) {
-  const fat = `${g.marblingMin}–${g.marblingMax}% innanfett`;
+  const fat = `${g.marblingMin}–${g.marblingMax}% intramuscular fat`;
+  const refs = gradeRefsLine(g);
   if (forSelect) {
-    return `${g.name} (${g.americanName}) — ${fat}`;
+    return refs ? `${g.name} — ${fat} (${refs})` : `${g.name} — ${fat}`;
   }
-  return `${g.name} <span class="grade-us">(${g.americanName})</span>`;
+  return refs
+    ? `${g.name} <span class="grade-ref">${refs}</span>`
+    : g.name;
 }
 
 // Tabs
@@ -418,14 +610,6 @@ function setGaugeMode(mode) {
   updateRendering();
 }
 
-function debounce(fn, ms) {
-  let timer;
-  return (...args) => {
-    clearTimeout(timer);
-    timer = setTimeout(() => fn(...args), ms);
-  };
-}
-
 function showPagesSetupBanner() {
   const el = $("pagesSetupBanner");
   if (el) el.hidden = false;
@@ -488,7 +672,7 @@ function buildGradeBars() {
       <div class="grade-track">
         <div class="grade-fill" style="left:${g.marblingMin * 5}%; width:${(g.marblingMax - g.marblingMin) * 5}%"></div>
       </div>
-      <div class="grade-range">${g.marblingMin}% – ${g.marblingMax}% innanfett (marmorering)</div>
+      <div class="grade-range">${g.marblingMin}% – ${g.marblingMax}% intramuscular fat · ${gradeRefsLine(g)}</div>
     </div>`
     )
     .join("");
@@ -767,8 +951,9 @@ async function updateYield() {
   $("yieldEnd").textContent = formatWeight(y.cookedKg);
 
   $("yieldStats").innerHTML = `
-    <div><dt>Köttklass</dt><dd>${y.grade} <span class="grade-us">(${y.gradeAmerican})</span></dd></div>
-    <div><dt>Innanfett</dt><dd>${y.marblingMin}–${y.marblingMax}%</dd></div>
+    <div><dt>Grade</dt><dd>${y.grade}</dd></div>
+    <div><dt>Marbling band</dt><dd>${y.marblingMin}–${y.marblingMax}% intramuscular fat</dd></div>
+    <div><dt>UK / Japan (ref.)</dt><dd>${[y.gradeUk, y.gradeJapan].filter(Boolean).join(" · ") || "—"}</dd></div>
     <div><dt>Weight lost</dt><dd>${formatWeight(y.lostKg)}</dd></div>
     <div><dt>Raw water content</dt><dd>~${y.waterContentPercent}%</dd></div>
     <div><dt>Typical loss band</dt><dd>30–43%</dd></div>
@@ -1394,6 +1579,7 @@ function applyCookProfile(id) {
   updateHold();
   updateYield();
   updatePlanSummaryDebounced();
+  saveCookPrefsDebounced();
 }
 
 function detectActiveProfileId() {
@@ -1499,7 +1685,8 @@ async function fetchYieldPlan(kg, grade, loss) {
     cookedKg: cooked,
     lostKg: kg - cooked,
     grade: g?.name ?? grade,
-    gradeAmerican: g?.americanName ?? "",
+    gradeUk: g?.ukReference ?? "",
+    gradeJapan: g?.japanReference ?? "",
     marblingMin: g?.marblingMin,
     marblingMax: g?.marblingMax,
     waterContentPercent: 70,
@@ -1575,7 +1762,8 @@ async function updatePlanSummary() {
 
   const meatRaw = formatWeight(yieldData.startKg, { showBoth: true });
   const meatCooked = formatWeight(yieldData.cookedKg, { showBoth: true });
-  const gradeLine = `${yieldData.grade}${yieldData.gradeAmerican ? ` (${yieldData.gradeAmerican})` : ""}`;
+  const gradeRefs = [yieldData.gradeUk, yieldData.gradeJapan].filter(Boolean).join(" · ");
+  const gradeLine = gradeRefs ? `${yieldData.grade} (${gradeRefs})` : yieldData.grade;
 
   const checklist = [
     `Trim & season the night before (dry brine if you use it)`,
@@ -1703,7 +1891,9 @@ async function updatePlanSummary() {
 function getShareUrl() {
   const path = location.pathname.replace(/index\.html$/i, "");
   const normalized = path.endsWith("/") ? path : `${path}/`;
-  return `${location.origin}${normalized}`;
+  const base = `${location.origin}${normalized}`;
+  const q = cookStateToSearchParams().toString();
+  return q ? `${base}?${q}` : base;
 }
 
 async function copyShareLink(triggerBtn) {
@@ -1814,6 +2004,9 @@ loadData()
   )
   .then(() => {
     applyUnitPrefs();
+    restoreCookStateAfterLoad();
     return refreshAllForUnits({ weight: true });
   })
   .catch(console.error);
+
+wireCookStatePersistence();

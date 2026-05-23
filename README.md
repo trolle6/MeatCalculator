@@ -1,6 +1,20 @@
 # Smoke Lab (Meat Calculator)
 
-Brisket learning app: collagen rendering, pull-and-hold planning, yield, and a printable cook plan. Built with **ASP.NET Core 8** and a static UI in `meat calculator/wwwroot/`.
+**Live app:** [https://trolle6.github.io/MeatCalculator/](https://trolle6.github.io/MeatCalculator/)
+
+Free brisket **pull-and-hold planner**: probe render %, hot-box hours, weight/shrink, and a printable cook sheet. Built with **ASP.NET Core 8** and a static UI in `meat calculator/wwwroot/`.
+
+![Smoke Lab — probe temp and cook plan](meat%20calculator/wwwroot/og-image.png)
+
+## How to use (3 steps)
+
+1. **Probe** — drag to your flat probe temp; see modeled tenderness at pull.
+2. **Hold** — pick Juicy / In between / Hotter (or type pull + hold); get hot-box hours.
+3. **Plan** — copy or print the one-page cook sheet for the fridge door.
+
+Set **Weight** (Setup tab) before you print the plan. **Reference** tabs (Why 195?, Notes, Tables, etc.) are for reading before or after the cook — not mid-smoke checklists.
+
+**Copy link** in the header shares your current temps and weight in the URL. The model is for **planning only** — probe and feel on your cooker always win.
 
 ## Run locally (full API)
 
@@ -12,8 +26,6 @@ dotnet run
 Open **http://localhost:5180** (or the URL shown in the terminal).
 
 ## Live on the web (GitHub Pages)
-
-**https://trolle6.github.io/MeatCalculator/**
 
 GitHub Pages cannot run ASP.NET. On each push to `main`, Actions builds the app, exports `/api/*` to JSON, and pushes a static site to the **`gh-pages`** branch.
 

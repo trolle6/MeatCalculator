@@ -318,6 +318,7 @@ footer {
 
 .temp-f,
 .temp-f-inline,
+.grade-ref,
 .grade-us,
 .science-title-alt {
   color: var(--smoke);
@@ -380,6 +381,7 @@ footer {
   font-weight: 500;
 }
 
+.grade-ref,
 .grade-us {
   font-size: 0.8em;
 }
@@ -784,11 +786,17 @@ footer {
 
 @media print {
   .site-header,
+  .tab-nav,
+  .tab-group,
+  .unit-bar,
+  .unit-hint,
+  .header-actions,
   nav,
   .plan-toolbar,
   .plan-foot,
   footer,
-  .btn-tiny {
+  .btn-tiny,
+  .pages-setup-banner {
     display: none !important;
   }
 

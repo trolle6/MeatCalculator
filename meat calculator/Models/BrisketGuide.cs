@@ -21,7 +21,7 @@ public static class BrisketGuide
                 new("Raw brisket is ~70% water — stored primarily inside muscle fibres, not in the fat cap."),
                 new("Higher grades (Prime, or “Wangus” hybrids) carry ~8–13% intramuscular fat — that lubricates slices but does not replace moisture lost to overcook."),
                 new("USDA grade is scored on the ribeye (12th/13th rib), not the brisket. Inspect the flat through the wrap for thin white fat striations; solid red beef is lean regardless of the sticker.", "Inspection rule"),
-                new("Fettklass 2 / 3–4 / 4–5 map roughly to Select / Choice / Prime marbling bands."),
+                new("USDA Select / Choice / Prime are scored on the ribeye — not the brisket. UK fat class and Japan BMS (JMGA) are different systems; use them as rough marbling references only."),
                 new("Plan 30–40% cook shrink; even a juicy cook can approach ~43% loss on the scale.")
             ],
             "Yield tab — model trim + moisture + render from start weight."),

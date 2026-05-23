@@ -10,7 +10,8 @@ public sealed record RenderingStage(
 public sealed record GradeInfo(
     string Id,
     string Name,
-    string AmericanName,
+    string UkReference,
+    string JapanReference,
     double MarblingMin,
     double MarblingMax);
 
@@ -83,12 +84,12 @@ public static class BrisketData
     public const double HoldRecommendedMinC = 57;
     public const double HoldRecommendedMaxC = 60;
 
-    /// <summary>Swedish/EU carcass fat classes (fettklass), with USDA equivalents for reference.</summary>
+    /// <summary>USDA marbling bands (primary); UK fat class and Japan BMS shown as reference only.</summary>
     public static readonly GradeInfo[] Grades =
     [
-        new("fk2", "Fettklass 2", "Select", 2, 4),
-        new("fk34", "Fettklass 3–4", "Choice", 4, 10),
-        new("fk45", "Fettklass 4–5", "Prime", 8, 13)
+        new("fk2", "USDA Select", "UK fat class ~2", "Japan BMS ~2–3", 2, 4),
+        new("fk34", "USDA Choice", "UK fat class ~3–4", "Japan BMS ~4–6", 4, 10),
+        new("fk45", "USDA Prime", "UK fat class ~4–5", "Japan BMS ~8+", 8, 13)
     ];
 
     public static readonly RenderingStage[] RenderingStages =

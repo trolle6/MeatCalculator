@@ -76,12 +76,29 @@ public sealed class BrisketEngine
             renderedAtPull + carryOver + (holdRate > 0 ? holdHours * holdRate : 0));
     }
 
-    public static GradeInfo ResolveGrade(string? grade) =>
-        BrisketData.Grades.FirstOrDefault(g =>
-            g.Id.Equals(grade, StringComparison.OrdinalIgnoreCase) ||
-            g.Name.Equals(grade, StringComparison.OrdinalIgnoreCase) ||
-            g.AmericanName.Equals(grade, StringComparison.OrdinalIgnoreCase))
-        ?? BrisketData.Grades[1];
+    public static GradeInfo ResolveGrade(string? grade)
+    {
+        var normalized = NormalizeGradeKey(grade);
+        return BrisketData.Grades.FirstOrDefault(g =>
+            g.Id.Equals(normalized, StringComparison.OrdinalIgnoreCase) ||
+            g.Name.Equals(normalized, StringComparison.OrdinalIgnoreCase) ||
+            g.UkReference.Equals(normalized, StringComparison.OrdinalIgnoreCase) ||
+            g.JapanReference.Equals(normalized, StringComparison.OrdinalIgnoreCase))
+            ?? BrisketData.Grades[1];
+    }
+
+    static string NormalizeGradeKey(string? grade)
+    {
+        if (string.IsNullOrWhiteSpace(grade)) return "";
+        var key = grade.Trim();
+        return key.ToLowerInvariant() switch
+        {
+            "select" or "usda select" or "fettklass 2" => "fk2",
+            "choice" or "usda choice" or "fettklass 3–4" or "fettklass 3-4" => "fk34",
+            "prime" or "usda prime" or "fettklass 4–5" or "fettklass 4-5" => "fk45",
+            _ => key
+        };
+    }
 
     public YieldEstimate CalculateYield(double startWeightKg, string grade, double lossPercent)
     {
@@ -91,7 +108,8 @@ public sealed class BrisketEngine
             startWeightKg,
             gradeInfo.Id,
             gradeInfo.Name,
-            gradeInfo.AmericanName,
+            gradeInfo.UkReference,
+            gradeInfo.JapanReference,
             gradeInfo.MarblingMin,
             gradeInfo.MarblingMax,
             lossPercent,
@@ -161,7 +179,8 @@ public sealed record YieldEstimate(
     double StartKg,
     string GradeId,
     string Grade,
-    string GradeAmerican,
+    string GradeUk,
+    string GradeJapan,
     double MarblingMin,
     double MarblingMax,
     double LossPercent,
