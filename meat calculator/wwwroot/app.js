@@ -1,3 +1,5 @@
+const LB_PER_KG = 2.2046226218;
+
 const state = {
   stages: [],
   grades: [],
@@ -11,6 +13,8 @@ const state = {
   profiles: [],
   betweenNote: "",
   activeProfileId: null,
+  weightUnit: "kg",
+  tempUnit: "c",
 };
 
 const $ = (id) => document.getElementById(id);
@@ -58,17 +62,177 @@ function clientRenderingAt(tempC) {
 }
 
 const cToF = (c) => (c * 9) / 5 + 32;
+const fToC = (f) => ((f - 32) * 5) / 9;
 
-/** Primary °C, secondary (°F) for display */
-function tempHtml(c, { big = false } = {}) {
+function loadUnitPrefs() {
+  try {
+    const u = JSON.parse(localStorage.getItem("smokeLabUnits") || "{}");
+    if (u.weight === "kg" || u.weight === "lb") state.weightUnit = u.weight;
+    if (u.temp === "c" || u.temp === "f") state.tempUnit = u.temp;
+  } catch {
+    /* ignore */
+  }
+}
+
+function saveUnitPrefs() {
+  localStorage.setItem(
+    "smokeLabUnits",
+    JSON.stringify({ weight: state.weightUnit, temp: state.tempUnit })
+  );
+}
+
+function formatWeight(kg, { showBoth = false } = {}) {
+  const lb = kg * LB_PER_KG;
+  if (state.weightUnit === "lb") {
+    const main = `${lb.toFixed(1)} lb`;
+    return showBoth ? `${main} (${kg.toFixed(1)} kg)` : main;
+  }
+  const main = `${kg.toFixed(1)} kg`;
+  return showBoth ? `${main} (${lb.toFixed(1)} lb)` : main;
+}
+
+function readWeightKg() {
+  const raw = parseFloat($("startWeight")?.value);
+  const fallback = state.weightUnit === "lb" ? 13.2 : 6;
+  const v = Number.isFinite(raw) ? raw : fallback;
+  return state.weightUnit === "lb" ? v / LB_PER_KG : v;
+}
+
+function configureWeightInput({ kg: kgOverride } = {}) {
+  const el = $("startWeight");
+  if (!el) return;
+  const kg = kgOverride ?? readWeightKg();
+  const label = $("startWeightLabel");
+  if (state.weightUnit === "lb") {
+    el.min = "2";
+    el.max = "50";
+    el.step = "0.5";
+    el.value = (kg * LB_PER_KG).toFixed(1);
+    if (label) label.textContent = "Raw weight (lb)";
+  } else {
+    el.min = "1";
+    el.max = "20";
+    el.step = "0.1";
+    el.value = kg.toFixed(1);
+    if (label) label.textContent = "Raw weight (kg)";
+  }
+  const hint = $("weightAltHint");
+  if (hint) {
+    hint.textContent =
+      state.weightUnit === "lb" ? `≈ ${kg.toFixed(1)} kg` : `≈ ${(kg * LB_PER_KG).toFixed(1)} lb`;
+  }
+}
+
+function tempInputValueC(inputEl) {
+  if (!inputEl) return 90.5;
+  const n = parseFloat(inputEl.value);
+  if (!Number.isFinite(n)) return parseFloat(inputEl.dataset.c) || 90.5;
+  return state.tempUnit === "f" ? fToC(n) : n;
+}
+
+function setTempInputFromC(inputEl, c) {
+  if (!inputEl) return;
+  inputEl.dataset.c = String(c);
+  inputEl.value =
+    state.tempUnit === "f" ? cToF(c).toFixed(0) : Number(c).toFixed(1);
+}
+
+function syncFieldUnits() {
+  const primary = state.tempUnit === "f" ? "°F" : "°C";
+  const secondary = state.tempUnit === "f" ? "°C" : "°F";
+  document.querySelectorAll(".field-temp-unit").forEach((el) => {
+    el.innerHTML = `${primary} <span class="temp-f-inline">(${secondary})</span>`;
+  });
+}
+
+/** Primary unit follows header toggle; other unit in parentheses */
+function tempHtml(c, { big = false, showBoth = true } = {}) {
+  if (state.tempUnit === "f") {
+    const fStr = cToF(c).toFixed(0);
+    const fClass = big ? "temp-f" : "temp-f-inline";
+    const main = `<span class="temp-primary">${fStr} °F</span>`;
+    if (!showBoth) return main;
+    return `${main}<span class="${fClass}">(${Number(c).toFixed(1)} °C)</span>`;
+  }
   const cStr = Number(c).toFixed(1);
-  const fStr = cToF(c).toFixed(0);
   const fClass = big ? "temp-f" : "temp-f-inline";
-  return `<span class="temp-c">${cStr} °C</span><span class="${fClass}">(${fStr} °F)</span>`;
+  const main = `<span class="temp-c">${cStr} °C</span>`;
+  if (!showBoth) return main;
+  return `${main}<span class="${fClass}">(${cToF(c).toFixed(0)} °F)</span>`;
 }
 
 function tempText(c) {
+  if (state.tempUnit === "f") {
+    return `${cToF(c).toFixed(0)} °F (${Number(c).toFixed(1)} °C)`;
+  }
   return `${Number(c).toFixed(1)} °C (${cToF(c).toFixed(0)} °F)`;
+}
+
+function stallRangeText() {
+  if (state.tempUnit === "f") {
+    return "150–165 °F internal (65.5–74 °C)";
+  }
+  return "65.5–74 °C internal (150–165 °F)";
+}
+
+function updateUnitBar() {
+  document.querySelectorAll("[data-unit-weight]").forEach((btn) => {
+    btn.classList.toggle("active", btn.dataset.unitWeight === state.weightUnit);
+    btn.setAttribute("aria-pressed", btn.dataset.unitWeight === state.weightUnit);
+  });
+  document.querySelectorAll("[data-unit-temp]").forEach((btn) => {
+    btn.classList.toggle("active", btn.dataset.unitTemp === state.tempUnit);
+    btn.setAttribute("aria-pressed", btn.dataset.unitTemp === state.tempUnit);
+  });
+  const hint = $("unitHint");
+  if (hint) {
+    hint.textContent =
+      state.tempUnit === "f"
+        ? "°F first · °C in parentheses"
+        : "°C first · °F in parentheses";
+  }
+}
+
+function applyUnitPrefs() {
+  updateUnitBar();
+  configureWeightInput();
+  syncFieldUnits();
+  syncLabels();
+}
+
+function initUnits() {
+  loadUnitPrefs();
+  document.querySelectorAll("[data-unit-weight]").forEach((btn) => {
+    btn.addEventListener("click", () => {
+      const next = btn.dataset.unitWeight;
+      if (next === state.weightUnit) return;
+      const kg = readWeightKg();
+      state.weightUnit = next;
+      saveUnitPrefs();
+      configureWeightInput({ kg });
+      updateYield();
+      updatePlanSummaryDebounced();
+      updateUnitBar();
+    });
+  });
+  document.querySelectorAll("[data-unit-temp]").forEach((btn) => {
+    btn.addEventListener("click", () => {
+      const next = btn.dataset.unitTemp;
+      if (next === state.tempUnit) return;
+      ["pullTemp", "holdTemp", "restStartTemp", "restAmbient"].forEach((id) => {
+        const el = $(id);
+        if (el) el.dataset.c = String(tempInputValueC(el));
+      });
+      state.tempUnit = next;
+      saveUnitPrefs();
+      applyUnitPrefs();
+      const t = getSliderTempC();
+      updateFromTemp(t);
+      updateHold();
+      if (state.science) renderScience(state.science);
+    });
+  });
+  applyUnitPrefs();
 }
 
 function setTempHtml(el, c, opts) {
@@ -99,14 +263,19 @@ document.querySelectorAll(".tab").forEach((tab) => {
 function syncLabels() {
   setTempHtml($("refPull"), 90.5);
   setTempHtml($("refHold"), 65.5);
-  $("stallRange").textContent = "65.5–74 °C internal (150–165 °F)";
+  if ($("stallRange")) $("stallRange").textContent = stallRangeText();
 
   const pull = $("pullTemp");
   const hold = $("holdTemp");
-  if (!pull.dataset.c) pull.dataset.c = pull.value || 76.5;
-  if (!hold.dataset.c) hold.dataset.c = hold.value || 76.5;
-  pull.value = Number(pull.dataset.c).toFixed(1);
-  hold.value = Number(hold.dataset.c).toFixed(1);
+  if (pull && !pull.dataset.c) pull.dataset.c = "90.5";
+  if (hold && !hold.dataset.c) hold.dataset.c = "65.5";
+  if (pull) setTempInputFromC(pull, parseFloat(pull.dataset.c));
+  if (hold) setTempInputFromC(hold, parseFloat(hold.dataset.c));
+
+  const restStart = $("restStartTemp");
+  if (restStart && !restStart.dataset.c) {
+    setTempInputFromC(restStart, parseFloat(restStart.value) || 90.5);
+  }
 }
 
 // Gauge: semicircle 0–120% collagen rendered (pit → hold → tender)
@@ -452,16 +621,15 @@ async function updateRendering() {
   const compactEl = $("renderStatsCompact");
   if (compactEl) {
     compactEl.innerHTML = `
-    <div class="stat"><span class="stat-label">Tenderness built</span><span class="stat-value">${Math.round(displayPct)}%</span></div>
-    
-    <div class="stat"><span class="stat-label">OK to slice?</span><span class="stat-value ${ready.slice.cls}">${ready.slice.text}</span></div>
+    <div class="stat"><span class="stat-label">Done inside</span><span class="stat-value">${Math.round(displayPct)}%</span></div>
+    <div class="stat"><span class="stat-label">Ready to slice?</span><span class="stat-value ${ready.slice.cls}">${ready.slice.text}</span></div>
   `;
   }
 
   $("renderStats").innerHTML = `
     <div class="stat"><span class="stat-label">Speed at this temp</span><span class="stat-value">+${stage.percentPerHour}% / hour</span></div>
     <div class="stat"><span class="stat-label">OK to eat?</span><span class="stat-value ${ready.eat.cls}">${ready.eat.text}</span></div>
-    <div class="stat stat-span-2"><span class="stat-label">Pull-and-hold</span><span class="stat-value hold">~40% at 90.5&nbsp;°C (195&nbsp;°F) is expected — hot hold finishes the flat.</span></div>
+    <div class="stat stat-span-2"><span class="stat-label">Tip</span><span class="stat-value hold">~40% at 195&nbsp;°F before the hot hold is normal — the box finishes the flat.</span></div>
   `;
 
   const chartNote =
@@ -486,10 +654,12 @@ async function updateRendering() {
 }
 
 function getPullHoldC() {
-  const pull = parseFloat($("pullTemp").value);
-  const hold = parseFloat($("holdTemp").value);
-  $("pullTemp").dataset.c = pull;
-  $("holdTemp").dataset.c = hold;
+  const pullEl = $("pullTemp");
+  const holdEl = $("holdTemp");
+  const pull = tempInputValueC(pullEl);
+  const hold = tempInputValueC(holdEl);
+  pullEl.dataset.c = String(pull);
+  holdEl.dataset.c = String(hold);
   return { pull, hold };
 }
 
@@ -556,10 +726,8 @@ document.querySelectorAll(".btn-preset").forEach((btn) => {
   btn.addEventListener("click", () => {
     const pull = parseFloat(btn.dataset.pull);
     const hold = parseFloat(btn.dataset.hold);
-    $("pullTemp").dataset.c = pull;
-    $("holdTemp").dataset.c = hold;
-    $("pullTemp").value = pull.toFixed(1);
-    $("holdTemp").value = hold.toFixed(1);
+    setTempInputFromC($("pullTemp"), pull);
+    setTempInputFromC($("holdTemp"), hold);
     updateHold();
   });
 });
@@ -576,24 +744,28 @@ $("openCookPlan")?.addEventListener("click", () => {
 });
 
 async function updateYield() {
-  const kg = parseFloat($("startWeight").value) || 6;
+  const kg = readWeightKg();
   const grade = $("grade").value;
   const loss = parseFloat($("lossPercent").value);
   $("lossDisplay").textContent = `${loss}%`;
-  $("weightLbHint").innerHTML = `≈ ${(kg * 2.205).toFixed(1)} <span class="temp-f-inline">lb</span> raw`;
+  const hint = $("weightAltHint");
+  if (hint) {
+    hint.textContent =
+      state.weightUnit === "lb" ? `≈ ${kg.toFixed(1)} kg` : `≈ ${(kg * LB_PER_KG).toFixed(1)} lb`;
+  }
 
   const y = await fetchYieldPlan(kg, grade, loss);
   state.lastYield = y;
 
   const cookedPct = (y.cookedKg / y.startKg) * 100;
   $("yieldCooked").style.width = `${cookedPct}%`;
-  $("yieldStart").textContent = `${y.startKg.toFixed(1)} kg`;
-  $("yieldEnd").innerHTML = `${y.cookedKg.toFixed(1)} kg <span class="temp-f-inline">(${(y.cookedKg * 2.205).toFixed(1)} lb)</span>`;
+  $("yieldStart").textContent = formatWeight(y.startKg);
+  $("yieldEnd").textContent = formatWeight(y.cookedKg);
 
   $("yieldStats").innerHTML = `
     <div><dt>Köttklass</dt><dd>${y.grade} <span class="grade-us">(${y.gradeAmerican})</span></dd></div>
     <div><dt>Innanfett</dt><dd>${y.marblingMin}–${y.marblingMax}%</dd></div>
-    <div><dt>Weight lost</dt><dd>${y.lostKg.toFixed(2)} kg</dd></div>
+    <div><dt>Weight lost</dt><dd>${formatWeight(y.lostKg)}</dd></div>
     <div><dt>Raw water content</dt><dd>~${y.waterContentPercent}%</dd></div>
     <div><dt>Typical loss band</dt><dd>30–43%</dd></div>
   `;
@@ -1044,12 +1216,12 @@ function normalizeRestProjection(raw) {
 }
 
 async function updateRest() {
-  const startTempC = parseFloat($("restStartTemp").value) || 90.5;
+  const startTempC = tempInputValueC($("restStartTemp"));
   const hours = parseFloat($("restHours").value) || 1;
   const envId = $("restEnv").value || "hold150";
   const env = getRestEnvById(envId);
   const ambient =
-    envId === "custom" ? parseFloat($("restAmbient").value) || 65.5 : env.ambientC;
+    envId === "custom" ? tempInputValueC($("restAmbient")) : env.ambientC;
   const tau = env.tauHours ?? 2;
 
   $("restCustomAmbientField").hidden = envId !== "custom";
@@ -1140,15 +1312,17 @@ function renderProfilePicker() {
   }
 
   container.innerHTML = `
-    <p class="profile-picker-lead">Pull style presets — sets pull, hot hold, shrink %, and syncs the Pull planner slider.</p>
+    <p class="profile-picker-lead">Juicy, in-between, or hotter pull — sets temps, shrink %, and syncs the probe slider.</p>
     <div class="profile-row" role="group" aria-label="Cook presets">
       ${state.profiles
         .map((p) => {
           const holdLabel =
-            p.holdHours != null ? `~${p.holdHours} hr hold` : `hold ${p.holdTempC} °C`;
+            p.holdHours != null
+              ? `~${p.holdHours} hr hold`
+              : `hold ${tempHtml(p.holdTempC, { showBoth: false })}`;
           return `<button type="button" class="btn-profile${p.isBetween ? " btn-profile-balanced" : ""}" data-profile="${p.id}">
         <span class="btn-profile-name">${p.name}</span>
-        <span class="btn-profile-sub">${Number(p.pullTempC).toFixed(1)} °C pull · ${holdLabel}</span>
+        <span class="btn-profile-sub">${tempHtml(p.pullTempC, { showBoth: false })} pull · ${holdLabel}</span>
       </button>`;
         })
         .join("")}
@@ -1198,8 +1372,8 @@ function applyCookProfile(id) {
 
   state.activeProfileId = id;
 
-  $("pullTemp").value = profile.pullTempC.toFixed(1);
-  $("holdTemp").value = profile.holdTempC.toFixed(1);
+  setTempInputFromC($("pullTemp"), profile.pullTempC);
+  setTempInputFromC($("holdTemp"), profile.holdTempC);
   $("targetPercent").value = profile.targetPercent ?? 100;
   $("lossPercent").value = profile.lossPercent;
   $("lossDisplay").textContent = `${profile.lossPercent}%`;
@@ -1220,8 +1394,8 @@ function applyCookProfile(id) {
 
 function detectActiveProfileId() {
   if (!state.profiles.length) return null;
-  const pull = parseFloat($("pullTemp")?.value);
-  const hold = parseFloat($("holdTemp")?.value);
+  const pull = tempInputValueC($("pullTemp"));
+  const hold = tempInputValueC($("holdTemp"));
   const loss = parseFloat($("lossPercent")?.value);
   if (!Number.isFinite(pull) || !Number.isFinite(hold)) return null;
 
@@ -1368,10 +1542,9 @@ async function updatePlanSummary() {
   const sheet = $("planSheet");
   if (!sheet) return;
 
-  const pull = parseFloat($("pullTemp")?.value) || 90.5;
-  const hold = parseFloat($("holdTemp")?.value) || 65.5;
+  const { pull, hold } = getPullHoldC();
   const target = parseFloat($("targetPercent")?.value) || 100;
-  const kg = parseFloat($("startWeight")?.value) || 6;
+  const kg = readWeightKg();
   const loss = parseFloat($("lossPercent")?.value) || 35;
   const gradeId = $("grade")?.value || "fk34";
 
@@ -1393,8 +1566,8 @@ async function updatePlanSummary() {
   const ready = readiness(pull, tendernessPull);
   const afterHoldPct = holdData.projectedFinal ?? target;
 
-  const meatRaw = `${yieldData.startKg.toFixed(1)} kg (${(yieldData.startKg * 2.205).toFixed(1)} lb)`;
-  const meatCooked = `${yieldData.cookedKg.toFixed(1)} kg (${(yieldData.cookedKg * 2.205).toFixed(1)} lb)`;
+  const meatRaw = formatWeight(yieldData.startKg, { showBoth: true });
+  const meatCooked = formatWeight(yieldData.cookedKg, { showBoth: true });
   const gradeLine = `${yieldData.grade}${yieldData.gradeAmerican ? ` (${yieldData.gradeAmerican})` : ""}`;
 
   const checklist = [
@@ -1414,7 +1587,7 @@ async function updatePlanSummary() {
     pitStart: `${pitStart} °C (${cToF(pitStart).toFixed(0)} °F)`,
     pitBoost: `${pitBoost} °C (${cToF(pitBoost).toFixed(0)} °F)`,
     pitHours: "10–12 hours",
-    stallRange: "65.5–74 °C internal (150–165 °F)",
+    stallRange: stallRangeText(),
     pullTemp: tempText(pull),
     tendernessPull,
     holdWhere: "Wrapped in warm cambro / holding oven",
@@ -1435,7 +1608,7 @@ async function updatePlanSummary() {
   sheet.innerHTML = `
     <article class="plan-block plan-block-highlight">
       <h3>Brisket cook sheet ${profileBadge}</h3>
-      <p class="plan-lead">${meatRaw} raw → about <strong>${yieldData.cookedKg.toFixed(1)} kg</strong> cooked · pull ${tempHtml(pull)} · hold ${tempHtml(hold)} · <strong>${holdHoursText}</strong></p>
+      <p class="plan-lead">${meatRaw} raw → about <strong>${formatWeight(yieldData.cookedKg)}</strong> cooked · pull ${tempHtml(pull)} · hold ${tempHtml(hold)} · <strong>${holdHoursText}</strong></p>
       ${activeProfile?.isBetween ? `<p class="hint">In-between: midpoint between 195&nbsp;°F juicy pull and 203&nbsp;°F grate-done pull.</p>` : ""}
     </article>
 
@@ -1466,7 +1639,7 @@ async function updatePlanSummary() {
       <article class="plan-block">
         <div class="plan-block-head">
           <h3>On the pit</h3>
-          <button type="button" class="btn-ghost btn-tiny" data-goto-tab="dashboard">Playground</button>
+          <button type="button" class="btn-ghost btn-tiny" data-goto-tab="dashboard">Probe</button>
         </div>
         <ul class="plan-facts">
           <li><span>Start pit</span><strong>~${parts.pitStart}</strong></li>
@@ -1508,7 +1681,7 @@ async function updatePlanSummary() {
           <h3>Before you slice</h3>
           <p>${parts.sliceNote}</p>
           <p class="hint">Eating tender and slicing cleanly are different — many pulls are meant to finish in the hold.</p>
-          <p class="hint">Numbers come from <strong>Yield</strong> and <strong>Hold box</strong> — change those tabs, then refresh.</p>
+          <p class="hint">Numbers come from <strong>Weight</strong> and <strong>Hold</strong> — change those, then refresh.</p>
         </article>
       </div>
     </details>
@@ -1602,10 +1775,12 @@ function initRest() {
   });
 
   $("restUseDashboard")?.addEventListener("click", () => {
-    $("restStartTemp").value = getSliderTempC().toFixed(1);
+    setTempInputFromC($("restStartTemp"), getSliderTempC());
     updateRest();
   });
 }
+
+initUnits();
 
 loadData()
   .then(() => {

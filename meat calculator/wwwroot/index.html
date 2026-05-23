@@ -31,39 +31,48 @@
       </div>
     </div>
     <div class="header-actions">
-      <p class="unit-hint">°C primary <span class="temp-f-inline">(°F alongside)</span></p>
+      <div class="unit-bar" aria-label="Display units">
+        <div class="unit-toggle" role="group" aria-label="Temperature">
+          <button type="button" class="unit-btn active" data-unit-temp="c">°C</button>
+          <button type="button" class="unit-btn" data-unit-temp="f">°F</button>
+        </div>
+        <div class="unit-toggle" role="group" aria-label="Weight">
+          <button type="button" class="unit-btn active" data-unit-weight="kg">kg</button>
+          <button type="button" class="unit-btn" data-unit-weight="lb">lb</button>
+        </div>
+      </div>
+      <p class="unit-hint" id="unitHint">°C first · °F in parentheses</p>
       <button type="button" class="btn-share-link" id="copyShareLink" title="Copy link to share">Copy link</button>
     </div>
   </header>
 
   <nav class="tabs" role="tablist" aria-label="Sections">
-    <button class="tab active" data-panel="dashboard" role="tab">Pull planner</button>
-    <button class="tab" data-panel="science" role="tab">195 vs 203</button>
-    <button class="tab" data-panel="hold" role="tab">Hold box</button>
-    <button class="tab" data-panel="plan" role="tab">Cook sheet</button>
-    <button class="tab tab-secondary" data-panel="rest" role="tab">Rest curve</button>
-    <button class="tab tab-secondary" data-panel="yield" role="tab">Yield</button>
-    <button class="tab tab-secondary" data-panel="guide" role="tab">Pit notes</button>
-    <button class="tab tab-secondary" data-panel="recipes" role="tab">Techniques</button>
-    <button class="tab tab-secondary" data-panel="reference" role="tab">Data</button>
+    <button class="tab active" data-panel="dashboard" role="tab">1 · Probe</button>
+    <button class="tab" data-panel="hold" role="tab">2 · Hold</button>
+    <button class="tab" data-panel="plan" role="tab">3 · Plan</button>
+    <button class="tab tab-secondary" data-panel="yield" role="tab">Weight</button>
+    <button class="tab tab-secondary" data-panel="science" role="tab">Why 195?</button>
+    <button class="tab tab-secondary" data-panel="rest" role="tab">Rest</button>
+    <button class="tab tab-secondary" data-panel="guide" role="tab">Notes</button>
+    <button class="tab tab-secondary" data-panel="recipes" role="tab">Methods</button>
+    <button class="tab tab-secondary" data-panel="reference" role="tab">Tables</button>
   </nav>
 
   <main>
     <section id="panel-dashboard" class="panel active">
-      <aside class="intro-hero intro-banner">
-        <h2 class="intro-hero-title">Plan your pull-and-hold before you light the cooker</h2>
-        <p class="intro-hero-lead">Sliders for probe temp and modeled collagen render, hot-box hours, and a <a href="#" class="inline-tab-link" data-goto-tab="plan">cook sheet</a> you can screenshot or copy for cook day.</p>
+      <details class="intro-hero intro-banner">
+        <summary class="intro-hero-summary">Quick start (3 steps)</summary>
         <ol class="intro-steps">
-          <li><strong>Pull planner</strong> — drag probe temp, see modeled collagen render.</li>
-          <li><strong>Hold box</strong> — pick Juicy / In between / Hotter pull, get hold hours.</li>
-          <li><strong>Cook sheet</strong> — one page for the pit (share the link if you want).</li>
+          <li><strong>Probe</strong> — drag to your flat probe temp; see how “done” it is inside.</li>
+          <li><strong>Hold</strong> — pick Juicy / In between / Hotter; get hot-box hours.</li>
+          <li><strong>Plan</strong> — one-page <a href="#" class="inline-tab-link" data-goto-tab="plan">cook sheet</a> to print or copy.</li>
         </ol>
-        <p class="intro-credit">Independent planning tool — not affiliated with any brand or channel. <strong>Probe + feel always win.</strong></p>
-      </aside>
+        <p class="intro-credit"><strong>Probe + feel always beat the model.</strong></p>
+      </details>
 
       <article class="card card-hero dashboard-focus">
-        <h2>Probe temp → collagen rendered</h2>
-        <p class="card-desc gauge-context">Arc = modeled tenderness built <em>at pull</em> (40% @ 90.5&nbsp;°C / 195&nbsp;°F is normal for pull-and-hold).</p>
+        <h2>How tender if you pull now?</h2>
+        <p class="card-desc gauge-context">Drag to probe temp in the flat. ~40% at 195&nbsp;°F before a long hot hold is normal.</p>
         <div class="temp-display temp-big-wrap" id="tempDisplay"></div>
         <input type="range" id="tempSlider" min="55" max="99" step="0.1" value="90.5" class="slider-ember" aria-describedby="gaugeLegend" />
         <div class="slider-labels"><span>Cool</span><span>Stall</span><span>Very hot</span></div>
@@ -90,13 +99,13 @@
               <textPath href="#gaugeLabelTender" startOffset="50%" text-anchor="middle">Slice window</textPath>
             </text>
             <text x="110" y="90" class="gauge-value" id="gaugePercent">40%</text>
-            <text x="110" y="108" class="gauge-label" id="gaugeSublabel">tenderness at pull</text>
+            <text x="110" y="108" class="gauge-label" id="gaugeSublabel">done inside at pull</text>
           </svg>
           <p class="gauge-legend" id="gaugeLegend">Pull-and-hold band</p>
         </div>
 
         <div class="stat-row-compact" id="renderStatsCompact"></div>
-        <button type="button" class="btn-primary-cta" id="openCookPlanFromDash">Build cook sheet →</button>
+        <button type="button" class="btn-primary-cta" id="openCookPlanFromDash">Make my cook plan →</button>
       </article>
 
       <details class="expand-section">
@@ -147,7 +156,7 @@
           <div class="info-card">
             <h3>Reference hold plan</h3>
             <p>Pull ~<strong id="refPull"></strong>, wrap, hot hold <strong id="refHold"></strong> — often <strong>12–18 hr</strong> in the model.</p>
-            <button type="button" class="btn-ghost" id="applyLongHold">Load into Hold box</button>
+            <button type="button" class="btn-ghost" id="applyLongHold">Use on Hold tab</button>
             <button type="button" class="btn-ghost" id="openCookPlan">Cook sheet</button>
           </div>
           <div class="info-card">
@@ -203,7 +212,7 @@
             
             <div class="compare-cards" id="comparePulls"></div>
           </div>
-          <button type="button" class="btn-ghost btn-wide" id="scienceToHold">Open Hold box with these temps</button>
+          <button type="button" class="btn-ghost btn-wide" id="scienceToHold">Try these temps on Hold</button>
         </article>
 
         <details class="expand-section">
@@ -278,36 +287,35 @@
     <section id="panel-hold" class="panel">
       <div class="grid-2">
         <article class="card">
-          <h2>Hot-box hours</h2>
-          <p class="card-desc">Presets (juicy / in-between / hotter pull) or your own pull &amp; hold temps</p>
+          <h2>How long in the hot box?</h2>
+          <p class="card-desc">Pick a style below, or type your own pull and hold temps.</p>
           <div class="profile-picker" id="profilePicker"></div>
           <div class="preset-row preset-row-secondary">
             <button type="button" class="btn-preset" data-pull="76.5" data-hold="76.5">Stall rescue (~76.5 °C)</button>
           </div>
           <div class="field">
-            <label for="pullTemp">Pull temp (probe in flat)</label>
-            
+            <label for="pullTemp">Pull off smoker (probe in flat)</label>
             <div class="input-row">
-              <input type="number" id="pullTemp" value="76.5" step="0.5" min="55" max="99" />
-              <span class="field-unit">°C <span class="temp-f-inline">(°F)</span></span>
+              <input type="number" id="pullTemp" value="90.5" step="0.5" min="55" max="99" data-c="90.5" />
+              <span class="field-unit field-temp-unit">°C <span class="temp-f-inline">(°F)</span></span>
             </div>
           </div>
           <div class="field">
-            <label for="holdTemp">Hot hold (cambro / oven / CVAP)</label>
+            <label for="holdTemp">Hot hold temp (cambro / oven)</label>
             <div class="input-row">
-              <input type="number" id="holdTemp" value="76.5" step="0.5" min="57" max="90" />
-              <span class="field-unit">°C <span class="temp-f-inline">(°F)</span></span>
+              <input type="number" id="holdTemp" value="65.5" step="0.5" min="57" max="90" data-c="65.5" />
+              <span class="field-unit field-temp-unit">°C <span class="temp-f-inline">(°F)</span></span>
             </div>
           </div>
           <div class="field">
-            <label for="targetPercent">Target collagen render % (usually 100)</label>
+            <label for="targetPercent">How done you want it (100% = usual slice goal)</label>
             <input type="number" id="targetPercent" value="100" min="80" max="120" step="5" />
           </div>
         </article>
         <article class="card result-card">
-          <h2>Hold time</h2>
+          <h2>Your answer</h2>
           <div id="holdResults" class="hold-results">
-            <p class="placeholder">Set pull + hold — modeled hours to target render appears here.</p>
+            <p class="placeholder">Choose a preset or enter pull + hold temps above.</p>
           </div>
           <details class="expand-section" id="holdDetailsExpand">
             <summary>See the breakdown</summary>
@@ -326,8 +334,8 @@
 
     <section id="panel-plan" class="panel">
       <header class="guide-hero plan-hero">
-        <h2>Cook sheet</h2>
-        <p class="guide-sub">Fridge-door friendly — screenshot, <strong>Copy plan</strong>, or share <button type="button" class="btn-inline-link" id="copyShareLinkPlan">this link</button>. Try <strong>In between</strong> on Hold box for midpoint 195 / 203&nbsp;°F pulls.</p>
+        <h2>Cook plan</h2>
+        <p class="guide-sub">Screenshot or <strong>Copy plan</strong> for the fridge door. Set meat on <strong>Weight</strong> and temps on <strong>Hold</strong> first.</p>
         <div class="plan-toolbar">
           <button type="button" class="btn-ghost" id="copyPlan">Copy plan</button>
           <button type="button" class="btn-ghost" id="refreshPlan">Refresh</button>
@@ -389,24 +397,25 @@
     <section id="panel-yield" class="panel">
       <div class="grid-2">
         <article class="card">
-          <h2>Yield after trim &amp; cook</h2>
+          <h2>How much brisket?</h2>
+          <p class="card-desc">Raw weight before trim — use <strong>kg</strong> or <strong>lb</strong> in the header.</p>
           <div class="field">
-            <label for="startWeight">Raw weight (kg)</label>
+            <label for="startWeight" id="startWeightLabel">Raw weight (kg)</label>
             <input type="number" id="startWeight" value="6" min="1" max="20" step="0.1" />
-            <span class="hint" id="weightLbHint"></span>
+            <span class="hint" id="weightAltHint"></span>
           </div>
           <div class="field">
-            <label for="grade">Marbling grade (EU labels, US equivalent in details)</label>
+            <label for="grade">Fat grade (optional)</label>
             <select id="grade"></select>
           </div>
           <div class="field">
-            <label for="lossPercent">Cook shrink % (trim + moisture + render)</label>
+            <label for="lossPercent">Shrink during cook (trim + moisture)</label>
             <input type="range" id="lossPercent" min="30" max="43" value="35" class="slider-ember" />
             <output id="lossDisplay">35%</output>
           </div>
         </article>
         <article class="card">
-          <h2>After the cook</h2>
+          <h2>What you might serve</h2>
           <div class="yield-viz">
             <div class="yield-bar">
               <div class="yield-segment raw" id="yieldRaw" style="width:100%"></div>
@@ -502,6 +511,6 @@
   </footer>
 
   <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
-  <script src="app.js?v=7"></script>
+  <script src="app.js?v=8"></script>
 </body>
 </html>
