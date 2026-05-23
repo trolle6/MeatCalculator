@@ -31,17 +31,13 @@
       </div>
     </div>
     <div class="header-actions">
-      <div class="unit-bar" aria-label="Display units">
-        <div class="unit-toggle" role="group" aria-label="Temperature">
-          <button type="button" class="unit-btn active" data-unit-temp="c">°C</button>
-          <button type="button" class="unit-btn" data-unit-temp="f">°F</button>
-        </div>
+      <div class="unit-bar" aria-label="Weight units">
         <div class="unit-toggle" role="group" aria-label="Weight">
           <button type="button" class="unit-btn active" data-unit-weight="kg">kg</button>
           <button type="button" class="unit-btn" data-unit-weight="lb">lb</button>
         </div>
       </div>
-      <p class="unit-hint" id="unitHint">°C first · °F in parentheses</p>
+      <p class="unit-hint" id="unitHint">Temps show °C and °F together</p>
       <button type="button" class="btn-share-link" id="copyShareLink" title="Copy link to share">Copy link</button>
     </div>
   </header>
@@ -506,7 +502,7 @@
 
   <footer class="site-footer">
     <p class="footer-share">Share with pit friends → <strong id="shareUrlDisplay">trolle6.github.io/MeatCalculator</strong> <button type="button" class="btn-share-link btn-share-link-small" id="copyShareLinkFooter">Copy</button></p>
-    <p>Smoke Lab · free brisket pull-and-hold planner · °C (°F)</p>
+    <p>Smoke Lab · free brisket pull-and-hold planner · °C &amp; °F</p>
     <p class="footer-fine">Modeled tenderness and hold times are for planning only — verify with probe and feel on your cooker.</p>
     <p class="footer-attribution">
       Smoke Lab was built with AI assistance. Pull-and-hold temps and the collagen model are based on public brisket teaching by
@@ -516,6 +512,6 @@
   </footer>
 
   <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
-  <script src="app.js?v=12"></script>
+  <script src="app.js?v=13"></script>
 </body>
 </html>

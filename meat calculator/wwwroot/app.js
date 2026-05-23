@@ -14,7 +14,6 @@ const state = {
   betweenNote: "",
   activeProfileId: null,
   weightUnit: "kg",
-  tempUnit: "c",
 };
 
 const $ = (id) => document.getElementById(id);
@@ -68,7 +67,6 @@ function loadUnitPrefs() {
   try {
     const u = JSON.parse(localStorage.getItem("smokeLabUnits") || "{}");
     if (u.weight === "kg" || u.weight === "lb") state.weightUnit = u.weight;
-    if (u.temp === "c" || u.temp === "f") state.tempUnit = u.temp;
   } catch {
     /* ignore */
   }
@@ -77,7 +75,7 @@ function loadUnitPrefs() {
 function saveUnitPrefs() {
   localStorage.setItem(
     "smokeLabUnits",
-    JSON.stringify({ weight: state.weightUnit, temp: state.tempUnit })
+    JSON.stringify({ weight: state.weightUnit })
   );
 }
 
@@ -127,65 +125,38 @@ function tempInputValueC(inputEl) {
   if (!inputEl) return 90.5;
   const n = parseFloat(inputEl.value);
   if (!Number.isFinite(n)) return parseFloat(inputEl.dataset.c) || 90.5;
-  return state.tempUnit === "f" ? fToC(n) : n;
+  return n;
 }
 
 function setTempInputFromC(inputEl, c) {
   if (!inputEl) return;
   inputEl.dataset.c = String(c);
-  inputEl.value =
-    state.tempUnit === "f" ? cToF(c).toFixed(0) : Number(c).toFixed(1);
+  inputEl.value = Number(c).toFixed(1);
 }
 
 function syncFieldUnits() {
-  const primary = state.tempUnit === "f" ? "°F" : "°C";
-  const secondary = state.tempUnit === "f" ? "°C" : "°F";
   document.querySelectorAll(".field-temp-unit").forEach((el) => {
-    el.innerHTML = `${primary} <span class="temp-f-inline">(${secondary})</span>`;
+    el.innerHTML = `°C <span class="temp-f-inline">(°F shown with results)</span>`;
   });
 }
 
-/** Hero: big gold primary + smaller secondary; inline: balanced pair */
-function tempHtml(c, { big = false, showBoth = true } = {}) {
+/** Always °C then °F in sync; hero uses vertical divider */
+function tempHtml(c, { big = false } = {}) {
   const cStr = `${Number(c).toFixed(1)} °C`;
   const fStr = `${cToF(c).toFixed(0)} °F`;
 
-  if (!showBoth) {
-    return state.tempUnit === "f"
-      ? `<span class="temp-single">${fStr}</span>`
-      : `<span class="temp-single">${cStr}</span>`;
-  }
-
   if (big) {
-    const primary =
-      state.tempUnit === "f"
-        ? `<span class="temp-hero-primary">${fStr}</span>`
-        : `<span class="temp-hero-primary">${cStr}</span>`;
-    const secondary =
-      state.tempUnit === "f"
-        ? `<span class="temp-hero-secondary">${cStr}</span>`
-        : `<span class="temp-hero-secondary">${fStr}</span>`;
-    return `${primary}<span class="temp-hero-sep" aria-hidden="true">·</span>${secondary}`;
+    return `<span class="temp-hero-val">${cStr}</span><span class="temp-hero-divider" aria-hidden="true"></span><span class="temp-hero-val">${fStr}</span>`;
   }
 
-  const cPart = `<span class="temp-pair-val">${cStr}</span>`;
-  const fPart = `<span class="temp-pair-val">${fStr}</span>`;
-  const first = state.tempUnit === "f" ? fPart : cPart;
-  const second = state.tempUnit === "f" ? cPart : fPart;
-  return `<span class="temp-pair">${first}<span class="temp-pair-sep" aria-hidden="true">·</span>${second}</span>`;
+  return `<span class="temp-pair"><span class="temp-pair-val">${cStr}</span><span class="temp-pair-divider" aria-hidden="true"></span><span class="temp-pair-val">${fStr}</span></span>`;
 }
 
 function tempText(c) {
-  if (state.tempUnit === "f") {
-    return `${cToF(c).toFixed(0)} °F (${Number(c).toFixed(1)} °C)`;
-  }
   return `${Number(c).toFixed(1)} °C (${cToF(c).toFixed(0)} °F)`;
 }
 
 function stallRangeText() {
-  if (state.tempUnit === "f") {
-    return "150–165 °F internal (65.5–74 °C)";
-  }
   return "65.5–74 °C internal (150–165 °F)";
 }
 
@@ -194,58 +165,32 @@ function syncProbeSliderUnits() {
   if (!slider) return;
   let c = parseFloat(slider.dataset.c);
   if (!Number.isFinite(c)) {
-    const raw = parseFloat(slider.value);
-    c = state.tempUnit === "f" ? fToC(raw) : raw;
+    c = parseFloat(slider.value);
   }
   if (!Number.isFinite(c)) c = 90.5;
   slider.dataset.c = String(c);
-  if (state.tempUnit === "f") {
-    slider.min = String(Math.round(cToF(55)));
-    slider.max = String(Math.round(cToF(99)));
-    slider.step = "1";
-    slider.value = String(Math.round(cToF(c)));
-  } else {
-    slider.min = "55";
-    slider.max = "99";
-    slider.step = "0.1";
-    slider.value = Number(c).toFixed(1);
-  }
+  slider.min = "55";
+  slider.max = "99";
+  slider.step = "0.1";
+  slider.value = Number(c).toFixed(1);
 }
 
 function refreshStaticUnitCopy() {
   const gaugeCtx = $("gaugeContext");
   if (gaugeCtx) {
-    const pullTip =
-      state.tempUnit === "f"
-        ? `~40% at ${cToF(90.5).toFixed(0)} °F before a long hot hold is normal.`
-        : "~40% at 90.5 °C before a long hot hold is normal.";
-    gaugeCtx.textContent = `Drag to probe temp in the flat. ${pullTip}`;
+    gaugeCtx.textContent =
+      "Drag to probe temp in the flat. ~40% at 90.5 °C / 195 °F before a long hot hold is normal.";
   }
   const stallBtn = $("stallPresetBtn");
   if (stallBtn) {
-    stallBtn.textContent =
-      state.tempUnit === "f"
-        ? `Stall rescue (~${cToF(76.5).toFixed(0)} °F)`
-        : "Stall rescue (~76.5 °C)";
+    stallBtn.textContent = "Stall rescue (~76.5 °C / 170 °F)";
   }
 }
 
-async function refreshAllForUnits({ temp = false, weight = false } = {}) {
-  if (weight) {
-    await updateYield();
-    updatePlanSummaryDebounced();
-  }
-  if (temp) {
-    syncProbeSliderUnits();
-    syncLabels();
-    refreshStaticUnitCopy();
-    onTempSliderInput();
-    await updateHold();
-    if ($("restResults")) await updateRest();
-    if (state.profiles.length) renderProfilePicker();
-    if (state.science) renderScience(state.science);
-    updatePlanSummaryDebounced();
-  }
+async function refreshAllForUnits({ weight = false } = {}) {
+  if (!weight) return;
+  await updateYield();
+  updatePlanSummaryDebounced();
 }
 
 function updateUnitBar() {
@@ -253,17 +198,6 @@ function updateUnitBar() {
     btn.classList.toggle("active", btn.dataset.unitWeight === state.weightUnit);
     btn.setAttribute("aria-pressed", btn.dataset.unitWeight === state.weightUnit);
   });
-  document.querySelectorAll("[data-unit-temp]").forEach((btn) => {
-    btn.classList.toggle("active", btn.dataset.unitTemp === state.tempUnit);
-    btn.setAttribute("aria-pressed", btn.dataset.unitTemp === state.tempUnit);
-  });
-  const hint = $("unitHint");
-  if (hint) {
-    hint.textContent =
-      state.tempUnit === "f"
-        ? "°F first · °C in parentheses"
-        : "°C first · °F in parentheses";
-  }
 }
 
 function applyUnitPrefs() {
@@ -286,23 +220,6 @@ function initUnits() {
       configureWeightInput({ kg });
       updateUnitBar();
       void refreshAllForUnits({ weight: true });
-    });
-  });
-  document.querySelectorAll("[data-unit-temp]").forEach((btn) => {
-    btn.addEventListener("click", () => {
-      const next = btn.dataset.unitTemp;
-      if (next === state.tempUnit) return;
-      const slider = $("tempSlider");
-      if (slider) slider.dataset.c = String(getSliderTempC());
-      ["pullTemp", "holdTemp", "restStartTemp", "restAmbient"].forEach((id) => {
-        const el = $(id);
-        if (el) el.dataset.c = String(tempInputValueC(el));
-      });
-      state.tempUnit = next;
-      saveUnitPrefs();
-      updateUnitBar();
-      syncFieldUnits();
-      void refreshAllForUnits({ temp: true });
     });
   });
   applyUnitPrefs();
@@ -640,9 +557,8 @@ function getSliderTempC() {
   if (!slider) return 90.5;
   const raw = parseFloat(slider.value);
   if (!Number.isFinite(raw)) return parseFloat(slider.dataset.c) || 90.5;
-  const c = state.tempUnit === "f" ? fToC(raw) : raw;
-  slider.dataset.c = String(c);
-  return c;
+  slider.dataset.c = String(raw);
+  return raw;
 }
 
 function onTempSliderInput() {
@@ -1394,7 +1310,7 @@ function renderProfilePicker() {
   if (!container) return;
 
   if (!state.profiles.length) {
-    container.innerHTML = `<p class="hint">Presets: Juicy (90.5 °C), In between (~92.8 °C), Hotter pull (95 °C)</p>`;
+    container.innerHTML = `<p class="hint">Presets: Juicy (90.5 °C / 195 °F), In between (~92.8 °C), Hotter pull (95 °C / 203 °F)</p>`;
     return;
   }
 
@@ -1406,10 +1322,10 @@ function renderProfilePicker() {
           const holdLabel =
             p.holdHours != null
               ? `~${p.holdHours} hr hold`
-              : `hold ${tempHtml(p.holdTempC, { showBoth: false })}`;
+              : `hold ${tempHtml(p.holdTempC)}`;
           return `<button type="button" class="btn-profile${p.isBetween ? " btn-profile-balanced" : ""}" data-profile="${p.id}">
         <span class="btn-profile-name">${p.name}</span>
-        <span class="btn-profile-sub">${tempHtml(p.pullTempC, { showBoth: false })} pull · ${holdLabel}</span>
+        <span class="btn-profile-sub">${tempHtml(p.pullTempC)} pull · ${holdLabel}</span>
       </button>`;
         })
         .join("")}
@@ -1897,6 +1813,6 @@ loadData()
   )
   .then(() => {
     applyUnitPrefs();
-    return refreshAllForUnits({ temp: true, weight: true });
+    return refreshAllForUnits({ weight: true });
   })
   .catch(console.error);
