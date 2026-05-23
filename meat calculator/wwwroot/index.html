@@ -72,9 +72,9 @@
 
       <article class="card card-hero dashboard-focus">
         <h2>How tender if you pull now?</h2>
-        <p class="card-desc gauge-context">Drag to probe temp in the flat. ~40% at 195&nbsp;°F before a long hot hold is normal.</p>
+        <p class="card-desc gauge-context" id="gaugeContext">Drag to probe temp in the flat. ~40% at 195&nbsp;°F before a long hot hold is normal.</p>
         <div class="temp-display temp-big-wrap" id="tempDisplay"></div>
-        <input type="range" id="tempSlider" min="55" max="99" step="0.1" value="90.5" class="slider-ember" aria-describedby="gaugeLegend" />
+        <input type="range" id="tempSlider" min="55" max="99" step="0.1" value="90.5" data-c="90.5" class="slider-ember" aria-describedby="gaugeLegend" />
         <div class="slider-labels"><span>Cool</span><span>Stall</span><span>Very hot</span></div>
 
         <div class="gauge-wrap">
@@ -291,7 +291,7 @@
           <p class="card-desc">Pick a style below, or type your own pull and hold temps.</p>
           <div class="profile-picker" id="profilePicker"></div>
           <div class="preset-row preset-row-secondary">
-            <button type="button" class="btn-preset" data-pull="76.5" data-hold="76.5">Stall rescue (~76.5 °C)</button>
+            <button type="button" class="btn-preset" id="stallPresetBtn" data-pull="76.5" data-hold="76.5">Stall rescue (~76.5 °C)</button>
           </div>
           <div class="field">
             <label for="pullTemp">Pull off smoker (probe in flat)</label>
@@ -516,6 +516,6 @@
   </footer>
 
   <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
-  <script src="app.js?v=9"></script>
+  <script src="app.js?v=10"></script>
 </body>
 </html>

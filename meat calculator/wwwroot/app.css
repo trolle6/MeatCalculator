@@ -329,7 +329,8 @@ footer {
   font-size: 0.85em;
 }
 
-.temp-big-wrap .temp-c {
+.temp-big-wrap .temp-c,
+.temp-big-wrap .temp-primary {
   font-family: var(--mono);
   font-size: 3rem;
   font-weight: 500;
@@ -337,10 +338,13 @@ footer {
   line-height: 1;
 }
 
-.temp-big-wrap .temp-f {
+.temp-big-wrap .temp-f,
+.temp-big-wrap .temp-f-inline {
   font-family: var(--mono);
   font-size: 1.25rem;
   margin-left: 0.35rem;
+  font-weight: 400;
+  color: var(--smoke);
 }
 
 .grade-us {

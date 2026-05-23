@@ -175,6 +175,65 @@ function stallRangeText() {
   return "65.5–74 °C internal (150–165 °F)";
 }
 
+function syncProbeSliderUnits() {
+  const slider = $("tempSlider");
+  if (!slider) return;
+  let c = parseFloat(slider.dataset.c);
+  if (!Number.isFinite(c)) {
+    const raw = parseFloat(slider.value);
+    c = state.tempUnit === "f" ? fToC(raw) : raw;
+  }
+  if (!Number.isFinite(c)) c = 90.5;
+  slider.dataset.c = String(c);
+  if (state.tempUnit === "f") {
+    slider.min = String(Math.round(cToF(55)));
+    slider.max = String(Math.round(cToF(99)));
+    slider.step = "1";
+    slider.value = String(Math.round(cToF(c)));
+  } else {
+    slider.min = "55";
+    slider.max = "99";
+    slider.step = "0.1";
+    slider.value = Number(c).toFixed(1);
+  }
+}
+
+function refreshStaticUnitCopy() {
+  const gaugeCtx = $("gaugeContext");
+  if (gaugeCtx) {
+    const pullTip =
+      state.tempUnit === "f"
+        ? `~40% at ${cToF(90.5).toFixed(0)} °F before a long hot hold is normal.`
+        : "~40% at 90.5 °C before a long hot hold is normal.";
+    gaugeCtx.textContent = `Drag to probe temp in the flat. ${pullTip}`;
+  }
+  const stallBtn = $("stallPresetBtn");
+  if (stallBtn) {
+    stallBtn.textContent =
+      state.tempUnit === "f"
+        ? `Stall rescue (~${cToF(76.5).toFixed(0)} °F)`
+        : "Stall rescue (~76.5 °C)";
+  }
+}
+
+async function refreshAllForUnits({ temp = false, weight = false } = {}) {
+  if (weight) {
+    await updateYield();
+    updatePlanSummaryDebounced();
+  }
+  if (temp) {
+    syncProbeSliderUnits();
+    syncLabels();
+    refreshStaticUnitCopy();
+    onTempSliderInput();
+    await updateHold();
+    if ($("restResults")) await updateRest();
+    if (state.profiles.length) renderProfilePicker();
+    if (state.science) renderScience(state.science);
+    updatePlanSummaryDebounced();
+  }
+}
+
 function updateUnitBar() {
   document.querySelectorAll("[data-unit-weight]").forEach((btn) => {
     btn.classList.toggle("active", btn.dataset.unitWeight === state.weightUnit);
@@ -197,6 +256,7 @@ function applyUnitPrefs() {
   updateUnitBar();
   configureWeightInput();
   syncFieldUnits();
+  syncProbeSliderUnits();
   syncLabels();
 }
 
@@ -210,26 +270,25 @@ function initUnits() {
       state.weightUnit = next;
       saveUnitPrefs();
       configureWeightInput({ kg });
-      updateYield();
-      updatePlanSummaryDebounced();
       updateUnitBar();
+      void refreshAllForUnits({ weight: true });
     });
   });
   document.querySelectorAll("[data-unit-temp]").forEach((btn) => {
     btn.addEventListener("click", () => {
       const next = btn.dataset.unitTemp;
       if (next === state.tempUnit) return;
+      const slider = $("tempSlider");
+      if (slider) slider.dataset.c = String(getSliderTempC());
       ["pullTemp", "holdTemp", "restStartTemp", "restAmbient"].forEach((id) => {
         const el = $(id);
         if (el) el.dataset.c = String(tempInputValueC(el));
       });
       state.tempUnit = next;
       saveUnitPrefs();
-      applyUnitPrefs();
-      const t = getSliderTempC();
-      updateFromTemp(t);
-      updateHold();
-      if (state.science) renderScience(state.science);
+      updateUnitBar();
+      syncFieldUnits();
+      void refreshAllForUnits({ temp: true });
     });
   });
   applyUnitPrefs();
@@ -273,9 +332,20 @@ function syncLabels() {
   if (hold) setTempInputFromC(hold, parseFloat(hold.dataset.c));
 
   const restStart = $("restStartTemp");
-  if (restStart && !restStart.dataset.c) {
-    setTempInputFromC(restStart, parseFloat(restStart.value) || 90.5);
+  if (restStart) {
+    if (!restStart.dataset.c) {
+      restStart.dataset.c = String(tempInputValueC(restStart) || 90.5);
+    }
+    setTempInputFromC(restStart, parseFloat(restStart.dataset.c));
   }
+  const restAmbient = $("restAmbient");
+  if (restAmbient) {
+    if (!restAmbient.dataset.c) {
+      restAmbient.dataset.c = String(tempInputValueC(restAmbient) || 65.5);
+    }
+    setTempInputFromC(restAmbient, parseFloat(restAmbient.dataset.c));
+  }
+  refreshStaticUnitCopy();
 }
 
 // Gauge: semicircle 0–120% collagen rendered (pit → hold → tender)
@@ -553,8 +623,11 @@ function initChart() {
 
 function getSliderTempC() {
   const slider = $("tempSlider");
-  const c = parseFloat(slider.value);
-  slider.dataset.c = c;
+  if (!slider) return 90.5;
+  const raw = parseFloat(slider.value);
+  if (!Number.isFinite(raw)) return parseFloat(slider.dataset.c) || 90.5;
+  const c = state.tempUnit === "f" ? fToC(raw) : raw;
+  slider.dataset.c = String(c);
   return c;
 }
 
@@ -1808,4 +1881,8 @@ loadData()
       loadProfiles(),
     ])
   )
+  .then(() => {
+    applyUnitPrefs();
+    return refreshAllForUnits({ temp: true, weight: true });
+  })
   .catch(console.error);
