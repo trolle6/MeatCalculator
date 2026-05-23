@@ -63,6 +63,8 @@ On each push to `main`, Actions builds the app, exports `/api/*` to JSON, and pu
 2. [Pages settings](https://github.com/trolle6/SmokeLab/settings/pages) → branch **`gh-pages`**, folder **`/ (root)`**
 3. Re-run **Deploy GitHub Pages** if needed → [https://trolle6.github.io/SmokeLab/](https://trolle6.github.io/SmokeLab/)
 
+> **Note:** The live demo is built from the **`gh-pages`** branch on each push to `main`. If Pages is temporarily down, **`dotnet run`** locally is always the fallback.
+
 Sliders, hold/yield math, and rest projection use **browser fallbacks** on Pages; locally you get the full server.
 
 ## Repo layout

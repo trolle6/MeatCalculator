@@ -129,12 +129,15 @@ app.MapGet("/api/rendering/{tempC:double}", (double tempC) =>
 {
     var stage = engine.GetStageForTemp(tempC);
     var rendered = engine.EstimateRenderedAtPull(tempC);
+    var (renderLow, renderHigh) = BrisketEngine.RenderBand(rendered);
     return new
     {
         tempC,
         tempF = CToF(tempC),
         stage,
         estimatedRenderedAtPull = Math.Round(rendered, 1),
+        renderLow,
+        renderHigh,
         hoursTo100FromHere = stage.PercentPerHour > 0 ? Math.Round(100 / stage.PercentPerHour, 1) : (double?)null,
         inDoneRange = rendered >= BrisketData.DoneMinPercent && rendered <= BrisketData.DoneMaxPercent
     };
@@ -166,6 +169,8 @@ app.MapPost("/api/hold", (HoldRequest req) =>
         plan.RemainingAtHold,
         plan.HoldRatePerHour,
         holdHours = double.IsInfinity(plan.HoldHours) ? (double?)null : Math.Round(plan.HoldHours, 1),
+        holdHoursLow = plan.HoldHoursLow,
+        holdHoursHigh = plan.HoldHoursHigh,
         plan.ProjectedFinal,
         totalHours = plan.CooldownHours + (double.IsInfinity(plan.HoldHours) ? 0 : plan.HoldHours)
     };

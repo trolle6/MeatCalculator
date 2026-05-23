@@ -63,10 +63,77 @@ async function apiPost(path, body) {
 }
 
 function clientRenderingAt(tempC) {
+  const estimatedRenderedAtPull = estimateRenderedAtPull(tempC);
+  const band = renderBand(estimatedRenderedAtPull);
   return {
-    estimatedRenderedAtPull: estimateRenderedAtPull(tempC),
+    estimatedRenderedAtPull,
+    renderLow: band.low,
+    renderHigh: band.high,
     stage: getStageForTemp(tempC),
   };
+}
+
+function renderBand(mid) {
+  const n = Number(mid);
+  const m = Number.isFinite(n) ? Math.min(120, Math.max(0, n)) : 0;
+  return {
+    low: Math.round(m * 0.9 * 10) / 10,
+    high: Math.min(100, Math.round(m * 1.1 * 10) / 10),
+  };
+}
+
+function formatPctRange(mid, low, high) {
+  const lo = Math.round(low ?? mid * 0.9);
+  const hi = Math.min(100, Math.round(high ?? mid * 1.1));
+  if (Math.abs(lo - hi) <= 1) return `${Math.round(mid)}%`;
+  return `~${lo}–${hi}%`;
+}
+
+function formatHoldHours(h) {
+  if (h == null || h === "∞" || !Number.isFinite(h)) return "—";
+  const n = Number(h);
+  if (n >= 11 && n <= 19) return `~${Math.round(n)} hr (often 12–18 hr band)`;
+  return `~${n.toFixed(1)} hr`;
+}
+
+function formatHoldHoursRange(data) {
+  const h = typeof data === "number" ? data : data?.holdHours;
+  if (h == null || h === "∞" || !Number.isFinite(h)) return formatHoldHours(h);
+  const lo = data?.holdHoursLow ?? h * 0.85;
+  const hi = data?.holdHoursHigh ?? h * 1.2;
+  const loR = Math.round(lo * 10) / 10;
+  const hiR = Math.round(hi * 10) / 10;
+  if (Math.abs(loR - hiR) < 0.8) return formatHoldHours(h);
+  return `~${loR}–${hiR} hr`;
+}
+
+const SMOKE_HOURS_ESTIMATE = 11;
+
+function parseSliceTimeToday(timeStr) {
+  if (!timeStr) return null;
+  const [hh, mm] = timeStr.split(":").map(Number);
+  if (!Number.isFinite(hh) || !Number.isFinite(mm)) return null;
+  const d = new Date();
+  d.setHours(hh, mm, 0, 0);
+  return d;
+}
+
+function formatClockTime(d) {
+  return d.toLocaleTimeString(undefined, { hour: "numeric", minute: "2-digit" });
+}
+
+function computePitStartSchedule(holdData) {
+  const slice = parseSliceTimeToday($("targetSliceTime")?.value);
+  if (!slice) return null;
+  const smokeH = SMOKE_HOURS_ESTIMATE;
+  const cooldown = holdData.cooldownHours ?? 4;
+  const holdH =
+    typeof holdData.holdHours === "number" && Number.isFinite(holdData.holdHours)
+      ? holdData.holdHours
+      : 15;
+  const totalH = smokeH + cooldown + holdH;
+  const start = new Date(slice.getTime() - totalH * 3600000);
+  return { slice, start, smokeH, cooldown, holdH, totalH };
 }
 
 const cToF = (c) => (c * 9) / 5 + 32;
@@ -257,13 +324,23 @@ function restoreCookStateAfterLoad() {
 
 function wireCookStatePersistence() {
   const save = () => saveCookPrefsDebounced();
+  const planRefresh = () => updatePlanSummaryDebounced();
   ["pullTemp", "holdTemp", "targetPercent", "lossPercent", "grade", "startWeight"].forEach((id) => {
     const el = $(id);
     if (!el) return;
-    el.addEventListener("input", save);
-    el.addEventListener("change", save);
+    el.addEventListener("input", () => {
+      save();
+      planRefresh();
+    });
+    el.addEventListener("change", () => {
+      save();
+      planRefresh();
+    });
   });
+  $("tempSlider")?.addEventListener("input", save);
   $("tempSlider")?.addEventListener("change", save);
+  $("targetSliceTime")?.addEventListener("change", planRefresh);
+  $("targetSliceTime")?.addEventListener("input", planRefresh);
 }
 
 function formatWeight(kg, { showBoth = false } = {}) {
@@ -366,7 +443,7 @@ function refreshStaticUnitCopy() {
   const gaugeCtx = $("gaugeContext");
   if (gaugeCtx) {
     gaugeCtx.textContent =
-      "Drag to probe temp in the flat. ~40% at 90.5 °C / 195 °F before a long hot hold is normal.";
+      "Drag the dot on the arc to your flat probe temp. ~40% at 90.5 °C / 195 °F before a long hot hold is normal.";
   }
   const stallBtn = $("stallPresetBtn");
   if (stallBtn) {
@@ -690,14 +767,118 @@ function updateGaugeZone(percent) {
 }
 
 /** Place marker on the arc from % rendered (always follows the curve, never a straight chord). */
-function setGaugeMarkerPosition(percent, { showDecimal = false } = {}) {
+function setGaugeMarkerPosition(percent, { showDecimal = false, renderLow, renderHigh } = {}) {
   const clamped = clampPercent(percent);
   const { x, y } = gaugePoint(clamped);
   const marker = $("gaugeMarker");
-  marker.setAttribute("cx", x);
-  marker.setAttribute("cy", y);
-  $("gaugePercent").textContent = showDecimal ? `${clamped.toFixed(1)}%` : `${Math.round(clamped)}%`;
+  const hit = $("gaugeMarkerHit");
+  marker?.setAttribute("cx", x);
+  marker?.setAttribute("cy", y);
+  hit?.setAttribute("cx", x);
+  hit?.setAttribute("cy", y);
+  const pctEl = $("gaugePercent");
+  if (pctEl) {
+    pctEl.textContent = showDecimal
+      ? `${clamped.toFixed(1)}%`
+      : formatPctRange(clamped, renderLow, renderHigh);
+  }
   updateGaugeZone(clamped);
+}
+
+function tempFromRenderedPercent(percent) {
+  const pct = clampPercent(percent);
+  const anchors = PULL_ANCHORS;
+  if (pct <= anchors[0][1]) return anchors[0][0];
+  if (pct >= anchors[anchors.length - 1][1]) return anchors[anchors.length - 1][0];
+  for (let i = 0; i < anchors.length - 1; i++) {
+    const [t0, p0] = anchors[i];
+    const [t1, p1] = anchors[i + 1];
+    if (pct >= p0 && pct <= p1) {
+      const span = p1 - p0;
+      const t = span > 0 ? (pct - p0) / span : 0;
+      return t0 + t * (t1 - t0);
+    }
+  }
+  return anchors[anchors.length - 1][0];
+}
+
+function percentFromGaugePoint(clientX, clientY) {
+  const svg = document.querySelector(".gauge-wrap .gauge");
+  if (!svg) return 0;
+  const pt = svg.createSVGPoint();
+  pt.x = clientX;
+  pt.y = clientY;
+  const ctm = svg.getScreenCTM();
+  if (!ctm) return 0;
+  const p = pt.matrixTransform(ctm.inverse());
+  const dx = p.x - GAUGE.cx;
+  const dy = GAUGE.cy - p.y;
+  let angle = Math.atan2(dy, dx);
+  angle = Math.max(0, Math.min(Math.PI, angle));
+  const along = (Math.PI - angle) / Math.PI;
+  return clampPercent(along * 120);
+}
+
+function setProbeTempFromPercent(percent) {
+  if (state.gaugeMode === "afterHold") return;
+  const tempC = tempFromRenderedPercent(percent);
+  const slider = $("tempSlider");
+  if (slider) {
+    slider.dataset.c = String(tempC);
+    slider.value = Number(tempC).toFixed(1);
+  }
+  onTempSliderInput();
+}
+
+let gaugeArcDragging = false;
+
+function wireGaugeArcDrag() {
+  const wrap = $("gaugeWrap");
+  const svg = wrap?.querySelector(".gauge");
+  const hitTrack = $("gaugeTrackHit");
+  const hitMarker = $("gaugeMarkerHit");
+  if (!wrap || !svg) return;
+
+  const startDrag = (e) => {
+    if (state.gaugeMode === "afterHold") return;
+    gaugeArcDragging = true;
+    gaugeDragging = true;
+    wrap.setPointerCapture?.(e.pointerId);
+    const pct = percentFromGaugePoint(e.clientX, e.clientY);
+    setProbeTempFromPercent(pct);
+    e.preventDefault();
+  };
+
+  const moveDrag = (e) => {
+    if (!gaugeArcDragging) return;
+    const pct = percentFromGaugePoint(e.clientX, e.clientY);
+    setProbeTempFromPercent(pct);
+  };
+
+  const endDrag = (e) => {
+    if (!gaugeArcDragging) return;
+    gaugeArcDragging = false;
+    gaugeDragging = false;
+    wrap.releasePointerCapture?.(e.pointerId);
+    syncGaugeFromTemp(getSliderTempC());
+    updateRendering();
+  };
+
+  [hitTrack, hitMarker, svg].forEach((el) => {
+    el?.addEventListener("pointerdown", startDrag);
+  });
+  wrap.addEventListener("pointermove", moveDrag);
+  wrap.addEventListener("pointerup", endDrag);
+  wrap.addEventListener("pointercancel", endDrag);
+}
+
+function initQuickStart() {
+  const el = document.querySelector(".intro-hero.intro-banner");
+  if (!el) return;
+  if (!localStorage.getItem("smk_seen_qs")) el.open = true;
+  el.addEventListener("toggle", () => {
+    if (!el.open) localStorage.setItem("smk_seen_qs", "1");
+  });
 }
 
 function getGaugePercentForTemp(tempC) {
@@ -717,7 +898,13 @@ async function refreshAfterHoldProjection(tempC) {
 async function syncGaugeFromTemp(tempC, { showDecimal = false } = {}) {
   if (state.gaugeMode === "afterHold") await refreshAfterHoldProjection(tempC);
   const pct = getGaugePercentForTemp(tempC);
-  setGaugeMarkerPosition(pct, { showDecimal });
+  const opts = { showDecimal };
+  if (state.gaugeMode !== "afterHold") {
+    const band = renderBand(estimateRenderedAtPull(tempC));
+    opts.renderLow = band.low;
+    opts.renderHigh = band.high;
+  }
+  setGaugeMarkerPosition(pct, opts);
   const sub = $("gaugeSublabel");
   if (sub) {
     sub.textContent =
@@ -751,7 +938,7 @@ async function loadData() {
 
   populateGradeSelect(DEFAULT_GRADE_ID);
 
-  buildStageTable();
+  buildStageTableOnce();
   buildGradeBars();
   initChart();
   buildTimeline();
@@ -763,22 +950,26 @@ async function loadData() {
   updateYield();
 }
 
-function buildStageTable() {
-  const currentC = getSliderTempC();
-  const rowHtml = (s) => {
-    const hi = Math.abs(s.tempC - currentC) < 0.6;
-    return `<tr class="${hi ? "highlight" : ""}">
+function buildStageTableOnce() {
+  const rowHtml = (s) => `<tr data-temp-c="${s.tempC}">
         <td>${s.tempC} <span class="temp-f-cell">(${s.tempF} °F)</span></td>
         <td>${s.tempF}</td>
         <td>${s.multiplier}×</td>
         <td>${s.hoursTo100}</td>
         <td>${s.percentPerHour}%</td>
       </tr>`;
-  };
   const preview = $("stageTablePreview")?.querySelector("tbody");
   const full = $("stageTable")?.querySelector("tbody");
   if (preview) preview.innerHTML = state.stages.slice(0, 5).map(rowHtml).join("");
   if (full) full.innerHTML = state.stages.map(rowHtml).join("");
+  highlightStageRow(getSliderTempC());
+}
+
+function highlightStageRow(tempC) {
+  document.querySelectorAll("#stageTablePreview tbody tr, #stageTable tbody tr").forEach((tr) => {
+    const rowC = parseFloat(tr.dataset.tempC);
+    tr.classList.toggle("highlight", Number.isFinite(rowC) && Math.abs(rowC - tempC) < 0.6);
+  });
 }
 
 async function buildTimeline() {
@@ -852,7 +1043,11 @@ function getSliderTempC() {
 function onTempSliderInput() {
   const tempC = getSliderTempC();
   setTempHtml($("tempDisplay"), tempC, { big: true });
-  syncGaugeFromTemp(tempC, { showDecimal: gaugeDragging });
+  const slider = $("tempSlider");
+  if (slider) {
+    slider.setAttribute("aria-valuetext", tempText(tempC));
+  }
+  syncGaugeFromTemp(tempC, { showDecimal: gaugeDragging || gaugeArcDragging });
   updateRenderingDebounced();
 }
 
@@ -899,36 +1094,43 @@ async function updateRendering() {
 
   if (state.gaugeMode === "afterHold") {
     await refreshAfterHoldProjection(tempC);
-    if (!gaugeDragging) setGaugeMarkerPosition(state.afterHoldPercent);
-  } else if (!gaugeDragging) {
-    setGaugeMarkerPosition(data.estimatedRenderedAtPull);
+    if (!gaugeDragging && !gaugeArcDragging) setGaugeMarkerPosition(state.afterHoldPercent);
+  } else if (!gaugeDragging && !gaugeArcDragging) {
+    setGaugeMarkerPosition(data.estimatedRenderedAtPull, {
+      renderLow: data.renderLow,
+      renderHigh: data.renderHigh,
+    });
   }
 
   const displayPct =
     state.gaugeMode === "afterHold" ? state.afterHoldPercent : data.estimatedRenderedAtPull;
   const ready = readiness(tempC, displayPct);
   const stage = data.stage;
+  const pctLabel =
+    state.gaugeMode === "afterHold"
+      ? formatPctRange(displayPct)
+      : formatPctRange(displayPct, data.renderLow, data.renderHigh);
 
   const compactEl = $("renderStatsCompact");
   if (compactEl) {
     compactEl.innerHTML = `
-    <div class="stat"><span class="stat-label">Done inside</span><span class="stat-value">${Math.round(displayPct)}%</span></div>
     <div class="stat"><span class="stat-label">Ready to slice?</span><span class="stat-value ${ready.slice.cls}">${ready.slice.text}</span></div>
+    <div class="stat"><span class="stat-label">OK to eat?</span><span class="stat-value ${ready.eat.cls}">${ready.eat.text}</span></div>
   `;
   }
 
   $("renderStats").innerHTML = `
+    <div class="stat"><span class="stat-label">Done inside (model)</span><span class="stat-value">${pctLabel}</span></div>
     <div class="stat"><span class="stat-label">Speed at this temp</span><span class="stat-value">+${stage.percentPerHour}% / hour</span></div>
-    <div class="stat"><span class="stat-label">OK to eat?</span><span class="stat-value ${ready.eat.cls}">${ready.eat.text}</span></div>
-    <div class="stat stat-span-2"><span class="stat-label">Tip</span><span class="stat-value hold">~40% at 195&nbsp;°F before the hot hold is normal — the box finishes the flat.</span></div>
+    <div class="stat stat-span-2"><span class="stat-label">Tip</span><span class="stat-value hold">Low % at a 195&nbsp;°F pull is normal — the hot box finishes the flat.</span></div>
   `;
 
   const chartNote =
     state.gaugeMode === "afterHold"
-      ? `After hold from ${tempHtml(tempC)} → ~${displayPct.toFixed(0)}% tenderness`
-      : `If you pulled at ${tempHtml(tempC)} → ~${data.estimatedRenderedAtPull}% tenderness`;
+      ? `After hold from ${tempHtml(tempC)} → ${formatPctRange(displayPct)} tenderness`
+      : `If you pulled at ${tempHtml(tempC)} → ${formatPctRange(data.estimatedRenderedAtPull, data.renderLow, data.renderHigh)} tenderness`;
   $("chartMarker").innerHTML = chartNote;
-  buildStageTable();
+  highlightStageRow(tempC);
 
   if (state.chart) {
     const idx = state.stages.findIndex((s, i) => {
@@ -963,11 +1165,11 @@ async function updateHold() {
 
   const holdHrs = data.holdHours ?? "∞";
   const total = data.totalHours != null ? data.totalHours.toFixed(1) : "—";
+  const holdHoursLabel = formatHoldHoursRange(data);
 
   state.lastHold = data;
-  const holdNum = typeof holdHrs === "number" ? holdHrs.toFixed(1) : holdHrs;
   $("holdResults").innerHTML = `
-            <div class="big-number">${holdNum} hr</div>
+            <div class="big-number">${holdHoursLabel}</div>
     <p class="hold-answer-lead">in hot hold at ${tempHtml(hold)} until ~${target}% modeled render</p>
     <button type="button" class="btn-ghost btn-wide plan-goto-btn">Open cook sheet →</button>
   `;
@@ -977,7 +1179,7 @@ async function updateHold() {
   if (breakdown) {
     breakdown.innerHTML = `
     <ul class="result-steps result-steps-simple">
-      <li><span>When you pull off</span><strong>${data.renderedAtPull.toFixed(0)}% done inside</strong></li>
+      <li><span>When you pull off</span><strong>${formatPctRange(data.renderedAtPull)} done inside</strong></li>
       <li><span>While it cools to hold temp</span><strong>+${data.carryOverAdded.toFixed(0)}%</strong></li>
       <li><span>Then the hold adds</span><strong>${data.remainingAtHold.toFixed(0)}% more</strong></li>
       <li><span>Rough total cook story</span><strong>~${total} hr</strong></li>
@@ -1480,6 +1682,12 @@ function computeHoldPlanClient(pull, hold, target = 100) {
   const remaining = Math.max(0, target - afterCarry);
   const rate = getStageForTemp(hold).percentPerHour;
   const holdHours = rate > 0 ? remaining / rate : null;
+  let holdHoursLow = null;
+  let holdHoursHigh = null;
+  if (holdHours != null && Number.isFinite(holdHours) && holdHours > 0) {
+    holdHoursLow = Math.round(holdHours * 0.85 * 10) / 10;
+    holdHoursHigh = Math.round(holdHours * 1.2 * 10) / 10;
+  }
   return {
     renderedAtPull,
     carryOverAdded: carryOver,
@@ -1488,6 +1696,8 @@ function computeHoldPlanClient(pull, hold, target = 100) {
     remainingAtHold: remaining,
     holdRatePerHour: rate,
     holdHours,
+    holdHoursLow,
+    holdHoursHigh,
     projectedFinal: target,
     cooldownHours,
     totalHours: (holdHours ?? 0) + cooldownHours,
@@ -1848,13 +2058,6 @@ function initExpandSections() {
   });
 }
 
-function formatHoldHours(h) {
-  if (h == null || h === "∞" || !Number.isFinite(h)) return "—";
-  const n = Number(h);
-  if (n >= 11 && n <= 19) return `~${Math.round(n)} hr (often 12–18 hr band)`;
-  return `~${n.toFixed(1)} hr`;
-}
-
 async function fetchHoldPlan(pull, hold, target) {
   try {
     return await apiPost("/api/hold", { pullTempC: pull, holdTempC: hold, targetPercent: target });
@@ -1904,6 +2107,7 @@ function buildPlanPlainText(parts, profileName) {
     `• Pit ~${parts.pitStart} to start, ~${parts.pitBoost} after stall`,
     `• Plan ~${parts.pitHours} on the smoker`,
     `• Stall often ${parts.stallRange}`,
+    parts.pitScheduleLine ? `• ${parts.pitScheduleLine}` : "",
     "",
     "PULL OFF",
     `• Internal ${parts.pullTemp} — ~${parts.tendernessPull}% tenderness built`,
@@ -1949,10 +2153,18 @@ async function updatePlanSummary() {
   const holdMin = c.holdLongHoursMin ?? 12;
   const holdMax = c.holdLongHoursMax ?? 18;
   const tendernessPull = Math.round(holdData.renderedAtPull ?? estimateRenderedAtPull(pull));
+  const pullBand = renderBand(holdData.renderedAtPull ?? estimateRenderedAtPull(pull));
   const holdHrs = holdData.holdHours;
-  const holdHoursText = formatHoldHours(holdHrs);
+  const holdHoursText = formatHoldHoursRange(holdData);
   const ready = readiness(pull, tendernessPull);
   const afterHoldPct = holdData.projectedFinal ?? target;
+  const schedule = computePitStartSchedule(holdData);
+  const pitStartHint = $("pitStartHint");
+  if (pitStartHint) {
+    pitStartHint.textContent = schedule
+      ? `Rough: put on the pit about ${formatClockTime(schedule.start)} for slice at ${formatClockTime(schedule.slice)} (~${schedule.totalH.toFixed(0)} hr smoke + cool + hold).`
+      : "Set a slice time to see when to put the brisket on the pit (rough model).";
+  }
 
   const meatRaw = formatWeight(yieldData.startKg, { showBoth: true });
   const meatCooked = formatWeight(yieldData.cookedKg, { showBoth: true });
@@ -1978,8 +2190,11 @@ async function updatePlanSummary() {
     pitBoost: `${pitBoost} °C (${cToF(pitBoost).toFixed(0)} °F)`,
     pitHours: "10–12 hours",
     stallRange: stallRangeText(),
+    pitScheduleLine: schedule
+      ? `Put on pit ~${formatClockTime(schedule.start)} for slice ~${formatClockTime(schedule.slice)} (≈${schedule.smokeH} hr smoke + ${schedule.cooldown.toFixed(0)} hr cool + ${schedule.holdH.toFixed(0)} hr hold)`
+      : "",
     pullTemp: tempText(pull),
-    tendernessPull,
+    tendernessPull: formatPctRange(tendernessPull, pullBand.low, pullBand.high),
     holdWhere: "Wrapped in warm cambro / holding oven",
     holdTemp: tempText(hold),
     holdHours: holdHoursText,
@@ -1999,6 +2214,11 @@ async function updatePlanSummary() {
     <article class="plan-block plan-block-highlight">
       <h3>Brisket cook sheet ${profileBadge}</h3>
       <p class="plan-lead">${meatRaw} raw → about <strong>${formatWeight(yieldData.cookedKg)}</strong> cooked · pull ${tempHtml(pull)} · hold ${tempHtml(hold)} · <strong>${holdHoursText}</strong></p>
+      ${
+        schedule
+          ? `<p class="plan-schedule"><strong>Put on pit ~${formatClockTime(schedule.start)}</strong> for slice ~${formatClockTime(schedule.slice)} <span class="hint">(≈${schedule.smokeH} hr smoke + ${schedule.cooldown.toFixed(0)} hr cool + ${schedule.holdH.toFixed(0)} hr hold — planning estimate)</span></p>`
+          : ""
+      }
       ${activeProfile?.isBetween ? `<p class="hint">In-between: midpoint between 195&nbsp;°F juicy pull and 203&nbsp;°F grate-done pull.</p>` : ""}
     </article>
 
@@ -2035,6 +2255,7 @@ async function updatePlanSummary() {
           <li><span>Start pit</span><strong>~${parts.pitStart}</strong></li>
           <li><span>After stall</span><strong>~${parts.pitBoost}</strong></li>
           <li><span>Time on smoke</span><strong>${parts.pitHours} (rough)</strong></li>
+          ${schedule ? `<li><span>Put on pit (if slicing ${formatClockTime(schedule.slice)})</span><strong>~${formatClockTime(schedule.start)}</strong></li>` : ""}
           <li><span>Stall zone</span><strong>${parts.stallRange}</strong></li>
         </ul>
       </article>
@@ -2046,7 +2267,7 @@ async function updatePlanSummary() {
         </div>
         <ul class="plan-facts">
           <li><span>Internal temp</span><strong>${tempHtml(pull)}</strong></li>
-          <li><span>Tenderness built</span><strong>~${tendernessPull}%</strong> (model)</li>
+          <li><span>Tenderness built</span><strong>${parts.tendernessPull}</strong> (model)</li>
           <li><span>OK to eat at pull?</span><strong class="stat-value ${ready.eat.cls}">${ready.eat.text}</strong></li>
           <li><span>Probe feel</span><strong>Firm, not mush — like room-temp butter later</strong></li>
         </ul>
@@ -2071,7 +2292,7 @@ async function updatePlanSummary() {
           <h3>Before you slice</h3>
           <p>${parts.sliceNote}</p>
           <p class="hint">Eating tender and slicing cleanly are different — many pulls are meant to finish in the hold.</p>
-          <p class="hint">Numbers come from <strong>Weight</strong> and <strong>Hold</strong> — change those, then refresh.</p>
+          <p class="hint">Numbers come from <strong>Weight</strong> and <strong>Hold</strong> — they update as you change inputs. Render % and hold hours are model estimates; <strong>probe and feel still win</strong>.</p>
         </article>
       </div>
     </details>
@@ -2141,7 +2362,31 @@ function initPlan() {
       window.prompt("Copy this plan:", state.planPlainText);
     }
   });
-  $("refreshPlan")?.addEventListener("click", () => updatePlanSummary());
+}
+
+function extractYoutubeId(url) {
+  if (!url) return null;
+  try {
+    const u = new URL(url);
+    if (u.hostname.includes("youtu.be")) {
+      const id = u.pathname.slice(1).split("/")[0];
+      return id && id.length === 11 ? id : null;
+    }
+    if (u.hostname.includes("youtube.com") || u.hostname.includes("youtube-nocookie.com")) {
+      if (u.pathname === "/watch" || u.pathname.startsWith("/watch/")) {
+        const id = u.searchParams.get("v");
+        return id && id.length === 11 ? id : null;
+      }
+      if (u.pathname.startsWith("/embed/") || u.pathname.startsWith("/v/")) {
+        const id = u.pathname.split("/")[2];
+        return id && id.length === 11 ? id : null;
+      }
+    }
+  } catch {
+    /* fall through to regex */
+  }
+  const m = String(url).match(/(?:youtu\.be\/|v=|\/embed\/)([A-Za-z0-9_-]{11})/);
+  return m ? m[1] : null;
 }
 
 function sourceWatchUrl(s) {
@@ -2160,15 +2405,53 @@ function escapeHtml(str) {
 
 function renderSources(data) {
   const intro = $("sourcesIntro");
+  const grid = $("sourcesGrid");
   const list = $("sourcesList");
   if (!intro || !list) return;
 
   intro.textContent = data.intro || "";
 
   const items = data.sources || [];
-  list.innerHTML = items
-    .map((s) => {
-      const url = escapeHtml(sourceWatchUrl(s));
+  const videoCards = [];
+  const listItems = [];
+
+  for (const s of items) {
+    const url = sourceWatchUrl(s);
+    const ytId = extractYoutubeId(s.url);
+    if (ytId) {
+      videoCards.push({ s, url, ytId });
+    } else {
+      listItems.push({ s, url });
+    }
+  }
+
+  if (grid) {
+    if (videoCards.length) {
+      grid.hidden = false;
+      grid.innerHTML = videoCards
+        .map(({ s, url, ytId }) => {
+          const primary = s.isPrimary
+            ? '<span class="source-primary-badge">Primary model source</span>'
+            : "";
+          return `<a class="source-card${s.isPrimary ? " source-card-primary" : ""}" href="${escapeHtml(url)}" rel="noopener noreferrer" target="_blank">
+        <img class="source-thumb" src="https://img.youtube.com/vi/${escapeHtml(ytId)}/mqdefault.jpg" alt="" loading="lazy" width="320" height="180" />
+        <span class="source-card-body">
+          <strong class="source-title">${escapeHtml(s.title)}</strong>
+          ${primary}
+          <p class="source-summary">${escapeHtml(s.summary)}</p>
+        </span>
+      </a>`;
+        })
+        .join("");
+    } else {
+      grid.hidden = true;
+      grid.innerHTML = "";
+    }
+  }
+
+  list.hidden = listItems.length === 0;
+  list.innerHTML = listItems
+    .map(({ s, url }) => {
       const label = s.url ? "Watch ↗" : "Find video ↗";
       const primary = s.isPrimary
         ? '<span class="source-primary-badge">Primary model source</span>'
@@ -2179,7 +2462,7 @@ function renderSources(data) {
           ${primary}
           <p class="source-summary">${escapeHtml(s.summary)}</p>
         </div>
-        <a href="${url}" class="source-link-btn" rel="noopener noreferrer" target="_blank">${label}</a>
+        <a href="${escapeHtml(url)}" class="source-link-btn" rel="noopener noreferrer" target="_blank">${label}</a>
       </li>`;
     })
     .join("");
@@ -2235,6 +2518,8 @@ initUnits();
 
 loadData()
   .then(() => {
+    initQuickStart();
+    wireGaugeArcDrag();
     initRest();
     initPlan();
     initHoldTempSummary();

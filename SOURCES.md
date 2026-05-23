@@ -17,7 +17,7 @@ Teaching and model ideas draw mainly from public videos on [Smoke Trails BBQ (St
 | **The JUICIEST BRISKET: Brisket Confit** | [YouTube](https://www.youtube.com/watch?v=RKqqQjH6yng) | Tallow finish |
 | **The Science of Brisket Tenderness (And Perfect Hold Time)** | [YouTube](https://www.youtube.com/watch?v=lplpPCU5UNQ) | **Primary** — exponential render model |
 
-`loin.txt` was intentionally excluded from this list.
+`loin.txt` (a personal pork loin smoke log) was intentionally excluded — internal draft notes, not a citable brisket source.
 
 Also see in-app **Reference → Research sources** on [Smoke Lab - BBQ](https://trolle6.github.io/SmokeLab/).
 

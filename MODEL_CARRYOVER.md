@@ -90,6 +90,10 @@ foreach (var (tempC, hours, rate) in bands) {
 
 Exported on `GET /api/data` as `carryCooldownHours`, `carryEndMarginC`, `holdCarryTauDefault`.
 
+### Hold hours planning band
+
+Hold plan responses (and client fallbacks in `formatHoldHoursRange`) include **`holdHoursLow`** and **`holdHoursHigh`**: **0.85×** and **1.20×** the midpoint hold hours, rounded to one decimal. Use them as a cambro-variance band (hotter box vs cooler / larger flat), not separate physics models.
+
 ## Code entry points
 
 | Layer | Location |

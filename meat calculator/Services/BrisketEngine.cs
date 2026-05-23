@@ -66,6 +66,14 @@ public sealed class BrisketEngine
             ? afterCarry + holdHours * holdRate
             : afterCarry;
 
+        double? holdHoursLow = null;
+        double? holdHoursHigh = null;
+        if (!double.IsInfinity(holdHours) && holdHours > 0)
+        {
+            holdHoursLow = Math.Round(holdHours * 0.85, 1);
+            holdHoursHigh = Math.Round(holdHours * 1.20, 1);
+        }
+
         return new HoldPlan(
             pullTempC,
             holdTempC,
@@ -78,7 +86,15 @@ public sealed class BrisketEngine
             holdRate,
             holdHours,
             projectedFinal,
-            cooldownHours);
+            cooldownHours,
+            holdHoursLow,
+            holdHoursHigh);
+    }
+
+    public static (double Low, double High) RenderBand(double renderPct)
+    {
+        var mid = Math.Clamp(renderPct, 0, 120);
+        return (Math.Round(mid * 0.9, 1), Math.Min(100, Math.Round(mid * 1.1, 1)));
     }
 
     public static GradeInfo ResolveGrade(string? grade)
@@ -187,7 +203,9 @@ public sealed record HoldPlan(
     double HoldRatePerHour,
     double HoldHours,
     double ProjectedFinal,
-    double CooldownHours);
+    double CooldownHours,
+    double? HoldHoursLow = null,
+    double? HoldHoursHigh = null);
 
 public sealed record YieldEstimate(
     double StartKg,
