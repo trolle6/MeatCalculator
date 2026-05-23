@@ -153,8 +153,12 @@
             <button type="button" class="btn-ghost" id="openCookPlan">Cook sheet</button>
           </div>
           <div class="info-card">
+            <h3>Evaporative stall</h3>
+            <p>Between <strong>65.5 – 74&nbsp;°C</strong> internal the meat sweats and cools itself — bump pit temp or airflow to power through, or moisture keeps leaving.</p>
+          </div>
+          <div class="info-card">
             <h3>Smoke past 140&nbsp;°F</h3>
-            <p>Smoke ring chemistry ≠ smoke flavor stopping at 60&nbsp;°C (140&nbsp;°F). Pellet/wood flavor still develops with airflow and bark.</p>
+            <p>Smoke flavour and ring development do <strong>not</strong> stop at 60&nbsp;°C (140&nbsp;°F). Ring can keep building toward ~76.5&nbsp;°C (170&nbsp;°F) on a wet bark.</p>
           </div>
           <div class="info-card">
             <h3>Probe the flat</h3>
@@ -203,6 +207,28 @@
           </div>
           <button type="button" class="btn-ghost btn-wide" id="scienceToHold">Open Hold box with these temps</button>
         </article>
+
+        <details class="expand-section">
+          <summary>Exponential model &amp; render-rate table</summary>
+          <div class="expand-body">
+            <p class="science-programming" id="scienceProgramming"></p>
+            <div class="table-wrap science-table-wrap">
+              <table class="data-table" id="scienceRenderTable">
+                <thead>
+                  <tr>
+                    <th>°C</th>
+                    <th>°F</th>
+                    <th>Multiplier</th>
+                    <th>% / hr</th>
+                    <th>Hrs to 100%</th>
+                  </tr>
+                </thead>
+                <tbody></tbody>
+              </table>
+            </div>
+            <ul class="science-notes" id="scienceNotes"></ul>
+          </div>
+        </details>
 
         <details class="expand-section">
           <summary>Deep dive: moisture, collagen, step-by-step</summary>
@@ -478,6 +504,6 @@
   </footer>
 
   <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
-  <script src="app.js?v=5"></script>
+  <script src="app.js?v=6"></script>
 </body>
 </html>

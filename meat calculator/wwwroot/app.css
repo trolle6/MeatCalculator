@@ -1569,6 +1569,30 @@ footer {
   max-width: 52ch;
 }
 
+.science-programming {
+  margin: 0 0 1rem;
+  color: var(--text);
+  font-size: 0.95rem;
+  line-height: 1.55;
+  max-width: 65ch;
+}
+
+.science-table-wrap {
+  margin-bottom: 1rem;
+}
+
+.science-notes {
+  margin: 0;
+  padding-left: 1.2rem;
+  color: var(--muted);
+  font-size: 0.9rem;
+  line-height: 1.5;
+}
+
+.science-notes li + li {
+  margin-top: 0.5rem;
+}
+
 .science-split {
   display: grid;
   grid-template-columns: 1fr 1fr;

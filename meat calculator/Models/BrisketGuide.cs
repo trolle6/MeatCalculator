@@ -15,74 +15,100 @@ public static class BrisketGuide
     [
         new(
             "selection",
-            "Core meat science & grading",
-            "Water · grades · ribeye myth",
+            "Meat physics & selection",
+            "Water · grades · flat inspection",
             [
-                new("Raw brisket ≈ 70% water — mostly inside muscle fibres."),
-                new("Intramuscular fat: Select 2–4% · Choice 4–10% · Prime 8–13% (USDA reference)."),
-                new("Grade is scored on the ribeye (12th/13th rib), not the brisket — inspect the flat for white striations through the wrap.", "Grading myth"),
-                new("Fettklass 2 / 3–4 / 4–5 maps roughly to those bands."),
-                new("Cook loss: plan 30–40%; even juicy brisket can hit ~43%.")
+                new("Raw brisket is ~70% water — stored primarily inside muscle fibres, not in the fat cap."),
+                new("Higher grades (Prime, or “Wangus” hybrids) carry ~8–13% intramuscular fat — that lubricates slices but does not replace moisture lost to overcook."),
+                new("USDA grade is scored on the ribeye (12th/13th rib), not the brisket. Inspect the flat through the wrap for thin white fat striations; solid red beef is lean regardless of the sticker.", "Inspection rule"),
+                new("Fettklass 2 / 3–4 / 4–5 map roughly to Select / Choice / Prime marbling bands."),
+                new("Plan 30–40% cook shrink; even a juicy cook can approach ~43% loss on the scale.")
             ],
-            "Yield tab — shrink from start weight."),
+            "Yield tab — model trim + moisture + render from start weight."),
+
+        new(
+            "stall",
+            "Evaporative stall",
+            "65.5 – 74 °C internal",
+            [
+                new("Between 65.5 °C and 74 °C (150–165 °F) the brisket “sweats” — evaporative cooling fights your pit temp."),
+                new("Bump pit temperature or airflow to power through; sitting in the stall too long costs moisture."),
+                new("“Stall rescue” preset (~76.5 °C pull/hold) is for planning around a stuck cook — not the juicy long-hold finish.")
+            ],
+            "Dashboard timeline marks the stall band — calculator uses the same temp range."),
 
         new(
             "rendering-logic",
-            "Rendering model (for the calculator)",
-            "Exponential · additive hours · done window",
+            "Exponential rendering model",
+            "Time × temperature · additive hours",
             [
-                new("Collagen → gelatin via hydrolysis — exponential, not linear (full table in Reference)."),
-                new("Each hour at a steady internal temp adds that row’s “% per hour” to your running total.", "Additive"),
-                new("Ideal texture window: 80–120% total rendering. Target ~100%."),
-                new("Pull & Hold + Rest tabs sum carry-over and hold time using the same rates.")
+                new("Collagen → gelatin is exponential: rendering = time multiplied by temperature, not a linear “hours per pound” clock."),
+                new("At each steady internal temp, every hour adds that row’s “% rendered per hour” to your running total (see Reference table).", "Additive"),
+                new("100% = ideal tenderness in this model. Acceptable slice window: 80–120% total rendering."),
+                new("Pull at 90.5 °C (~195 °F) ≈ 40% rendered and probe-tight; finish the remaining ~60% in a 65.5 °C (150 °F) hot box — often ~18 hr."),
+                new("Above 93.3 °C (200 °F), fibres denature fast and squeeze moisture like a sponge — why 95 °C (203 °F) on smoke alone is risky.")
             ],
-            "Dashboard slider = “if pulled now” · not slice-ready until the green zone."),
+            "Pull planner slider = render built if you pulled now · Hold box finishes the rest."),
 
         new(
             "prep",
-            "Prep & seasoning",
-            "Trim · binder · dry brine",
+            "Preparation & seasoning",
+            "Trim · rub · dry brine",
             [
-                new("Aerodynamic trim: ~1.3 cm (½ in) off sides to read fat cap; mohawk off at an angle for a flat sit."),
-                new("Fat cap: 0.6 cm (¼ in). Half-moon the thin flat end so corners don’t jerky."),
-                new("Binder spritz: 50/50 soy + water — liquid salt, immediate brine."),
-                new("Table salt first, then coarse pepper / kosher for bark; sumac optional for dark tangy bark."),
-                new("Plastic wrap overnight — fridge fan won’t dry the surface; salt pulls in under a moist film.")
+                new("Aerodynamic trim: remove the “mohawk” flap at an angle so the pack sits flat on the grate."),
+                new("Fat cap exactly 0.6 cm (¼ in) — thicker cap stays opaque and unrendered; trim ~1.3 cm (½ in) from sides to read the cap."),
+                new("Half-moon cut: one continuous curved slice to round the thin flat end — stops corner “jerky”."),
+                new("Dry brine with table salt first for deeper penetration; coarse pepper/kosher on top for bark."),
+                new("Sumac (ground Middle Eastern berry) in the rub gives dark, tangy bark without coffee-bitter notes.", "Optional"),
+                new("Plastic wrap overnight in the fridge — blocks the fan from drying the surface while salt brines under a moist film.")
+            ]),
+
+        new(
+            "equipment",
+            "Equipment & fire management",
+            "Offsets · pellets · airflow",
+            [
+                new("Fire basket: hotter, cleaner coal bed with less babysitting on long cooks."),
+                new("Offset smokers: mostly convective heat (air moves top-down). Pellet grills: more radiant from below.", "Heat types"),
+                new("On pellets, use the top rack with a water pan below to blunt radiant heat on the flat."),
+                new("Stack dropped to grate level helps even chamber temperature left-to-right."),
+                new("Stack extension pulls more oxygen through the fire for a cleaner burn and steadier draft.")
             ]),
 
         new(
             "smoke-fire",
-            "Smoke & fire management",
-            "Ring · moisture · heat types",
+            "Smoke, ring & surface chemistry",
+            "Myths vs what still happens on the pit",
             [
-                new("140 °F myth busted: smoke flavour keeps building; smoke ring can form to 76.5 °C (170 °F)."),
-                new("Wetter surface grabs more smoke — spritzing helps flavour and ring."),
-                new("Temperature = molecular motion; heat = energy transfer into the meat."),
-                new("Pellet grills: more radiant heat from below. Offsets: more convective (airflow).", "Pit types")
+                new("60 °C (140 °F) smoke myth busted: brisket keeps taking on smoke flavour well past 140 °F — the ring is not the flavour stop."),
+                new("Smoke ring can continue forming up to ~76.5 °C (170 °F) on a wet, airflow-friendly surface."),
+                new("Wetter bark (spritz, humidity) grabs more smoke and often a wider ring — not a substitute for good fire."),
+                new("Temperature = molecular motion; heat = energy transfer into the meat — both matter for bark and render.")
             ]),
 
         new(
             "troubleshooting",
-            "Probing · calibration · carry-over",
+            "Probing, carry-over & food safety",
             "Before you trust the dial",
             [
-                new("Landmark probe feel from 82 °C (180 °F) upward — learn “room-temp butter” slide-in."),
-                new("Covered water-pan test on oven’s lowest setting — residential dials lie."),
-                new("Pulled hot at 95 °C (203 °F)? Counter-rest ~2 hr until ~65 °C before cambro/cooler hold — avoids overcook.", "Carry-over")
+                new("Learn landmark probe feel from ~82 °C (180 °F): glide-in “room-temp butter” on the flat — not mush, not cold push-back."),
+                new("Covered water-pan test on the oven’s lowest setting — residential dials often read 15+ °F high.", "Calibration"),
+                new("Pulled hot at 95 °C (203 °F)? Counter-rest ~2 hr until internal slides toward ~65 °C before cambro hold — otherwise carry-over turns it mush.", "Carry-over"),
+                new("Food-safe pasteurisation from ~55 °C (131 °F); for long hot holds use 60–65.5 °C so tenderization stays slow and safe.", "Hold safety")
             ],
-            "Rest & carry-over tab — “where it rests” hour-by-hour."),
+            "Rest & carry-over tab — hour-by-hour temp and extra render %."),
 
         new(
             "holding-methods",
-            "Brisket cook methods (summary)",
+            "Advanced cook methods",
             "Foil boat · long hold · confit · reverse",
             [
-                new("Foil boat: 121–135 °C → boat @ 4–5 hr → 149 °C → finish ~95–96 °C.", "Beginner"),
-                new("Long hold: pull 90.5 °C (~40% rendered) → 65.5 °C × ~18 hr; 4 hr cool-down finishes ~60%.", "Juicy"),
-                new("Confit: smoke 74 °C → tallow 68.3 °C × 18 hr — prime-rib-like."),
-                new("Reverse smoke: paper on first → 88 °C → chill → reheat 121 °C until ~65.5 °C internal.")
+                new("Foil boat (beginner): 121–135 °C (250–275 °F) smoke 4–5 hr until bark is dry and firm → open foil boat → pit 149 °C (300 °F) — bottom braises, fat cap renders on top.", "Reliable"),
+                new("Undercook & long hold: pull 90.5 °C (~40% rendered, tight probe) → straight into 65.5 °C × ~18 hr; ~4 hr cool-down from 90.5 → 65.5 °C finishes most of the remaining render without 93 °C+ squeeze-out.", "Pitmaster"),
+                new("Brisket confit: smoke to ~74 °C → submerge in 68.3 °C (155 °F) tallow (sous-vide) × 18 hr — prime-rib-like texture."),
+                new("Reverse smoke: butcher paper on first → 88 °C → refrigerate → reheat on smoker at 121 °C until ~65.5 °C internal — juicier, less total smoke.")
             ],
-            "Recipes tab — full step lists."),
+            "Techniques tab — numbered step lists for each method."),
 
         new(
             "pork-loin",

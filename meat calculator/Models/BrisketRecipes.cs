@@ -23,10 +23,10 @@ public static class BrisketRecipes
             "Beginner",
             "Brisket",
             [
-                new(1, "Smoke at 121–135 °C (250–275 °F)."),
-                new(2, "After 4–5 hr, when bark is dry and set, open aluminium foil boat."),
-                new(3, "Bump pit to 149 °C (300 °F) — bottom braises; top renders fat cap."),
-                new(4, "Finish ~95–96 °C (203–205 °F) internal average."),
+                new(1, "Smoke at 121–135 °C (250–275 °F) until bark is dry and firm (usually 4–5 hr)."),
+                new(2, "Place in an open aluminium foil boat — bottom braises in collected juices."),
+                new(3, "Bump pit to 149 °C (300 °F); convective heat renders the fat cap on top."),
+                new(4, "Finish ~95–96 °C (203–205 °F) internal average on the flat."),
                 new(5, "Au jus: boat drippings + one stick melted butter on slices.")
             ],
             "Forgiving of temperature spikes.",
@@ -39,10 +39,10 @@ public static class BrisketRecipes
             "Advanced",
             "Brisket",
             [
-                new(1, "Pull at 90.5 °C (195 °F) — ~40% rendered, probe still tight."),
-                new(2, "Straight into 65.5 °C (150 °F) hold ~18 hours."),
-                new(3, "~4 hr slide from 90.5 → 65.5 °C adds major rendering."),
-                new(4, "Gentle hold to ~100% without 95 °C+ moisture loss.")
+                new(1, "Pull at 90.5 °C (195 °F) — ~40% rendered; flat should feel tight, not butter-tender."),
+                new(2, "Wrap and go straight into a 65.5 °C (150 °F) holding oven ~18 hours."),
+                new(3, "~4 hr temperature decline from 90.5 → 65.5 °C finishes much of the remaining ~60% render."),
+                new(4, "Gentle hold to ~100% without muscle fibres denaturing past 93.3 °C on the pit.")
             ],
             "Texas-style “secret” for max juice.",
             "Pull & Hold · gauge “After hold finishes”."),

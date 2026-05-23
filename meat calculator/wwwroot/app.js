@@ -627,16 +627,41 @@ function renderScience(data) {
   }
 
   $("trapTempLabel").innerHTML = tempHtml(data.moistureTrap.tempC);
-  $("moistureTrapText").textContent = data.smokeMyth
-    ? `${data.moistureTrap.summary} ${data.smokeMyth}`
-    : data.moistureTrap.summary;
+  $("moistureTrapText").textContent = data.moistureTrap.summary;
   $("fatNote").textContent = data.fatNote;
+
+  if ($("scienceProgramming") && data.programmingGuideline) {
+    $("scienceProgramming").textContent = data.programmingGuideline;
+  }
+
+  const tableBody = $("scienceRenderTable")?.querySelector("tbody");
+  if (tableBody && data.renderingTable?.length) {
+    tableBody.innerHTML = data.renderingTable
+      .map(
+        (s) => `<tr>
+          <td>${s.tempC}</td>
+          <td>${s.tempF}</td>
+          <td>${s.multiplier}×</td>
+          <td>${s.percentPerHour}%</td>
+          <td>${s.hoursTo100}</td>
+        </tr>`
+      )
+      .join("");
+  }
+
+  const notes = [];
+  if (data.smokeMyth) notes.push(data.smokeMyth);
+  if (data.carryOverHotFinish) notes.push(data.carryOverHotFinish);
+  if (data.foodSafety) notes.push(data.foodSafety);
+  if ($("scienceNotes")) {
+    $("scienceNotes").innerHTML = notes.map((n) => `<li>${n}</li>`).join("");
+  }
 
   const rows = data.renderingHighlights
     .map(
       (s) => `<div class="highlight-row">
         <span class="temp">${tempHtml(s.tempC)}</span>
-        <span class="mult">${s.multiplier}× rate</span>
+        <span class="mult">${s.multiplier}× · ${s.percentPerHour}%/hr</span>
         <span>~${s.hoursTo100} hr to 100%</span>
       </div>`
     )

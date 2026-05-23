@@ -43,20 +43,33 @@ app.MapGet("/api/science", () =>
     var highlights = new[]
     {
         BrisketData.RenderingStages.First(s => Math.Abs(s.TempC - 60) < 0.1),
-        BrisketData.RenderingStages.First(s => Math.Abs(s.TempC - 88) < 0.1),
-        BrisketData.RenderingStages.First(s => Math.Abs(s.TempC - 93.3) < 0.1)
+        BrisketData.RenderingStages.First(s => Math.Abs(s.TempC - 76.5) < 0.1),
+        BrisketData.RenderingStages.First(s => Math.Abs(s.TempC - 90.5) < 0.1),
+        BrisketData.RenderingStages.First(s => Math.Abs(s.TempC - 93.3) < 0.1),
+        BrisketData.RenderingStages.First(s => Math.Abs(s.TempC - 99) < 0.1)
     };
     return new
     {
         title = "Why 90.5 °C pull beats 95 °C",
         titleAlt = "(195 °F vs 203 °F)",
+        programmingGuideline =
+            "Collagen rendering is exponential (time × temperature). Each hour at a steady internal temp adds that row’s % per hour. Target ~100% total; 80–120% is the acceptable tenderness window.",
         moistureTrap = new
         {
             tempC = BrisketData.MoistureTrapC,
             tempF = BrisketData.MoistureTrapF,
-            summary = "Above 93 °C (200 °F), muscle fibres contract rapidly and squeeze out water faster than fat and gelatin can compensate."
+            summary =
+                "Above 93.3 °C (200 °F), muscle fibres denature rapidly and ring out moisture like a sponge — faster than fat and gelatin can compensate."
         },
         renderingHighlights = highlights,
+        renderingTable = BrisketData.RenderingStages.Select(s => new
+        {
+            s.TempC,
+            s.TempF,
+            s.Multiplier,
+            s.PercentPerHour,
+            s.HoursTo100
+        }),
         pull195 = MapComparison(story.Pull195),
         pull203 = MapComparison(story.Pull203),
         method = new
@@ -70,8 +83,13 @@ app.MapGet("/api/science", () =>
             renderedAtPull = BrisketData.PullLongHoldRendered,
             finishedInHold = BrisketData.HoldFinishesRendered,
             probeCue = "Probe should feel slightly tight — not butter-tender yet.",
-            holdNote = "Muscle fibers relax and reabsorb juice while collagen finishes gently."
+            holdNote =
+                "Muscle fibres relax and reabsorb juice while collagen finishes gently — the ~4 hr cool-down from pull temp into the box is part of the render."
         },
+        carryOverHotFinish =
+            "Pulled at 95 °C (203 °F)? Rest on the counter ~2 hr before a cool hold so internal heat does not drive past mush.",
+        foodSafety =
+            "Pasteurised from ~55 °C (131 °F). For long hot holds, 60–65.5 °C keeps food safe while tenderization stays slow.",
         holdPlan = new
         {
             story.HoldPlan.RenderedAtPull,
@@ -80,8 +98,10 @@ app.MapGet("/api/science", () =>
             holdHours = double.IsInfinity(story.HoldPlan.HoldHours) ? (double?)null : Math.Round(story.HoldPlan.HoldHours, 1),
             totalHours = Math.Round(story.HoldPlan.CarrySteps.Sum(s => s.Hours) + (double.IsInfinity(story.HoldPlan.HoldHours) ? 0 : story.HoldPlan.HoldHours), 1)
         },
-        fatNote = "Fettklass 4–5 (Prime) or Wangus fat can mask dry fibres — it cannot fix structural dryness from a 95 °C+ overcook.",
-        smokeMyth = "Smoke and smoke-ring development do not stop at 60 °C (140 °F); they continue well past 76.5 °C (170 °F)."
+        fatNote =
+            "Prime / Wangus (~8–13% intramuscular fat) masks dryness on the slice — it cannot fix structural moisture loss from a 95 °C+ overcook on smoke.",
+        smokeMyth =
+            "The 140 °F smoke myth is busted: flavour and ring development continue well past 60 °C (140 °F), often toward ~76.5 °C (170 °F) on a wet surface."
     };
 });
 
