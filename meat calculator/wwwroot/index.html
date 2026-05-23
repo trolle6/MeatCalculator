@@ -57,6 +57,7 @@
         <button class="tab tab-cook" data-panel="hold" role="tab">Hold</button>
         <button class="tab tab-cook" data-panel="plan" role="tab">Plan</button>
         <button class="tab tab-learn" data-panel="learn" role="tab">Learn</button>
+        <button class="tab tab-sources" data-panel="sources" role="tab">Sources</button>
       </div>
     </div>
   </nav>
@@ -109,6 +110,11 @@
 
         <div class="stat-row-compact" id="renderStatsCompact"></div>
         <button type="button" class="btn-primary-cta" id="openCookPlanFromDash">Make my cook plan →</button>
+        <nav class="panel-peek-links" aria-label="Quick jumps">
+          <button type="button" class="peek-link" data-goto-tab="hold">Hot-box hours →</button>
+          <button type="button" class="peek-link" data-goto-tab="yield">Set weight</button>
+          <button type="button" class="peek-link" data-goto-tab="science">Why ~40% at 195°?</button>
+        </nav>
       </article>
 
       <details class="expand-section probe-deep-section">
@@ -323,6 +329,7 @@
         <h2>How long in the hot box?</h2>
         <p class="card-desc">Pick a style — your answer updates below.</p>
         <div class="profile-picker" id="profilePicker"></div>
+        <p class="hold-temp-summary" id="holdTempSummary" aria-live="polite"></p>
       </article>
       <article class="card result-card hold-answer-card">
         <h2>Your answer</h2>
@@ -395,8 +402,16 @@
     <section id="panel-learn" class="panel">
       <header class="learn-hero">
         <h2>Learn &amp; setup</h2>
-        <p class="learn-lead">Optional reading, tables, and weight — open when you want depth. Mid-cook: stay on Probe → Hold → Plan.</p>
+        <p class="learn-lead">Deeper reading and tables — mid-cook, stay on Probe → Hold → Plan. Video links live on the <strong>Sources</strong> tab.</p>
       </header>
+      <nav class="learn-quick-strip" aria-label="Popular topics">
+        <button type="button" class="peek-link" data-goto-tab="yield">Weight</button>
+        <button type="button" class="peek-link" data-goto-tab="science">Why 195°?</button>
+        <button type="button" class="peek-link" data-goto-tab="rest">Rest curve</button>
+        <button type="button" class="peek-link" data-goto-tab="guide">Pit notes</button>
+        <button type="button" class="peek-link" data-goto-tab="sources">All video links</button>
+      </nav>
+      <p class="learn-more-label">More topics</p>
       <div class="learn-grid" role="list">
         <button type="button" class="learn-card" data-goto-tab="yield" role="listitem">
           <span class="learn-card-title">Weight &amp; yield</span>
@@ -419,8 +434,8 @@
           <span class="learn-card-desc">Foil boat, long hold, confit, reverse smoke.</span>
         </button>
         <button type="button" class="learn-card" data-goto-tab="reference" role="listitem">
-          <span class="learn-card-title">Tables &amp; sources</span>
-          <span class="learn-card-desc">Render-rate table, marbling bands, research links.</span>
+          <span class="learn-card-title">Render tables</span>
+          <span class="learn-card-desc">Steady-temp %/hr, marbling bands, grade stickers.</span>
         </button>
       </div>
       <p class="learn-foot hint"><strong>Probe + feel always beat the model.</strong> Inspired by public teaching from Steve Gow (Smoke Trails BBQ) — not affiliated.</p>
@@ -598,24 +613,31 @@
           </article>
         </div>
       </details>
-      <details class="expand-section sources-section" id="sourcesSection">
-        <summary>Research &amp; video sources</summary>
-        <div class="expand-body">
-          <article class="card sources-card">
-            <p class="sources-intro" id="sourcesIntro">Loading sources…</p>
-            <ul class="sources-list" id="sourcesList"></ul>
-            <p class="sources-channel">
-              <a href="https://www.youtube.com/@SmokeTrailsBBQ" class="source-link-btn" rel="noopener noreferrer" target="_blank">Steve Gow — YouTube channel ↗</a>
-            </p>
-            <p class="hint sources-repo">
-              Full list on GitHub:
-              <a href="https://github.com/trolle6/SmokeLab/blob/main/SOURCES.md" rel="noopener noreferrer" target="_blank">SOURCES.md</a>
-              ·
-              <a href="https://github.com/trolle6/SmokeLab/blob/main/LICENSE" rel="noopener noreferrer" target="_blank">MIT License</a>
-            </p>
-          </article>
-        </div>
-      </details>
+      <p class="hint reference-sources-note">
+        Research videos &amp; links → <button type="button" class="ref-link" data-goto-tab="sources">Sources tab</button>
+      </p>
+    </section>
+
+    <section id="panel-sources" class="panel panel-sources-panel">
+      <header class="sources-hero">
+        <h2>Sources &amp; links</h2>
+        <p class="sources-hero-lead">Steve Gow (Smoke Trails BBQ) videos and references that shaped this planner. Community tool — <strong>not affiliated</strong> with the channel.</p>
+      </header>
+      <article class="card sources-card">
+        <p class="sources-intro" id="sourcesIntro">Loading sources…</p>
+        <ul class="sources-list" id="sourcesList"></ul>
+        <p class="sources-channel">
+          <a href="https://www.youtube.com/@SmokeTrailsBBQ" class="source-link-btn" rel="noopener noreferrer" target="_blank">Steve Gow — YouTube channel ↗</a>
+        </p>
+        <p class="hint sources-repo">
+          Full bibliography:
+          <a href="https://github.com/trolle6/SmokeLab/blob/main/SOURCES.md" rel="noopener noreferrer" target="_blank">SOURCES.md</a>
+          ·
+          <a href="https://github.com/trolle6/SmokeLab/blob/main/LICENSE" rel="noopener noreferrer" target="_blank">MIT License</a>
+          ·
+          <a href="https://github.com/trolle6/SmokeLab/issues" rel="noopener noreferrer" target="_blank">Report an issue</a>
+        </p>
+      </article>
     </section>
   </main>
 
@@ -640,6 +662,6 @@
   </footer>
 
   <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
-  <script src="app.js?v=23"></script>
+  <script src="app.js?v=24"></script>
 </body>
 </html>

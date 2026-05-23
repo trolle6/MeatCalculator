@@ -519,8 +519,30 @@ function buildGradeBars() {
 const COOK_PANEL_IDS = new Set(["dashboard", "hold", "plan"]);
 
 function mainTabForPanel(panelId) {
+  if (panelId === "sources") return "sources";
   if (COOK_PANEL_IDS.has(panelId)) return panelId;
+  if (panelId === "learn") return "learn";
   return "learn";
+}
+
+function syncHoldTempSummary() {
+  const el = $("holdTempSummary");
+  if (!el) return;
+  const { pull, hold } = getPullHoldC();
+  const target = parseFloat($("targetPercent")?.value) || 100;
+  el.innerHTML = `Using <strong>${tempHtml(pull)}</strong> pull · <strong>${tempHtml(hold)}</strong> hold · <strong>${target}%</strong> goal — <button type="button" class="ref-link ref-link-inline" id="openHoldCustomBtn">edit temps</button>`;
+}
+
+function initHoldTempSummary() {
+  $("holdTempSummary")?.addEventListener("click", (e) => {
+    if (!e.target.closest("#openHoldCustomBtn")) return;
+    e.preventDefault();
+    const custom = $("holdCustomExpand");
+    if (custom) {
+      custom.open = true;
+      custom.scrollIntoView({ behavior: "smooth", block: "nearest" });
+    }
+  });
 }
 
 function activatePanel(panelId) {
@@ -935,6 +957,7 @@ function getPullHoldC() {
 async function updateHold() {
   const { pull, hold } = getPullHoldC();
   const target = parseFloat($("targetPercent").value) || 100;
+  syncHoldTempSummary();
 
   const data = await fetchHoldPlan(pull, hold, target);
 
@@ -2176,12 +2199,7 @@ async function loadSources() {
 }
 
 function openSourcesPanel() {
-  goToTab("reference");
-  const section = $("sourcesSection");
-  if (section) {
-    section.open = true;
-    setTimeout(() => section.scrollIntoView({ behavior: "smooth", block: "start" }), 80);
-  }
+  goToTab("sources");
 }
 
 function initRest() {
@@ -2219,8 +2237,10 @@ loadData()
   .then(() => {
     initRest();
     initPlan();
+    initHoldTempSummary();
     initExpandSections();
     wireGlobalNav();
+    syncHoldTempSummary();
     wireShareLinks();
     $("openSources")?.addEventListener("click", openSourcesPanel);
     $("openCookPlanFromDash")?.addEventListener("click", () => {
