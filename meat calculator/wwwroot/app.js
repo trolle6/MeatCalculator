@@ -1,42 +1,3 @@
-// #region agent log
-const AGENT_DEBUG_ENDPOINT =
-  "http://127.0.0.1:7476/ingest/aaf68a90-e0f4-448f-bdaa-4a470908cce2";
-function agentLog(hypothesisId, location, message, data = {}) {
-  const payload = {
-    sessionId: "5ca978",
-    hypothesisId,
-    location,
-    message,
-    data,
-    timestamp: Date.now(),
-  };
-  fetch(AGENT_DEBUG_ENDPOINT, {
-    method: "POST",
-    headers: {
-      "Content-Type": "application/json",
-      "X-Debug-Session-Id": "5ca978",
-    },
-    body: JSON.stringify(payload),
-  }).catch(() => {});
-  const el = document.getElementById("agentDebugOverlay");
-  if (el) {
-    el.hidden = false;
-    el.textContent = `[${hypothesisId}] ${location}: ${message}`;
-  }
-}
-window.addEventListener("error", (e) => {
-  agentLog("H2", "window.onerror", e.message, {
-    file: e.filename,
-    line: e.lineno,
-    col: e.colno,
-  });
-});
-agentLog("H1", "app.js:boot", "script parsed", {
-  href: location.href,
-  build: "v4",
-});
-// #endregion
-
 const state = {
   stages: [],
   grades: [],
@@ -131,12 +92,8 @@ document.querySelectorAll(".tab").forEach((tab) => {
     tab.classList.add("active");
     const panel = document.getElementById(`panel-${tab.dataset.panel}`);
     if (panel) panel.classList.add("active");
-    agentLog("H4", "tab.click", `panel-${tab.dataset.panel}`, { found: !!panel });
     if (tab.dataset.panel === "plan") updatePlanSummary();
   });
-});
-agentLog("H4", "tabs", "listeners attached", {
-  tabCount: document.querySelectorAll(".tab").length,
 });
 
 function syncLabels() {
@@ -306,10 +263,8 @@ function showPagesSetupBanner() {
 async function loadData() {
   let data;
   try {
-    agentLog("H5", "loadData", "fetching /api/data", { url: apiUrl("/api/data") });
     data = await apiGet("/api/data");
   } catch (err) {
-    agentLog("H5", "loadData", "FAILED", { err: String(err) });
     if (USE_STATIC_API) showPagesSetupBanner();
     throw err;
   }
@@ -333,10 +288,6 @@ async function loadData() {
   updateRendering();
   updateHold();
   updateYield();
-  agentLog("H5", "loadData", "success", {
-    stages: state.stages.length,
-    grades: state.grades.length,
-  });
 }
 
 function buildStageTable() {
@@ -462,9 +413,6 @@ if (tempSlider) {
     syncGaugeFromTemp(getSliderTempC());
     updateRendering();
   });
-  agentLog("H3", "tempSlider", "listeners attached");
-} else {
-  agentLog("H3", "tempSlider", "MISSING — slider dead");
 }
 
 document.querySelectorAll('input[name="gaugeMode"]').forEach((radio) => {
@@ -616,7 +564,7 @@ document.querySelectorAll(".btn-preset").forEach((btn) => {
   });
 });
 
-$("applyLongHold").addEventListener("click", () => {
+$("applyLongHold")?.addEventListener("click", () => {
   goToTab("hold");
   applyCookProfile("juicy");
 });
@@ -753,7 +701,7 @@ function renderScience(data) {
     <div class="method-stat"><span>Target window</span><strong>80–120%</strong></div>`;
 }
 
-$("scienceToHold").addEventListener("click", () => {
+$("scienceToHold")?.addEventListener("click", () => {
   document.querySelector('.tab[data-panel="hold"]').click();
   document.querySelector('.btn-preset[data-pull="90.5"]').click();
 });
@@ -1636,9 +1584,6 @@ function initRest() {
 
 loadData()
   .then(() => {
-    agentLog("H5", "boot", "loadData chain OK — wiring UI");
-    const dbg = document.getElementById("agentDebugOverlay");
-    if (dbg) dbg.hidden = true;
     initRest();
     initPlan();
     initExpandSections();
@@ -1660,7 +1605,4 @@ loadData()
       loadProfiles(),
     ])
   )
-  .catch((err) => {
-    console.error(err);
-    agentLog("H5", "boot", "loadData chain FAILED", { err: String(err) });
-  });
+  .catch(console.error);
