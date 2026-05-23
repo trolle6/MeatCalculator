@@ -15,6 +15,7 @@ var restEngine = app.Services.GetRequiredService<RestProjectionEngine>();
 app.MapGet("/api/data", () => new
 {
     grades = BrisketData.Grades,
+    marblingScale = BrisketData.MarblingScale,
     stages = BrisketData.RenderingStages,
     constants = new
     {

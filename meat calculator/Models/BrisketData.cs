@@ -7,11 +7,15 @@ public sealed record RenderingStage(
     double HoursTo100,
     double PercentPerHour);
 
+public sealed record MarblingBandInfo(string Id, string Label, int Order);
+
 public sealed record GradeInfo(
     string Id,
     string Name,
     string Region,
     string RegionLabel,
+    string MarblingBand,
+    string MarblingBandLabel,
     int Tier,
     double MarblingMin,
     double MarblingMax,
@@ -86,21 +90,30 @@ public static class BrisketData
     public const double HoldRecommendedMinC = 57;
     public const double HoldRecommendedMaxC = 60;
 
-    /// <summary>Regional grading systems; marbling bands are planning references (USDA default).</summary>
+    /// <summary>Simple marbling bands; regional stickers map to these for planning (USDA default).</summary>
+    public static readonly MarblingBandInfo[] MarblingScale =
+    [
+        new("low", "Low marbling", 0),
+        new("low-moderate", "Low–moderate marbling", 1),
+        new("moderate", "Moderate marbling", 2),
+        new("high", "High marbling", 3),
+        new("extreme", "Extreme / Wagyu-grade marbling", 4)
+    ];
+
     public static readonly GradeInfo[] Grades =
     [
-        new("us_select", "USDA Select", "us", "United States (USDA)", 0, 2, 4, "Scored on ribeye, not brisket"),
-        new("us_choice", "USDA Choice", "us", "United States (USDA)", 1, 4, 10, "Scored on ribeye, not brisket"),
-        new("us_prime", "USDA Prime", "us", "United States (USDA)", 2, 8, 13, "Scored on ribeye, not brisket"),
-        new("uk_fat2", "Fat class 2", "uk", "United Kingdom", 0, 2, 4, "Carcass fat class — rough marbling band"),
-        new("uk_fat34", "Fat class 3–4", "uk", "United Kingdom", 1, 4, 10, "Carcass fat class — rough marbling band"),
-        new("uk_fat45", "Fat class 4–5", "uk", "United Kingdom", 2, 8, 13, "Carcass fat class — rough marbling band"),
-        new("jp_bms23", "BMS 2–3", "jp", "Japan (JMGA BMS)", 0, 2, 4, "Beef Marbling Standard"),
-        new("jp_bms46", "BMS 4–6", "jp", "Japan (JMGA BMS)", 1, 4, 10, "Beef Marbling Standard"),
-        new("jp_bms8", "BMS 8+", "jp", "Japan (JMGA BMS)", 2, 8, 13, "Beef Marbling Standard"),
-        new("au_msa300", "MSA marbling ~300", "au", "Australia (MSA)", 0, 2, 4, "MSA marbling score — approximate"),
-        new("au_msa400", "MSA marbling ~400", "au", "Australia (MSA)", 1, 4, 10, "MSA marbling score — approximate"),
-        new("au_msa500", "MSA marbling ~500+", "au", "Australia (MSA)", 2, 8, 13, "MSA marbling score — approximate")
+        new("us_select", "USDA Select", "us", "United States (USDA)", "low-moderate", "Low–moderate marbling", 0, 2, 6),
+        new("us_choice", "USDA Choice", "us", "United States (USDA)", "moderate", "Moderate marbling", 1, 4, 10),
+        new("us_prime", "USDA Prime", "us", "United States (USDA)", "high", "High marbling", 2, 8, 13),
+        new("uk_fat2", "Fat class 2", "uk", "United Kingdom", "low", "Low marbling", 0, 2, 4),
+        new("uk_fat34", "Fat class 3–4", "uk", "United Kingdom", "moderate", "Moderate marbling", 1, 4, 10),
+        new("uk_fat45", "Fat class 4–5", "uk", "United Kingdom", "high", "High marbling", 2, 8, 13),
+        new("jp_bms34", "BMS 3–4", "jp", "Japan (JMGA BMS)", "moderate", "Moderate marbling", 1, 4, 10),
+        new("jp_bms57", "BMS 5–7", "jp", "Japan (JMGA BMS)", "high", "High marbling", 2, 8, 12),
+        new("jp_bms812", "BMS 8–12", "jp", "Japan (JMGA BMS)", "extreme", "Extreme / Wagyu-grade marbling", 3, 10, 20),
+        new("au_msa300", "MSA 300", "au", "Australia (MSA)", "moderate", "Moderate marbling", 1, 4, 10),
+        new("au_msa400", "MSA 400", "au", "Australia (MSA)", "high", "High marbling", 2, 8, 13),
+        new("au_msa500", "MSA 500+", "au", "Australia (MSA)", "extreme", "Extreme / Wagyu-grade marbling", 3, 10, 20)
     ];
 
     public const string DefaultGradeId = "us_choice";

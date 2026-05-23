@@ -3,6 +3,7 @@ const LB_PER_KG = 2.2046226218;
 const state = {
   stages: [],
   grades: [],
+  marblingScale: [],
   chart: null,
   constants: {},
   gaugeMode: "pull",
@@ -422,11 +423,18 @@ function normalizeGradeId(id) {
   if (key === "fk2") return "us_select";
   if (key === "fk34") return "us_choice";
   if (key === "fk45") return "us_prime";
+  if (key === "jp_bms23" || key === "jp_bms2") return "jp_bms34";
+  if (key === "jp_bms46" || key === "jp_bms4") return "jp_bms57";
+  if (key === "jp_bms8") return "jp_bms812";
   return id;
 }
 
+function marblingBandClass(bandId) {
+  return bandId ? `marbling-band-${bandId}` : "";
+}
+
 function gradeOptionLabel(g) {
-  return `${g.name} — ${g.marblingMin}–${g.marblingMax}% intramuscular fat`;
+  return `${g.name} → ${g.marblingBandLabel || g.marblingBand}`;
 }
 
 function gradeLabel(g) {
@@ -465,6 +473,10 @@ function buildGradeBars() {
   const container = $("gradeBars");
   if (!container || !state.grades.length) return;
 
+  const scale = (state.marblingScale?.length ? [...state.marblingScale] : []).sort(
+    (a, b) => (a.order ?? 0) - (b.order ?? 0)
+  );
+
   const byRegion = new Map();
   for (const g of state.grades) {
     const region = g.region || "us";
@@ -472,25 +484,36 @@ function buildGradeBars() {
     byRegion.get(region).push(g);
   }
 
-  container.innerHTML = GRADE_REGION_ORDER.filter((r) => byRegion.has(r))
+  const legend =
+    scale.length > 0
+      ? `<div class="marbling-scale">
+      <h3 class="marbling-scale-heading">Marbling bands (planning)</h3>
+      <ul class="marbling-scale-list">
+        ${scale.map((b) => `<li class="${marblingBandClass(b.id)}">${b.label}</li>`).join("")}
+      </ul>
+      <p class="hint marbling-scale-hint">Stickers from each country map to these broad bands — rough equivalents, not 1:1 with USDA marbling %.</p>
+    </div>`
+      : "";
+
+  const regions = GRADE_REGION_ORDER.filter((r) => byRegion.has(r))
     .map((region) => {
       const items = byRegion.get(region);
       const heading = items[0].regionLabel || region;
       const rows = items
         .map(
           (g) => `
-    <div class="grade-row">
-      <label>${gradeLabel(g)}</label>
-      <div class="grade-track">
-        <div class="grade-fill" style="left:${g.marblingMin * 5}%; width:${(g.marblingMax - g.marblingMin) * 5}%"></div>
-      </div>
-      <div class="grade-range">${g.marblingMin}% – ${g.marblingMax}% intramuscular fat</div>
+    <div class="grade-map-row ${marblingBandClass(g.marblingBand)}">
+      <span class="grade-map-sticker">${gradeLabel(g)}</span>
+      <span class="grade-map-arrow" aria-hidden="true">→</span>
+      <span class="grade-map-band">${g.marblingBandLabel}</span>
     </div>`
         )
         .join("");
       return `<section class="grade-region-block"><h3 class="grade-region-heading">${heading}</h3>${rows}</section>`;
     })
     .join("");
+
+  container.innerHTML = legend + regions;
 }
 
 // Tabs
@@ -688,6 +711,7 @@ async function loadData() {
   }
   state.stages = data.stages;
   state.grades = data.grades;
+  state.marblingScale = data.marblingScale ?? [];
   state.constants = data.constants;
 
   populateGradeSelect(DEFAULT_GRADE_ID);
@@ -995,8 +1019,8 @@ async function updateYield() {
   $("yieldEnd").textContent = formatWeight(y.cookedKg);
 
   $("yieldStats").innerHTML = `
-    <div><dt>Grade</dt><dd>${y.grade}</dd></div>
-    <div><dt>Marbling band</dt><dd>${y.marblingMin}–${y.marblingMax}% intramuscular fat</dd></div>
+    <div><dt>Marbling</dt><dd>${y.marblingBandLabel || "—"}</dd></div>
+    <div><dt>Sticker</dt><dd>${y.grade}</dd></div>
     <div><dt>Grading system</dt><dd>${y.gradeRegionLabel || y.gradeRegion || "—"}</dd></div>
     <div><dt>Weight lost</dt><dd>${formatWeight(y.lostKg)}</dd></div>
     <div><dt>Raw water content</dt><dd>~${y.waterContentPercent}%</dd></div>
@@ -1731,6 +1755,8 @@ async function fetchYieldPlan(kg, grade, loss) {
     grade: g?.name ?? grade,
     gradeRegion: g?.region ?? "",
     gradeRegionLabel: g?.regionLabel ?? "",
+    marblingBand: g?.marblingBand ?? "",
+    marblingBandLabel: g?.marblingBandLabel ?? "",
     marblingMin: g?.marblingMin,
     marblingMax: g?.marblingMax,
     waterContentPercent: 70,
@@ -1806,9 +1832,9 @@ async function updatePlanSummary() {
 
   const meatRaw = formatWeight(yieldData.startKg, { showBoth: true });
   const meatCooked = formatWeight(yieldData.cookedKg, { showBoth: true });
-  const gradeLine = yieldData.gradeRegionLabel
-    ? `${yieldData.grade} (${yieldData.gradeRegionLabel})`
-    : yieldData.grade;
+  const band = yieldData.marblingBandLabel ? ` — ${yieldData.marblingBandLabel}` : "";
+  const region = yieldData.gradeRegionLabel ? ` (${yieldData.gradeRegionLabel})` : "";
+  const gradeLine = `${yieldData.grade}${band}${region}`;
 
   const checklist = [
     `Trim & season the night before (dry brine if you use it)`,

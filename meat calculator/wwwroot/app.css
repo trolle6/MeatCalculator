@@ -1950,37 +1950,112 @@ footer {
 .grade-bars {
   display: flex;
   flex-direction: column;
-  gap: 1rem;
+  gap: 1.25rem;
 }
 
-.grade-row label {
+.marbling-scale {
+  padding-bottom: 0.5rem;
+  border-bottom: 1px solid var(--border);
+}
+
+.marbling-scale-heading {
+  margin: 0 0 0.5rem;
+  font-size: 0.8rem;
+  font-weight: 600;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--smoke);
+}
+
+.marbling-scale-list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.4rem 0.5rem;
+}
+
+.marbling-scale-list li {
+  font-size: 0.78rem;
+  font-weight: 600;
+  padding: 0.2rem 0.55rem;
+  border-radius: 999px;
+  background: var(--surface-2);
+  color: var(--text);
+}
+
+.marbling-scale-hint {
+  margin: 0.65rem 0 0;
+}
+
+.grade-map-row {
+  display: flex;
+  align-items: baseline;
+  flex-wrap: wrap;
+  gap: 0.35rem 0.5rem;
+  padding: 0.45rem 0;
+  border-bottom: 1px solid var(--border);
+}
+
+.grade-map-row:last-child {
+  border-bottom: none;
+}
+
+.grade-map-sticker {
+  font-size: 0.88rem;
+  font-weight: 600;
+  min-width: 8rem;
+}
+
+.grade-map-arrow {
+  color: var(--muted);
+  font-size: 0.85rem;
+}
+
+.grade-map-band {
   font-size: 0.85rem;
   font-weight: 600;
-  margin-bottom: 0.35rem;
-  display: block;
 }
 
-.grade-track {
-  height: 12px;
-  background: var(--surface-2);
-  border-radius: 6px;
-  position: relative;
-  overflow: hidden;
+.marbling-scale-list .marbling-band-low {
+  color: #6b7c6a;
 }
 
-.grade-fill {
-  position: absolute;
-  height: 100%;
-  background: var(--ember);
-  border-radius: 6px;
-  opacity: 0.85;
+.marbling-scale-list .marbling-band-low-moderate {
+  color: #7a6f52;
 }
 
-.grade-range {
-  font-size: 0.75rem;
-  color: var(--muted);
-  font-family: var(--mono);
-  margin-top: 0.25rem;
+.marbling-scale-list .marbling-band-moderate {
+  color: #8a6b45;
+}
+
+.marbling-scale-list .marbling-band-high {
+  color: var(--ember);
+}
+
+.marbling-scale-list .marbling-band-extreme {
+  color: #b84a3a;
+}
+
+.marbling-band-low .grade-map-band {
+  color: #6b7c6a;
+}
+
+.marbling-band-low-moderate .grade-map-band {
+  color: #7a6f52;
+}
+
+.marbling-band-moderate .grade-map-band {
+  color: #8a6b45;
+}
+
+.marbling-band-high .grade-map-band {
+  color: var(--ember);
+}
+
+.marbling-band-extreme .grade-map-band {
+  color: #b84a3a;
 }
 
 .chart-marker {

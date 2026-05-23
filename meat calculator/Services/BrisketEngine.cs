@@ -94,6 +94,9 @@ public sealed class BrisketEngine
             "fk2" or "select" or "usda select" or "fettklass 2" => "us_select",
             "fk34" or "choice" or "usda choice" or "fettklass 3–4" or "fettklass 3-4" => "us_choice",
             "fk45" or "prime" or "usda prime" or "fettklass 4–5" or "fettklass 4-5" => "us_prime",
+            "jp_bms23" or "jp_bms2" => "jp_bms34",
+            "jp_bms46" or "jp_bms4" => "jp_bms57",
+            "jp_bms8" => "jp_bms812",
             _ => key
         };
     }
@@ -108,6 +111,8 @@ public sealed class BrisketEngine
             gradeInfo.Name,
             gradeInfo.Region,
             gradeInfo.RegionLabel,
+            gradeInfo.MarblingBand,
+            gradeInfo.MarblingBandLabel,
             gradeInfo.MarblingMin,
             gradeInfo.MarblingMax,
             lossPercent,
@@ -179,6 +184,8 @@ public sealed record YieldEstimate(
     string Grade,
     string GradeRegion,
     string GradeRegionLabel,
+    string MarblingBand,
+    string MarblingBandLabel,
     double MarblingMin,
     double MarblingMax,
     double LossPercent,
