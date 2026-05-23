@@ -72,15 +72,6 @@ footer {
   gap: 0.5rem;
 }
 
-.brand-eyebrow {
-  margin: 0 0 0.15rem;
-  font-size: 0.7rem;
-  font-weight: 600;
-  letter-spacing: 0.06em;
-  text-transform: uppercase;
-  color: var(--gold);
-}
-
 .btn-share-link {
   font-family: var(--font);
   font-size: 0.8rem;
@@ -117,7 +108,7 @@ footer {
   text-decoration: underline;
 }
 
-.community-hero {
+.intro-hero {
   margin-bottom: 1.25rem;
   padding: 1.15rem 1.25rem 1.1rem;
   border-radius: var(--radius);
@@ -126,20 +117,7 @@ footer {
   box-shadow: 0 8px 32px rgba(0, 0, 0, 0.35);
 }
 
-.community-badge {
-  display: inline-block;
-  margin: 0 0 0.5rem;
-  padding: 0.2rem 0.55rem;
-  font-size: 0.7rem;
-  font-weight: 700;
-  letter-spacing: 0.05em;
-  text-transform: uppercase;
-  color: var(--bg);
-  background: var(--ember);
-  border-radius: 4px;
-}
-
-.community-hero-title {
+.intro-hero-title {
   margin: 0 0 0.5rem;
   font-size: 1.2rem;
   font-weight: 700;
@@ -147,14 +125,14 @@ footer {
   letter-spacing: -0.02em;
 }
 
-.community-hero-lead {
+.intro-hero-lead {
   margin: 0 0 0.75rem;
   font-size: 0.95rem;
   line-height: 1.5;
   color: var(--text);
 }
 
-.community-steps {
+.intro-steps {
   margin: 0 0 0.85rem;
   padding-left: 1.15rem;
   font-size: 0.88rem;
@@ -162,15 +140,15 @@ footer {
   color: var(--muted);
 }
 
-.community-steps li {
+.intro-steps li {
   margin-bottom: 0.35rem;
 }
 
-.community-steps strong {
+.intro-steps strong {
   color: var(--text);
 }
 
-.community-credit {
+.intro-credit {
   margin: 0;
   font-size: 0.8rem;
   line-height: 1.45;

@@ -1331,7 +1331,7 @@ async function fetchYieldPlan(kg, grade, loss) {
 function buildPlanPlainText(parts, profileName) {
   const lines = [
     "SMOKE LAB — BRISKET COOK SHEET",
-    "(Pull-and-hold planner · Smoke Trails BBQ community model)",
+    "(Pull-and-hold planner)",
   ];
   if (profileName) lines.push(`Preset: ${profileName}`);
   lines.push(
