@@ -288,6 +288,14 @@ footer {
   margin: 0.5rem auto 0;
 }
 
+.site-footer .footer-attribution {
+  font-size: 0.78rem;
+  color: var(--muted);
+  max-width: 42rem;
+  margin: 0.65rem auto 0;
+  line-height: 1.45;
+}
+
 .brand h1 {
   margin: 0;
   font-size: 1.5rem;

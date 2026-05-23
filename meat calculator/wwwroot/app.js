@@ -1534,6 +1534,9 @@ function buildPlanPlainText(parts, profileName) {
     "",
     "DAY-OF CHECKLIST",
     ...parts.checklist.map((c) => `☐ ${c}`),
+    "",
+    "DISCLAIMER",
+    "Built with AI assistance. Science from Steve Gow / Smoke Trails BBQ (YouTube: https://www.youtube.com/@SteveGowSmokeTrailsBBQ). Not affiliated or endorsed. Planning only — verify with probe and feel.",
   );
   return lines.join("\n");
 }
