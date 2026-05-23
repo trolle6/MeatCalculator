@@ -16,6 +16,16 @@ Set **Weight** (Setup tab) before you print the plan. **Reference** tabs (Why 19
 
 **Copy link** in the header shares your current temps and weight in the URL. The model is for **planning only** — probe and feel on your cooker always win.
 
+### Example shared plan
+
+6 kg USDA Choice, Juicy pull (~90.5 °C), 65.5 °C hold, 35% shrink:
+
+[Open this preset on Smoke Lab](https://trolle6.github.io/MeatCalculator/?pull=90.5&hold=65.5&kg=6&loss=35&profile=juicy&tab=plan)
+
+## Feedback
+
+After sharing in the community, track themes in [FEEDBACK.md](FEEDBACK.md). Report bugs or ideas on [GitHub Issues](https://github.com/trolle6/MeatCalculator/issues).
+
 ## Run locally (full API)
 
 ```bash

@@ -784,6 +784,45 @@ footer {
   margin-bottom: 0;
 }
 
+.model-limits-list {
+  margin: 0;
+  padding-left: 1.2rem;
+  color: var(--muted);
+  font-size: 0.9rem;
+  line-height: 1.55;
+}
+
+.model-limits-list li + li {
+  margin-top: 0.5rem;
+}
+
+.model-limits-foot {
+  margin: 0.75rem 0 0;
+}
+
+.plan-limits {
+  margin-bottom: 1rem;
+}
+
+.footer-version {
+  color: var(--smoke);
+  font-size: 0.85em;
+}
+
+.footer-feedback {
+  margin: 0.35rem 0 0;
+  font-size: 0.88rem;
+}
+
+.footer-feedback a {
+  color: var(--gold);
+  text-decoration: none;
+}
+
+.footer-feedback a:hover {
+  text-decoration: underline;
+}
+
 @media print {
   .site-header,
   .tab-nav,
@@ -794,6 +833,7 @@ footer {
   nav,
   .plan-toolbar,
   .plan-foot,
+  .plan-limits,
   footer,
   .btn-tiny,
   .pages-setup-banner {

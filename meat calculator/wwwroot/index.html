@@ -167,6 +167,19 @@
         </div>
       </details>
 
+      <details class="expand-section model-limits-section">
+        <summary>What this model does (and does not)</summary>
+        <div class="expand-body model-limits-body">
+          <ul class="model-limits-list">
+            <li><strong>Does:</strong> Estimate collagen render % and hot-hold hours from pull temp, hold temp, and time — a <em>planning</em> aid for pull-and-hold brisket.</li>
+            <li><strong>Does not:</strong> Replace a probe in the <strong>flat</strong>, bark feel, or your cooker’s quirks. USDA grade is scored on the ribeye, not the brisket sticker alone.</li>
+            <li><strong>Does not:</strong> Guarantee slice timing — point vs flat, wrap, and cambro heat vary. Compare presets; trust probe and butter-glide feel at ~82&nbsp;°C (180&nbsp;°F)+.</li>
+            <li><strong>Does not:</strong> Know your pit — hold hours are modeled; your hot box may run hotter, colder, or faster. Use Juicy vs Hotter as brackets, then adjust on the cook.</li>
+          </ul>
+          <p class="hint model-limits-foot">If numbers feel off, say what you expected on <a href="https://github.com/trolle6/MeatCalculator/issues" rel="noopener noreferrer" target="_blank">GitHub Issues</a> — patterns matter more than one report.</p>
+        </div>
+      </details>
+
       <details class="expand-section">
         <summary>Pit reminders (smoke, probe, default hold)</summary>
         <div class="expand-body info-cards">
@@ -368,6 +381,16 @@
           <button type="button" class="btn-ghost" id="refreshPlan">Refresh</button>
         </div>
       </header>
+      <details class="expand-section model-limits-section plan-limits">
+        <summary>Planner limits (read before you cook)</summary>
+        <div class="expand-body model-limits-body">
+          <p class="hint">This sheet is built from your <strong>Weight</strong> and <strong>Hold</strong> inputs. It is not a substitute for probe temp in the flat or how your cambro actually behaves.</p>
+          <ul class="model-limits-list">
+            <li>Render % is a model — ~40% at a 90.5&nbsp;°C (195&nbsp;°F) pull before a long hold is <em>by design</em>, not “underdone.”</li>
+            <li>Hold hours are exponential estimates; verify tenderness before you slice.</li>
+          </ul>
+        </div>
+      </details>
       <div id="planSheet" class="plan-sheet">
         <p class="placeholder">Loading your plan…</p>
       </div>
@@ -547,8 +570,9 @@
 
   <footer class="site-footer">
     <p class="footer-share">Share with pit friends → <strong id="shareUrlDisplay">trolle6.github.io/MeatCalculator</strong> <button type="button" class="btn-share-link btn-share-link-small" id="copyShareLinkFooter">Copy</button></p>
-    <p>Smoke Lab · free brisket pull-and-hold planner · °C &amp; °F</p>
+    <p>Smoke Lab · free brisket pull-and-hold planner · °C &amp; °F · <span class="footer-version">v1.0 — share links, USDA grades</span></p>
     <p class="footer-fine">Modeled tenderness and hold times are for planning only — verify with probe and feel on your cooker.</p>
+    <p class="footer-feedback"><a href="https://github.com/trolle6/MeatCalculator/issues" rel="noopener noreferrer" target="_blank">Feedback &amp; bugs → GitHub Issues</a></p>
     <p class="footer-attribution">
       Smoke Lab was built with AI assistance. Pull-and-hold temps and the collagen model are based on public brisket teaching by
       <a href="https://www.youtube.com/@SteveGowSmokeTrailsBBQ" rel="noopener noreferrer" target="_blank">Steve Gow (Smoke Trails BBQ)</a>
