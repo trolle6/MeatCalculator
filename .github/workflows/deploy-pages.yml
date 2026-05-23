@@ -52,11 +52,10 @@ jobs:
           kill $PID 2>/dev/null || true
           wait $PID 2>/dev/null || true
 
-      - name: Publish to docs/ on main (GitHub Pages)
+      - name: Publish to gh-pages branch
         uses: peaceiris/actions-gh-pages@v4
         with:
           github_token: ${{ secrets.GITHUB_TOKEN }}
           publish_dir: ./_site
-          publish_branch: main
-          destination_dir: docs
-          keep_files: true
+          publish_branch: gh-pages
+          force_orphan: true

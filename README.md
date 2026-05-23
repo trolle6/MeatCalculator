@@ -19,13 +19,12 @@ GitHub Pages cannot run ASP.NET. On each push to `main`, Actions builds the app,
 
 ### One-time setup (fixes the default GitHub 404)
 
-1. Open **[Settings → Pages](https://github.com/trolle6/MeatCalculator/settings/pages)**.
-2. **Source:** **Deploy from a branch**.
-3. **Branch:** `main` · **Folder:** `/docs` · **Save**.
-4. Confirm **[Actions](https://github.com/trolle6/MeatCalculator/actions)** → **Deploy GitHub Pages** is green (re-run if needed).
-5. Wait 1–2 minutes, then open **https://trolle6.github.io/MeatCalculator/**.
-
-Each push to `main` refreshes the `docs/` folder automatically.
+1. Open **[Settings → Actions → General](https://github.com/trolle6/MeatCalculator/settings/actions)** → **Workflow permissions** → **Read and write** → Save.
+2. Open **[Settings → Pages](https://github.com/trolle6/MeatCalculator/settings/pages)**.
+3. **Source:** **Deploy from a branch**.
+4. **Branch:** `gh-pages` · **Folder:** `/ (root)` · **Save**.
+5. **[Actions](https://github.com/trolle6/MeatCalculator/actions)** → **Deploy GitHub Pages** → **Re-run** if the last run failed.
+6. Wait 1–2 minutes → **https://trolle6.github.io/MeatCalculator/**
 
 Sliders, hold/yield math, and rest projection use **browser fallbacks** on Pages; locally you still get the full server.
 
