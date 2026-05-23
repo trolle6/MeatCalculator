@@ -247,6 +247,7 @@ document.querySelectorAll(".tab").forEach((tab) => {
     const panel = document.getElementById(`panel-${tab.dataset.panel}`);
     if (panel) panel.classList.add("active");
     if (tab.dataset.panel === "plan") updatePlanSummary();
+    window.scrollTo({ top: 0, behavior: "smooth" });
   });
 });
 

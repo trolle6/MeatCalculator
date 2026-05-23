@@ -42,16 +42,31 @@
     </div>
   </header>
 
-  <nav class="tabs" role="tablist" aria-label="Sections">
-    <button class="tab active" data-panel="dashboard" role="tab">1 · Probe</button>
-    <button class="tab" data-panel="hold" role="tab">2 · Hold</button>
-    <button class="tab" data-panel="plan" role="tab">3 · Plan</button>
-    <button class="tab tab-secondary" data-panel="yield" role="tab">Weight</button>
-    <button class="tab tab-secondary" data-panel="science" role="tab">Why 195?</button>
-    <button class="tab tab-secondary" data-panel="rest" role="tab">Rest</button>
-    <button class="tab tab-secondary" data-panel="guide" role="tab">Notes</button>
-    <button class="tab tab-secondary" data-panel="recipes" role="tab">Methods</button>
-    <button class="tab tab-secondary" data-panel="reference" role="tab">Tables</button>
+  <nav class="tab-nav" aria-label="App sections">
+    <div class="tab-group tab-group-cook" role="tablist" aria-label="Cook flow">
+      <span class="tab-group-label">Cook</span>
+      <div class="tab-group-buttons">
+        <button class="tab tab-cook active" data-panel="dashboard" role="tab">1 · Probe</button>
+        <button class="tab tab-cook" data-panel="hold" role="tab">2 · Hold</button>
+        <button class="tab tab-cook" data-panel="plan" role="tab">3 · Plan</button>
+      </div>
+    </div>
+    <div class="tab-group tab-group-setup" role="tablist" aria-label="Setup">
+      <span class="tab-group-label">Setup</span>
+      <div class="tab-group-buttons">
+        <button class="tab tab-setup" data-panel="yield" role="tab">Weight</button>
+      </div>
+    </div>
+    <div class="tab-group tab-group-ref" role="tablist" aria-label="Reference">
+      <span class="tab-group-label">Reference</span>
+      <div class="tab-group-buttons">
+        <button class="tab tab-ref" data-panel="science" role="tab">Why 195?</button>
+        <button class="tab tab-ref" data-panel="rest" role="tab">Rest</button>
+        <button class="tab tab-ref" data-panel="guide" role="tab">Notes</button>
+        <button class="tab tab-ref" data-panel="recipes" role="tab">Methods</button>
+        <button class="tab tab-ref" data-panel="reference" role="tab">Tables</button>
+      </div>
+    </div>
   </nav>
 
   <main>
@@ -152,8 +167,11 @@
           <div class="info-card">
             <h3>Reference hold plan</h3>
             <p>Pull ~<strong id="refPull"></strong>, wrap, hot hold <strong id="refHold"></strong> — often <strong>12–18 hr</strong> in the model.</p>
-            <button type="button" class="btn-ghost" id="applyLongHold">Use on Hold tab</button>
-            <button type="button" class="btn-ghost" id="openCookPlan">Cook sheet</button>
+            <p class="ref-link-row">
+              <button type="button" class="ref-link" id="applyLongHold">Apply on Hold tab →</button>
+              <span class="ref-link-sep" aria-hidden="true">·</span>
+              <button type="button" class="ref-link" id="openCookPlan">Open cook sheet →</button>
+            </p>
           </div>
           <div class="info-card">
             <h3>Evaporative stall</h3>
@@ -166,18 +184,23 @@
           <div class="info-card">
             <h3>Probe the flat</h3>
             <p>From ~82&nbsp;°C (180&nbsp;°F), you want <strong>glide-in butter</strong> on the flat — not mush, not cold resistance.</p>
-            <button type="button" class="btn-ghost" id="openGuide">Pit notes</button>
-            <button type="button" class="btn-ghost" id="openRecipes">Techniques</button>
+            <p class="ref-link-row">
+              <button type="button" class="ref-link" id="openGuide">Pit notes →</button>
+              <span class="ref-link-sep" aria-hidden="true">·</span>
+              <button type="button" class="ref-link" id="openRecipes">Techniques →</button>
+            </p>
           </div>
         </div>
       </details>
     </section>
 
-    <section id="panel-science" class="panel">
-      <header class="science-hero">
+    <section id="panel-science" class="panel panel-reference">
+      <header class="science-hero panel-ref-hero">
+        <p class="panel-eyebrow">Reference</p>
         <h2 id="scienceTitle">Why 90.5 °C pull beats 95 °C</h2>
         <p class="science-title-alt" id="scienceTitleAlt">(195 °F vs 203 °F)</p>
         <p class="science-sub">Pull-and-hold approach: build render on the grate, finish in the hot box — less moisture loss than riding to 203&nbsp;°F on smoke alone.</p>
+        <p class="guide-sub panel-ref-note">For planning, not mid-cook scrolling.</p>
       </header>
 
       <div class="science-focus">
@@ -208,7 +231,9 @@
             
             <div class="compare-cards" id="comparePulls"></div>
           </div>
-          <button type="button" class="btn-ghost btn-wide" id="scienceToHold">Try these temps on Hold</button>
+          <p class="ref-link-row ref-link-row-card">
+            <button type="button" class="ref-link" id="scienceToHold">Apply on Hold tab →</button>
+          </p>
         </article>
 
         <details class="expand-section">
@@ -331,7 +356,7 @@
     <section id="panel-plan" class="panel">
       <header class="guide-hero plan-hero">
         <h2>Cook plan</h2>
-        <p class="guide-sub">Screenshot or <strong>Copy plan</strong> for the fridge door. Set meat on <strong>Weight</strong> and temps on <strong>Hold</strong> first.</p>
+        <p class="guide-sub">Screenshot or <strong>Copy plan</strong> for the fridge door. Set meat on <strong>Weight</strong> and temps on <strong>Hold</strong> first. Reference tabs are for reading, not mid-cook.</p>
         <div class="plan-toolbar">
           <button type="button" class="btn-ghost" id="copyPlan">Copy plan</button>
           <button type="button" class="btn-ghost" id="refreshPlan">Refresh</button>
@@ -342,10 +367,12 @@
       </div>
     </section>
 
-    <section id="panel-rest" class="panel">
-      <header class="guide-hero">
+    <section id="panel-rest" class="panel panel-reference">
+      <header class="guide-hero panel-ref-hero">
+        <p class="panel-eyebrow">Reference</p>
         <h2>Rest &amp; hold curve</h2>
         <p class="guide-sub">Pulled hot → cambro, counter, or fridge: modeled temp drift and extra render %.</p>
+        <p class="guide-sub panel-ref-note">For planning, not mid-cook scrolling.</p>
       </header>
       <div class="grid-2">
         <article class="card">
@@ -354,7 +381,7 @@
             <label for="restStartTemp">Temp when it leaves the cooker (°C)</label>
             <div class="input-row">
               <input type="number" id="restStartTemp" value="90.5" step="0.5" min="40" max="100" />
-              <button type="button" class="btn-ghost" id="restUseDashboard">Same as slider</button>
+              <button type="button" class="ref-link" id="restUseDashboard">Same as probe slider →</button>
             </div>
           </div>
           <div class="field">
@@ -390,7 +417,12 @@
       </div>
     </section>
 
-    <section id="panel-yield" class="panel">
+    <section id="panel-yield" class="panel panel-setup">
+      <header class="panel-setup-hero">
+        <p class="panel-eyebrow">Setup · before you cook</p>
+        <h2>Weight &amp; shrink</h2>
+        <p class="guide-sub">Feeds your cook plan — set raw weight and expected loss before you smoke.</p>
+      </header>
       <div class="grid-2">
         <article class="card">
           <h2>How much brisket?</h2>
@@ -432,8 +464,9 @@
       </div>
     </section>
 
-    <section id="panel-guide" class="panel">
-      <header class="guide-hero">
+    <section id="panel-guide" class="panel panel-reference">
+      <header class="guide-hero panel-ref-hero">
+        <p class="panel-eyebrow">Reference</p>
         <h2>Pit notes</h2>
         <p class="guide-sub">Wrap, bark, fuel, and hold notes — for planning, not mid-cook scrolling.</p>
       </header>
@@ -441,18 +474,24 @@
       <div class="guide-sections" id="guideSections"></div>
     </section>
 
-    <section id="panel-recipes" class="panel">
-      <header class="guide-hero">
+    <section id="panel-recipes" class="panel panel-reference">
+      <header class="guide-hero panel-ref-hero">
+        <p class="panel-eyebrow">Reference</p>
         <h2>Techniques</h2>
         <p class="guide-sub">Foil boat, long hold, confit, reverse smoke, pork loin log — cross-check against your rig.</p>
+        <p class="guide-sub panel-ref-note">For planning, not mid-cook scrolling.</p>
       </header>
       <div class="recipe-grid" id="recipeGrid"></div>
     </section>
 
-    <section id="panel-reference" class="panel">
-      <article class="card">
+    <section id="panel-reference" class="panel panel-reference">
+      <header class="guide-hero panel-ref-hero">
+        <p class="panel-eyebrow">Reference</p>
         <h2>Render table</h2>
-        <p class="card-desc">Steady probe temp → modeled % render per hour. Slice-ready band ≈ <strong>80–120%</strong> total render.</p>
+        <p class="guide-sub">Steady probe temp → modeled % render per hour. Slice-ready band ≈ <strong>80–120%</strong> total render.</p>
+        <p class="guide-sub panel-ref-note">For planning, not mid-cook scrolling.</p>
+      </header>
+      <article class="card">
         <div class="reference-preview-wrap">
           <div class="table-wrap">
             <table class="data-table" id="stageTablePreview">
@@ -512,6 +551,6 @@
   </footer>
 
   <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
-  <script src="app.js?v=13"></script>
+  <script src="app.js?v=14"></script>
 </body>
 </html>
