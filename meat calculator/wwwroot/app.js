@@ -1301,7 +1301,10 @@ async function fetchYieldPlan(kg, grade, loss) {
 }
 
 function buildPlanPlainText(parts, profileName) {
-  const lines = ["SMOKE LAB — BRISKET COOK SHEET"];
+  const lines = [
+    "SMOKE LAB — BRISKET COOK SHEET",
+    "(Pull-and-hold planner · Smoke Trails BBQ community model)",
+  ];
   if (profileName) lines.push(`Preset: ${profileName}`);
   lines.push(
     "",
@@ -1476,7 +1479,7 @@ async function updatePlanSummary() {
           <h3>Before you slice</h3>
           <p>${parts.sliceNote}</p>
           <p class="hint">Eating tender and slicing cleanly are different — many pulls are meant to finish in the hold.</p>
-          <p class="hint">Numbers come from <strong>How much meat</strong> and <strong>Plan a hold</strong> — change those tabs, then refresh.</p>
+          <p class="hint">Numbers come from <strong>Yield</strong> and <strong>Hold box</strong> — change those tabs, then refresh.</p>
         </article>
       </div>
     </details>
@@ -1486,6 +1489,43 @@ async function updatePlanSummary() {
     btn.addEventListener("click", () => goToTab(btn.dataset.gotoTab));
   });
   wireGlobalNav();
+}
+
+function getShareUrl() {
+  const path = location.pathname.replace(/index\.html$/i, "");
+  const normalized = path.endsWith("/") ? path : `${path}/`;
+  return `${location.origin}${normalized}`;
+}
+
+async function copyShareLink(triggerBtn) {
+  const url = getShareUrl();
+  try {
+    await navigator.clipboard.writeText(url);
+    if (triggerBtn) {
+      const prev = triggerBtn.textContent;
+      triggerBtn.textContent = "Copied!";
+      setTimeout(() => {
+        triggerBtn.textContent = prev;
+      }, 2000);
+    }
+  } catch {
+    window.prompt("Copy this link to share:", url);
+  }
+}
+
+function wireShareLinks() {
+  const display = $("shareUrlDisplay");
+  if (display) {
+    try {
+      const host = new URL(getShareUrl()).host;
+      display.textContent = host + "/MeatCalculator";
+    } catch {
+      display.textContent = "trolle6.github.io/MeatCalculator";
+    }
+  }
+  ["copyShareLink", "copyShareLinkPlan", "copyShareLinkFooter"].forEach((id) => {
+    $(id)?.addEventListener("click", (e) => copyShareLink(e.currentTarget));
+  });
 }
 
 function initPlan() {
@@ -1544,6 +1584,7 @@ loadData()
     initPlan();
     initExpandSections();
     wireGlobalNav();
+    wireShareLinks();
     $("openCookPlanFromDash")?.addEventListener("click", () => {
       goToTab("hold");
       applyCookProfile("balanced");

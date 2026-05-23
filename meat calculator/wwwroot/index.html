@@ -3,10 +3,11 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>Smoke Lab — brisket pull &amp; hold planner</title>
-  <meta name="description" content="Brisket pull-and-hold planner: collagen render %, hot-box hours, yield, and a printable cook sheet. Built for long-hold offset cooks — probe and feel still rule." />
+  <title>Smoke Lab — brisket pull &amp; hold planner (Smoke Trails style)</title>
+  <meta name="description" content="Free brisket pull-and-hold planner built from Smoke Trails BBQ community science: collagen render %, hot-box hours, 195 vs 203°F, printable cook sheet." />
   <meta property="og:title" content="Smoke Lab — brisket pull &amp; hold planner" />
-  <meta property="og:description" content="Model 195°F pull vs 203°F, plan your hot hold, export a cook sheet. Free tool for serious backyard smoke." />
+  <meta property="og:description" content="Plan your pull, hot hold, and cook sheet — modeled on Steve Gow / Smoke Trails pull-and-hold brisket ideas. Share with your pit crew." />
+  <meta name="theme-color" content="#0d0c0b" />
   <meta property="og:type" content="website" />
   <meta property="og:url" content="https://trolle6.github.io/MeatCalculator/" />
   <link rel="preconnect" href="https://fonts.googleapis.com" />
@@ -25,11 +26,15 @@
     <div class="brand">
       <span class="brand-icon" aria-hidden="true">◉</span>
       <div>
+        <p class="brand-eyebrow">Smoke Trails BBQ community</p>
         <h1>Smoke Lab</h1>
-        <p class="tagline">Pull-and-hold brisket · collagen model · not a wireless probe</p>
+        <p class="tagline">Brisket pull-and-hold planner · fan-built from Steve Gow’s holding model</p>
       </div>
     </div>
-    <p class="unit-hint">°C primary <span class="temp-f-inline">(°F alongside)</span></p>
+    <div class="header-actions">
+      <p class="unit-hint">°C primary <span class="temp-f-inline">(°F alongside)</span></p>
+      <button type="button" class="btn-share-link" id="copyShareLink" title="Copy link to share">Copy link</button>
+    </div>
   </header>
 
   <nav class="tabs" role="tablist" aria-label="Sections">
@@ -46,8 +51,16 @@
 
   <main>
     <section id="panel-dashboard" class="panel active">
-      <aside class="learn-banner learn-banner-short intro-banner">
-        <p class="learn-banner-lead">Plan at the kitchen table — drag probe temp, compare pull vs hot hold, export a <a href="#" class="inline-tab-link" data-goto-tab="plan">cook sheet</a> for the pit crew.</p>
+      <aside class="community-hero intro-banner">
+        <p class="community-badge">Built for Steve Gow / Smoke Trails fans</p>
+        <h2 class="community-hero-title">Plan your pull-and-hold before you light the cooker</h2>
+        <p class="community-hero-lead">This turns the community’s brisket <strong>holding &amp; tenderness</strong> ideas into sliders, hot-box hours, and a <a href="#" class="inline-tab-link" data-goto-tab="plan">cook sheet</a> you can screenshot or copy for the pit.</p>
+        <ol class="community-steps">
+          <li><strong>Pull planner</strong> — drag probe temp, see modeled collagen render.</li>
+          <li><strong>Hold box</strong> — pick Juicy / In between / Hotter pull, get hold hours.</li>
+          <li><strong>Cook sheet</strong> — one page for cook day (share the link with your crew).</li>
+        </ol>
+        <p class="community-credit">Calculations &amp; temps from notes shared in the Smoke Trails community (pull ~195&nbsp;°F, finish in the box). Fan tool — not an official Smoke Trails BBQ product. <strong>Probe + feel always win.</strong></p>
       </aside>
 
       <article class="card card-hero dashboard-focus">
@@ -157,7 +170,7 @@
       <header class="science-hero">
         <h2 id="scienceTitle">Why 90.5 °C pull beats 95 °C</h2>
         <p class="science-title-alt" id="scienceTitleAlt">(195 °F vs 203 °F)</p>
-        <p class="science-sub">Pull-and-hold: render on the grate, finish collagen in the hot box — less moisture loss than riding to 203&nbsp;°F on smoke.</p>
+        <p class="science-sub">The core Smoke Trails idea: render on the grate, finish in the hot box — less moisture loss than riding to 203&nbsp;°F on smoke alone.</p>
       </header>
 
       <div class="science-focus">
@@ -290,7 +303,7 @@
     <section id="panel-plan" class="panel">
       <header class="guide-hero plan-hero">
         <h2>Cook sheet</h2>
-        <p class="guide-sub">Screenshot or copy for the pit — fridge-door friendly. Try <strong>In between</strong> on Hold box for midpoint between 195&nbsp;°F and 203&nbsp;°F pull styles.</p>
+        <p class="guide-sub">Fridge-door friendly — screenshot, <strong>Copy plan</strong>, or share <button type="button" class="btn-inline-link" id="copyShareLinkPlan">this link</button> with your smoke crew. Try <strong>In between</strong> on Hold box for midpoint 195 / 203&nbsp;°F pulls.</p>
         <div class="plan-toolbar">
           <button type="button" class="btn-ghost" id="copyPlan">Copy plan</button>
           <button type="button" class="btn-ghost" id="refreshPlan">Refresh</button>
@@ -459,8 +472,9 @@
   </main>
 
   <footer class="site-footer">
-    <p>Smoke Lab — brisket pull-and-hold model · °C (°F) · Free to share · Probe + feel always win</p>
-    <p class="footer-fine">Educational model inspired by long-hold brisket science (e.g. pull-and-hold masterclass style). Not affiliated with Smoke Trails BBQ or any channel.</p>
+    <p class="footer-share">Share with pit friends → <strong id="shareUrlDisplay">trolle6.github.io/MeatCalculator</strong> <button type="button" class="btn-share-link btn-share-link-small" id="copyShareLinkFooter">Copy</button></p>
+    <p>Smoke Lab · free brisket pull-and-hold planner · °C (°F)</p>
+    <p class="footer-fine">Tenderness model &amp; hold approach drawn from <a href="https://www.youtube.com/@SteveGowSmokeTrailsBBQ" rel="noopener noreferrer" target="_blank">Steve Gow (Smoke Trails BBQ)</a> community teaching on pull-and-hold brisket. Fan-made companion — thank Steve &amp; the channel for the science; this site is independent.</p>
   </footer>
 
   <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
