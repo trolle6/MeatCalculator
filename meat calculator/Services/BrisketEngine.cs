@@ -4,6 +4,10 @@ namespace meat_calculator.Services;
 
 public sealed class BrisketEngine
 {
+    RestProjectionEngine? _rest;
+
+    public void ConfigureRest(RestProjectionEngine rest) => _rest = rest;
+
     public RenderingStage GetStageForTemp(double tempC)
     {
         if (tempC < 60) return BrisketData.RenderingStages[0] with { PercentPerHour = 0, Multiplier = 0 };
@@ -40,20 +44,17 @@ public sealed class BrisketEngine
     {
         var target = targetPercent ?? 100;
         var renderedAtPull = EstimateRenderedAtPull(pullTempC);
-        var remaining = Math.Max(0, target - renderedAtPull);
 
         var carryOver = 0.0;
         var carrySteps = new List<CarryStep>();
-        if (holdTempC < pullTempC - 0.5)
+        var cooldownHours = 0.0;
+        if (holdTempC < pullTempC - BrisketData.CarryEndMarginC)
         {
-            foreach (var (tempC, hours, rate) in BrisketData.CarryOverDecline)
-            {
-                if (tempC > pullTempC) continue;
-                if (tempC < holdTempC) break;
-                var added = hours * rate;
-                carryOver += added;
-                carrySteps.Add(new CarryStep(tempC, hours, rate, added));
-            }
+            var rest = _rest ?? throw new InvalidOperationException("RestProjectionEngine not configured.");
+            var cooldown = rest.ComputeHoldCooldown(pullTempC, holdTempC, renderedAtPull);
+            carryOver = cooldown.CarryAdded;
+            carrySteps = cooldown.CarrySteps.ToList();
+            cooldownHours = cooldown.CooldownHours;
         }
 
         var afterCarry = renderedAtPull + carryOver;
@@ -61,6 +62,9 @@ public sealed class BrisketEngine
         var holdStage = GetStageForTemp(holdTempC);
         var holdRate = holdTempC >= 60 ? holdStage.PercentPerHour : 0;
         var holdHours = holdRate > 0 ? stillNeeded / holdRate : double.PositiveInfinity;
+        var projectedFinal = holdRate > 0
+            ? afterCarry + holdHours * holdRate
+            : afterCarry;
 
         return new HoldPlan(
             pullTempC,
@@ -73,7 +77,8 @@ public sealed class BrisketEngine
             stillNeeded,
             holdRate,
             holdHours,
-            renderedAtPull + carryOver + (holdRate > 0 ? holdHours * holdRate : 0));
+            projectedFinal,
+            cooldownHours);
     }
 
     public static GradeInfo ResolveGrade(string? grade)
@@ -163,7 +168,12 @@ public sealed class BrisketEngine
     }
 }
 
-public sealed record CarryStep(double TempC, double Hours, double RatePerHour, double AddedPercent);
+public sealed record CarryStep(
+    double TempC,
+    double Hours,
+    double RatePerHour,
+    double AddedPercent,
+    string? Label = null);
 
 public sealed record HoldPlan(
     double PullTempC,
@@ -176,7 +186,8 @@ public sealed record HoldPlan(
     double RemainingAtHold,
     double HoldRatePerHour,
     double HoldHours,
-    double ProjectedFinal);
+    double ProjectedFinal,
+    double CooldownHours);
 
 public sealed record YieldEstimate(
     double StartKg,

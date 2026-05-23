@@ -1449,10 +1449,6 @@ footer {
   vertical-align: middle;
 }
 
-.recipe-card[id*="pork"] {
-  border-color: rgba(78, 168, 222, 0.35);
-}
-
 .recipe-steps {
   margin: 0 0 0.75rem;
   padding: 0 0 0 1.25rem;

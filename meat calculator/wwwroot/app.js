@@ -954,10 +954,16 @@ async function updateHold() {
   if (data.carrySteps?.length) {
     carry.hidden = false;
     $("carrySteps").innerHTML = data.carrySteps
-      .map(
-        (s) =>
-          `<div class="carry-step"><span>${tempHtml(s.tempC)}</span><span>${s.hours} hr @ ${s.ratePerHour}%/hr</span><span>+${s.addedPercent.toFixed(0)}%</span></div>`
-      )
+      .map((s) => {
+        const label = s.label ?? (s.tempC > 0 ? tempHtml(s.tempC) : "~4 hr cool-down");
+        const detail =
+          s.hours > 0 && s.ratePerHour > 0
+            ? `${s.hours} hr @ ${s.ratePerHour}%/hr`
+            : s.ratePerHour > 0
+              ? `~${s.ratePerHour}%/hr band`
+              : "";
+        return `<div class="carry-step"><span>${label}</span>${detail ? `<span>${detail}</span>` : ""}<span>+${Number(s.addedPercent).toFixed(0)}%</span></div>`;
+      })
       .join("");
   } else {
     carry.hidden = true;
@@ -1132,7 +1138,11 @@ function renderScience(data) {
     </li>`;
 
   const hp = data.holdPlan;
-  const declinePct = hp.carryOverAdded ?? 36;
+  const juicyPull = state.constants?.pullLongHoldC ?? 90.5;
+  const juicyHold = state.constants?.holdLongC ?? 65.5;
+  const declinePct =
+    hp.carryOverAdded ??
+    computeHoldCarryOver(juicyPull, juicyHold, m.renderedAtPull ?? 40).carryAdded;
   const pitW = m.renderedAtPull;
   const declineW = Math.min(45, declinePct);
   const holdW = 100 - pitW - declineW;
@@ -1192,9 +1202,6 @@ function wireRecipeActions(cardId) {
         setGaugeMode("pull");
         onTempSliderInput();
       }
-      if (tab === "guide" && cardId === "pork-loin-smoke-log") {
-        document.getElementById("guide-pork-loin")?.scrollIntoView({ behavior: "smooth" });
-      }
     });
   });
 }
@@ -1220,8 +1227,6 @@ async function loadRecipes() {
         actions = `<button type="button" class="btn-ghost" data-goto-tab="hold">Plan a hold</button><button type="button" class="btn-ghost" data-goto-tab="science">The big idea</button>`;
       } else if (r.id === "confit" || r.id === "reverse-smoked") {
         actions = `<button type="button" class="btn-ghost" data-goto-tab="rest">Cooling off</button>`;
-      } else if (r.id === "pork-loin-smoke-log") {
-        actions = `<button type="button" class="btn-ghost" data-goto-tab="guide">Pork log notes</button>`;
       }
       const meat = r.meat ?? r.Meat ?? "Brisket";
       const meatTag =
@@ -1343,6 +1348,114 @@ function getStageForTemp(tempC) {
 function tempAtTime(startTempC, ambientTempC, tauHours, hours) {
   if (tauHours <= 0) return ambientTempC;
   return ambientTempC + (startTempC - ambientTempC) * Math.exp(-hours / tauHours);
+}
+
+const CARRY_LEGACY_BANDS = [
+  [88, 1, 18],
+  [82, 1, 9],
+  [76.5, 1, 5],
+  [71, 1, 3],
+];
+
+function carryConstants() {
+  const c = state.constants || {};
+  return {
+    cooldownHours: c.carryCooldownHours ?? 4,
+    endMarginC: c.carryEndMarginC ?? 0.5,
+    tauDefault: c.holdCarryTauDefault ?? 2,
+  };
+}
+
+function solveTauForCooldown(pull, ambient, durationHours, endTargetC) {
+  const { tauDefault } = carryConstants();
+  if (durationHours <= 0 || pull <= ambient + 0.01) return tauDefault;
+  const ratio = (endTargetC - ambient) / (pull - ambient);
+  if (ratio <= 0 || ratio >= 1) return tauDefault;
+  return -durationHours / Math.log(ratio);
+}
+
+function estimateLegacyBandCarry(pull, hold) {
+  const { endMarginC } = carryConstants();
+  if (hold >= pull - endMarginC) return 0;
+  let sum = 0;
+  for (const [tempC, hours, rate] of CARRY_LEGACY_BANDS) {
+    if (tempC > pull) continue;
+    if (tempC < hold) break;
+    sum += hours * rate;
+  }
+  return sum;
+}
+
+function aggregateCarrySteps(restSteps, durationHours, totalAdded) {
+  if (!restSteps?.length) {
+    return [{ tempC: 0, hours: durationHours, ratePerHour: 0, addedPercent: totalAdded, label: "~4 hr cool-down into hold" }];
+  }
+  const byStage = new Map();
+  for (const step of restSteps) {
+    const stage = getStageForTemp(step.tempC);
+    const key = stage.tempC;
+    byStage.set(key, (byStage.get(key) ?? 0) + step.renderingAdded);
+  }
+  const rows = [...byStage.entries()]
+    .filter(([, v]) => v > 0.05)
+    .sort((a, b) => b[0] - a[0])
+    .map(([tempC, added]) => ({
+      tempC,
+      hours: 0,
+      ratePerHour: getStageForTemp(tempC).percentPerHour,
+      addedPercent: Math.round(added * 10) / 10,
+      label: null,
+    }));
+  return rows.length
+    ? rows
+    : [{ tempC: 0, hours: durationHours, ratePerHour: 0, addedPercent: totalAdded, label: "~4 hr cool-down into hold" }];
+}
+
+function computeHoldCarryOver(pull, hold, renderedAtPull) {
+  const { cooldownHours, endMarginC, tauDefault } = carryConstants();
+  const endTarget = hold + endMarginC;
+  const solvedTau = solveTauForCooldown(pull, hold, cooldownHours, endTarget);
+  const tau = Math.max(solvedTau, tauDefault);
+  const projection = predictRestClient(pull, hold, cooldownHours, tau, renderedAtPull);
+  const integrated = Math.max(0, projection.endRenderedPercent - renderedAtPull);
+  const carryAdded = Math.max(integrated, estimateLegacyBandCarry(pull, hold));
+  return {
+    carryAdded,
+    cooldownHours,
+    afterCarryover: renderedAtPull + carryAdded,
+    carrySteps: aggregateCarrySteps(projection.steps, cooldownHours, carryAdded),
+  };
+}
+
+function computeHoldPlanClient(pull, hold, target = 100) {
+  const renderedAtPull = estimateRenderedAtPull(pull);
+  const { endMarginC } = carryConstants();
+  let carryOver = 0;
+  let carrySteps = [];
+  let cooldownHours = 0;
+  let afterCarry = renderedAtPull;
+  if (hold < pull - endMarginC) {
+    const cool = computeHoldCarryOver(pull, hold, renderedAtPull);
+    carryOver = cool.carryAdded;
+    carrySteps = cool.carrySteps;
+    cooldownHours = cool.cooldownHours;
+    afterCarry = cool.afterCarryover;
+  }
+  const remaining = Math.max(0, target - afterCarry);
+  const rate = getStageForTemp(hold).percentPerHour;
+  const holdHours = rate > 0 ? remaining / rate : null;
+  return {
+    renderedAtPull,
+    carryOverAdded: carryOver,
+    carrySteps,
+    afterCarryover: afterCarry,
+    remainingAtHold: remaining,
+    holdRatePerHour: rate,
+    holdHours,
+    projectedFinal: target,
+    cooldownHours,
+    totalHours: (holdHours ?? 0) + cooldownHours,
+  };
 }
 
 function predictRestClient(startTempC, ambientTempC, durationHours, tauHours, startRenderedPercent) {
@@ -1710,34 +1823,13 @@ function formatHoldHours(h) {
   return `~${n.toFixed(1)} hr`;
 }
 
-function estimateHoldHoursFallback(pull, hold, target) {
-  let atPull = estimateRenderedAtPull(pull);
-  if (hold < pull - 0.5) {
-    atPull += 36;
-  }
-  const remaining = Math.max(0, target - atPull);
-  const rate = getStageForTemp(hold).percentPerHour;
-  return rate > 0 ? remaining / rate : null;
-}
-
 async function fetchHoldPlan(pull, hold, target) {
   try {
     return await apiPost("/api/hold", { pullTempC: pull, holdTempC: hold, targetPercent: target });
   } catch {
-    /* fallback below */
+    /* fallback — same rest + legacy band model as server */
   }
-  const holdHours = estimateHoldHoursFallback(pull, hold, target);
-  const atPull = estimateRenderedAtPull(pull);
-  const afterCarry = hold < pull - 0.5 ? atPull + 36 : atPull;
-  return {
-    renderedAtPull: atPull,
-    carryOverAdded: hold < pull - 0.5 ? 36 : 0,
-    afterCarryover: afterCarry,
-    remainingAtHold: Math.max(0, target - afterCarry),
-    holdHours,
-    projectedFinal: target,
-    totalHours: holdHours != null ? holdHours + (hold < pull - 0.5 ? 4 : 0) : null,
-  };
+  return computeHoldPlanClient(pull, hold, target);
 }
 
 async function fetchYieldPlan(kg, grade, loss) {
@@ -1797,7 +1889,7 @@ function buildPlanPlainText(parts, profileName) {
     ...parts.checklist.map((c) => `☐ ${c}`),
     "",
     "DISCLAIMER",
-    "Built with AI assistance. Science from Steve Gow / Smoke Trails BBQ (YouTube: https://www.youtube.com/@SteveGowSmokeTrailsBBQ). Not affiliated or endorsed. Planning only — verify with probe and feel.",
+    "Built with AI assistance. Science from Steve Gow / Smoke Trails BBQ (YouTube: https://www.youtube.com/@SmokeTrailsBBQ). Not affiliated or endorsed. Planning only — verify with probe and feel.",
   );
   return lines.join("\n");
 }

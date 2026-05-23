@@ -70,10 +70,6 @@ public static class BrisketData
     public const double ReverseReheatPitC = 121;
     public const double ReverseReheatTargetC = 65.5;
 
-    public const double PorkLoinTargetC = 63;
-    public const double PorkLoinPitC = 215;
-    public const double PorkLoinPitF = 420;
-
     public const double DoneMinPercent = 80;
     public const double DoneMaxPercent = 120;
     public const double MoistureTrapC = 93.3;
@@ -89,6 +85,24 @@ public static class BrisketData
     public const double SafeMinC = 55;
     public const double HoldRecommendedMinC = 57;
     public const double HoldRecommendedMaxC = 60;
+
+    /// <summary>Modeled hours for pull temp to settle toward hold temp in cambro (carry-over phase).</summary>
+    public const double CarryCooldownHoursTypical = 4;
+
+    /// <summary>Internal temp within this margin of hold counts as "at hold" for τ solve.</summary>
+    public const double CarryEndMarginC = 0.5;
+
+    /// <summary>Fallback τ (hours) when pull ≈ hold or ratio is degenerate.</summary>
+    public const double HoldCarryTauDefault = 2;
+
+    /// <summary>Legacy carry bands — floor so 90.5→65.5 stays ~35% with rest integration.</summary>
+    public static readonly (double TempC, double Hours, double RatePerHour)[] CarryOverLegacyBands =
+    [
+        (88, 1, 18),
+        (82, 1, 9),
+        (76.5, 1, 5),
+        (71, 1, 3)
+    ];
 
     /// <summary>Simple marbling bands; regional stickers map to these for planning (USDA default).</summary>
     public static readonly MarblingBandInfo[] MarblingScale =
@@ -141,11 +155,4 @@ public static class BrisketData
         (99, 75)
     ];
 
-    public static readonly (double TempC, double Hours, double PercentPerHour)[] CarryOverDecline =
-    [
-        (88, 1, 18),
-        (82, 1, 9),
-        (76.5, 1, 5),
-        (71, 1, 3)
-    ];
 }

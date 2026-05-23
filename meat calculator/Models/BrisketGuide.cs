@@ -108,19 +108,6 @@ public static class BrisketGuide
                 new("Brisket confit: smoke to ~74 °C → submerge in 68.3 °C (155 °F) tallow (sous-vide) × 18 hr — prime-rib-like texture."),
                 new("Reverse smoke: butcher paper on first → 88 °C → refrigerate → reheat on smoker at 121 °C until ~65.5 °C internal — juicier, less total smoke.")
             ],
-            "Techniques tab — numbered step lists for each method."),
-
-        new(
-            "pork-loin",
-            "Pork loin (from your smoke log)",
-            "Hot smoke · wrap finish · not brisket math",
-            [
-                new("Prep: defrost in water bath; glaze with soy, mustard, vegetable fond."),
-                new("Fuel note: birch + Josper charcoal (log — charcoal ran out fast)."),
-                new("Cook: very hot smoke ~215 °C ambient; target internal 63 °C (log hit ~62 °C)."),
-                new("Final 10–15 min wrapped in butcher paper."),
-                new("Takeaway: longer cooks on larger cuts build more bark and deeper smoke — pork loin is fast.", "Reflection")
-            ],
-            "Brisket collagen calculator does not apply to pork — use probe + food-safe temps only.")
+            "Techniques tab — numbered step lists for each method.")
     ];
 }

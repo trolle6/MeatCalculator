@@ -2,8 +2,12 @@
 using meat_calculator.Services;
 
 var builder = WebApplication.CreateBuilder(args);
-builder.Services.AddSingleton<BrisketEngine>();
-builder.Services.AddSingleton<RestProjectionEngine>();
+builder.Services.AddSingleton(_ => new BrisketEngine());
+builder.Services.AddSingleton(sp =>
+{
+    var brisket = sp.GetRequiredService<BrisketEngine>();
+    return new RestProjectionEngine(brisket);
+});
 
 var app = builder.Build();
 app.UseDefaultFiles();
@@ -11,6 +15,7 @@ app.UseStaticFiles();
 
 var engine = app.Services.GetRequiredService<BrisketEngine>();
 var restEngine = app.Services.GetRequiredService<RestProjectionEngine>();
+engine.ConfigureRest(restEngine);
 
 app.MapGet("/api/data", () => new
 {
@@ -34,7 +39,10 @@ app.MapGet("/api/data", () => new
         pullRendered = BrisketData.PullLongHoldRendered,
         holdFinishes = BrisketData.HoldFinishesRendered,
         doneMin = BrisketData.DoneMinPercent,
-        doneMax = BrisketData.DoneMaxPercent
+        doneMax = BrisketData.DoneMaxPercent,
+        carryCooldownHours = BrisketData.CarryCooldownHoursTypical,
+        carryEndMarginC = BrisketData.CarryEndMarginC,
+        holdCarryTauDefault = BrisketData.HoldCarryTauDefault
     }
 });
 
@@ -97,7 +105,7 @@ app.MapGet("/api/science", () =>
             story.HoldPlan.CarryOverAdded,
             story.HoldPlan.AfterCarryover,
             holdHours = double.IsInfinity(story.HoldPlan.HoldHours) ? (double?)null : Math.Round(story.HoldPlan.HoldHours, 1),
-            totalHours = Math.Round(story.HoldPlan.CarrySteps.Sum(s => s.Hours) + (double.IsInfinity(story.HoldPlan.HoldHours) ? 0 : story.HoldPlan.HoldHours), 1)
+            totalHours = Math.Round(story.HoldPlan.CooldownHours + (double.IsInfinity(story.HoldPlan.HoldHours) ? 0 : story.HoldPlan.HoldHours), 1)
         },
         fatNote =
             "Prime / Wangus (~8–13% intramuscular fat) masks dryness on the slice — it cannot fix structural moisture loss from a 95 °C+ overcook on smoke.",
@@ -144,20 +152,22 @@ app.MapPost("/api/hold", (HoldRequest req) =>
         plan.TargetPercent,
         plan.RenderedAtPull,
         plan.CarryOverAdded,
+        cooldownHours = plan.CooldownHours,
         carrySteps = plan.CarrySteps.Select(s => new
         {
             s.TempC,
             tempF = CToF(s.TempC),
             s.Hours,
             s.RatePerHour,
-            s.AddedPercent
+            s.AddedPercent,
+            s.Label
         }),
         plan.AfterCarryover,
         plan.RemainingAtHold,
         plan.HoldRatePerHour,
         holdHours = double.IsInfinity(plan.HoldHours) ? (double?)null : Math.Round(plan.HoldHours, 1),
         plan.ProjectedFinal,
-        totalHours = plan.CarrySteps.Sum(s => s.Hours) + (double.IsInfinity(plan.HoldHours) ? 0 : plan.HoldHours)
+        totalHours = plan.CooldownHours + (double.IsInfinity(plan.HoldHours) ? 0 : plan.HoldHours)
     };
 });
 

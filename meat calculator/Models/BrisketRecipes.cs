@@ -74,22 +74,6 @@ public static class BrisketRecipes
                 new(4, "Next day: smoker at 121 °C (250 °F) until internal reaches ~65.5 °C (150 °F)."),
                 new(5, "Less total smoke than traditional — very juicy.")
             ],
-            "Two-day plan; milder bark."),
-
-        new(
-            "pork-loin-smoke-log",
-            "Pork loin — smoke log cook",
-            "Your log · hot & fast",
-            "Smoke log",
-            "Pork loin",
-            [
-                new(1, "Defrost in water bath; glaze: soy sauce, mustard, vegetable fond."),
-                new(2, "Run hot: ~215 °C ambient (birch / Josper charcoal in your log)."),
-                new(3, "Pull near 63 °C internal (your log: ~62 °C)."),
-                new(4, "Wrap in butcher paper for final 10–15 minutes."),
-                new(5, "Rest before slice — pork, not brisket collagen rules.")
-            ],
-            "Charcoal burned fast in log — plan fuel for longer cooks on bigger cuts.",
-            "Food-safe pork ~63 °C — ignore brisket rendering %.")
+            "Two-day plan; milder bark.")
     ];
 }

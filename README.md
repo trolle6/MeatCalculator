@@ -42,6 +42,7 @@ Set **Weight** (Setup tab) before you print. **Reference** tabs are for reading 
 - **Contributing:** [CONTRIBUTING.md](CONTRIBUTING.md)
 - **Issues:** [GitHub Issues](https://github.com/trolle6/MeatCalculator/issues)
 - **Sources:** [SOURCES.md](SOURCES.md) (Steve Gow / Smoke Trails BBQ teaching — community tool, not affiliated)
+- **Carry-over model:** [MODEL_CARRYOVER.md](MODEL_CARRYOVER.md) (hold-plan cool-down math)
 
 ## Run locally (full API)
 
