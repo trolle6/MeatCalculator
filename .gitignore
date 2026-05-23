@@ -10,6 +10,7 @@ obj/
 .DS_Store
 Thumbs.db
 .idea/
+.cursor/
 *.swp
 
 ## Publish / local
