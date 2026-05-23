@@ -1857,7 +1857,7 @@ async function fetchYieldPlan(kg, grade, loss) {
 
 function buildPlanPlainText(parts, profileName) {
   const lines = [
-    "SMOKE LAB — BRISKET COOK SHEET",
+    "SMOKE LAB - BBQ — BRISKET COOK SHEET",
     "(Pull-and-hold planner)",
   ];
   if (profileName) lines.push(`Preset: ${profileName}`);
@@ -2075,15 +2075,16 @@ async function copyShareLink(triggerBtn) {
   }
 }
 
+function pagesShareLabel() {
+  if (!location.hostname.endsWith("github.io")) return location.host;
+  const seg = location.pathname.split("/").filter(Boolean)[0];
+  return seg ? `${location.hostname}/${seg}` : location.hostname;
+}
+
 function wireShareLinks() {
   const display = $("shareUrlDisplay");
   if (display) {
-    try {
-      const host = new URL(getShareUrl()).host;
-      display.textContent = host + "/MeatCalculator";
-    } catch {
-      display.textContent = "trolle6.github.io/MeatCalculator";
-    }
+    display.textContent = pagesShareLabel();
   }
   ["copyShareLink", "copyShareLinkPlan", "copyShareLinkFooter"].forEach((id) => {
     $(id)?.addEventListener("click", (e) => copyShareLink(e.currentTarget));

@@ -19,6 +19,6 @@ Teaching and model ideas draw mainly from public videos on [Smoke Trails BBQ (St
 
 `loin.txt` was intentionally excluded from this list.
 
-Also see in-app **Reference → Research sources** on [Smoke Lab](https://trolle6.github.io/MeatCalculator/).
+Also see in-app **Reference → Research sources** on [Smoke Lab - BBQ](https://trolle6.github.io/SmokeLab/).
 
 **Hold / carry-over math:** [MODEL_CARRYOVER.md](MODEL_CARRYOVER.md)

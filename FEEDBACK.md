@@ -6,7 +6,7 @@ Use this while waiting on Discord / GitHub comments. **Do not chase one-off nits
 
 - [ ] Shared link pinned with: Probe → Hold → Plan; Copy link; Reference = read-only
 - [ ] Checked Steve’s Discord for reactions
-- [ ] Checked [GitHub Issues](https://github.com/trolle6/MeatCalculator/issues)
+- [ ] Checked [GitHub Issues](https://github.com/trolle6/SmokeLab/issues)
 
 ## Theme tracker
 

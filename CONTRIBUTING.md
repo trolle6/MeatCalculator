@@ -4,7 +4,7 @@ Thanks for your interest in Smoke Lab.
 
 ## Bugs and ideas
 
-Open an [issue](https://github.com/trolle6/MeatCalculator/issues) with:
+Open an [issue](https://github.com/trolle6/SmokeLab/issues) with:
 
 - What you expected vs what happened
 - Browser and device (if UI-related)
