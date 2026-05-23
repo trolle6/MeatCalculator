@@ -516,17 +516,30 @@ function buildGradeBars() {
   container.innerHTML = legend + regions;
 }
 
-// Tabs
-document.querySelectorAll(".tab").forEach((tab) => {
-  tab.addEventListener("click", () => {
-    document.querySelectorAll(".tab").forEach((t) => t.classList.remove("active"));
-    document.querySelectorAll(".panel").forEach((p) => p.classList.remove("active"));
-    tab.classList.add("active");
-    const panel = document.getElementById(`panel-${tab.dataset.panel}`);
-    if (panel) panel.classList.add("active");
-    if (tab.dataset.panel === "plan") updatePlanSummary();
-    window.scrollTo({ top: 0, behavior: "smooth" });
+const COOK_PANEL_IDS = new Set(["dashboard", "hold", "plan"]);
+
+function mainTabForPanel(panelId) {
+  if (COOK_PANEL_IDS.has(panelId)) return panelId;
+  return "learn";
+}
+
+function activatePanel(panelId) {
+  document.querySelectorAll(".panel").forEach((p) => p.classList.remove("active"));
+  const panel = document.getElementById(`panel-${panelId}`);
+  if (panel) panel.classList.add("active");
+  document.querySelectorAll(".tab").forEach((t) => {
+    t.classList.toggle("active", t.dataset.panel === mainTabForPanel(panelId));
   });
+  if (panelId === "plan") updatePlanSummary();
+  window.scrollTo({ top: 0, behavior: "smooth" });
+}
+
+function goToTab(panelId) {
+  activatePanel(panelId);
+}
+
+document.querySelectorAll(".tab").forEach((tab) => {
+  tab.addEventListener("click", () => activatePanel(tab.dataset.panel));
 });
 
 function syncLabels() {
@@ -1166,17 +1179,17 @@ function renderScience(data) {
 }
 
 $("scienceToHold")?.addEventListener("click", () => {
-  document.querySelector('.tab[data-panel="hold"]').click();
-  document.querySelector('.btn-preset[data-pull="90.5"]').click();
+  goToTab("hold");
+  document.querySelector('.btn-preset[data-pull="90.5"]')?.click();
 });
 
 $("openGuide")?.addEventListener("click", () => {
-  document.querySelector('.tab[data-panel="guide"]').click();
+  goToTab("guide");
   document.getElementById("guide-troubleshooting")?.scrollIntoView({ behavior: "smooth" });
 });
 
 $("openRecipes")?.addEventListener("click", () => {
-  document.querySelector('.tab[data-panel="recipes"]').click();
+  goToTab("recipes");
   document.getElementById("recipe-foil-boat")?.scrollIntoView({ behavior: "smooth" });
 });
 
@@ -1193,7 +1206,7 @@ function wireRecipeActions(cardId) {
   card.querySelectorAll("[data-goto-tab]").forEach((btn) => {
     btn.addEventListener("click", () => {
       const tab = btn.dataset.gotoTab;
-      document.querySelector(`.tab[data-panel="${tab}"]`)?.click();
+      goToTab(tab);
       if (tab === "hold" && cardId === "long-hold") {
         document.querySelector('.btn-preset[data-pull="90.5"]')?.click();
       }
@@ -1652,10 +1665,6 @@ async function updateRest() {
 
 const updateRestDebounced = debounce(() => updateRest(), 120);
 const updatePlanSummaryDebounced = debounce(() => updatePlanSummary(), 200);
-
-function goToTab(panelId) {
-  document.querySelector(`.tab[data-panel="${panelId}"]`)?.click();
-}
 
 async function loadProfiles() {
   try {
