@@ -36,6 +36,7 @@ app.MapGet("/api/data", () => new
         holdLongC = BrisketData.HoldLongC,
         holdLongHoursMin = BrisketData.HoldLongHoursMin,
         holdLongHoursMax = BrisketData.HoldLongHoursMax,
+        holdLongHoursTypical = BrisketData.HoldLongHoursTypical,
         pullRendered = BrisketData.PullLongHoldRendered,
         holdFinishes = BrisketData.HoldFinishesRendered,
         doneMin = BrisketData.DoneMinPercent,

@@ -42,7 +42,7 @@ jobs:
 
           mkdir -p _site/api/rest
           touch _site/.nojekyll
-          cp -r "meat calculator/wwwroot/"* _site/
+          rsync -a --exclude 'ux-lab/' --exclude 'pull-slip/' "meat calculator/wwwroot/" _site/
 
           curl -sf "http://127.0.0.1:5050/api/data" -o _site/api/data.json
           curl -sf "http://127.0.0.1:5050/api/timeline" -o _site/api/timeline.json

@@ -12,8 +12,12 @@ This is a **planning model**, not a food-safety or probe substitute. **Probe + f
 
 ```text
 carryAdded = max(restIntegration, legacyBandSum)
-holdHours  = (target - renderedAtPull - carryAdded) / holdStageRate
-totalHours = CarryCooldownHoursTypical + holdHours   // typically 4 + hold
+holdHours  = (target - renderedAtPull - carryAdded) / holdStageRate   // steady phase after cool-in
+totalHours = CarryCooldownHoursTypical + holdHours   // typically ~4 + ~14 ≈ 18 hr for 195→150
+
+Carry is capped **only for the Juicy pair** (~90.5 °C pull → ~65.5 °C hold) so **remaining work from pull** (~60%) fits the **~18 hr hot-box** teaching band:
+`maxCarry = remainingFromPull − (HoldLongHoursTypical − cooldown) × holdRate` (e.g. 60 − 14×2 = 32% at 90.5→65.5).
+Hotter pulls use full carry math → shorter total box time.
 ```
 
 ### Layer 1 — Cool-down (Rest tab)

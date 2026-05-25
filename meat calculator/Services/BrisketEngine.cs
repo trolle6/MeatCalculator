@@ -40,6 +40,10 @@ public sealed class BrisketEngine
         return anchors[^1].RenderedPercent;
     }
 
+    static bool IsJuicyLongHoldPair(double pullTempC, double holdTempC) =>
+        Math.Abs(pullTempC - BrisketData.PullLongHoldC) < 1.5 &&
+        Math.Abs(holdTempC - BrisketData.HoldLongC) < 1.5;
+
     public HoldPlan CalculateHoldPlan(double pullTempC, double holdTempC, double? targetPercent = null)
     {
         var target = targetPercent ?? 100;
@@ -55,6 +59,16 @@ public sealed class BrisketEngine
             carryOver = cooldown.CarryAdded;
             carrySteps = cooldown.CarrySteps.ToList();
             cooldownHours = cooldown.CooldownHours;
+
+            var holdStageEarly = GetStageForTemp(holdTempC);
+            var holdRateEarly = holdTempC >= 60 ? holdStageEarly.PercentPerHour : 0;
+            if (holdRateEarly > 0 && IsJuicyLongHoldPair(pullTempC, holdTempC))
+            {
+                var remainingFromPull = Math.Max(0, target - renderedAtPull);
+                var steadyBudget = Math.Max(0, BrisketData.HoldLongHoursTypical - cooldownHours);
+                var maxCarry = Math.Max(0, remainingFromPull - steadyBudget * holdRateEarly);
+                carryOver = Math.Min(carryOver, maxCarry);
+            }
         }
 
         var afterCarry = renderedAtPull + carryOver;
