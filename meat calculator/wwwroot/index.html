@@ -21,7 +21,7 @@
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
   <link href="https://fonts.googleapis.com/css2?family=DM+Sans:ital,opsz,wght@0,9..40,400;0,9..40,600;0,9..40,700;1,9..40,400&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet" />
-  <link rel="stylesheet" href="app.css?v=33" />
+  <link rel="stylesheet" href="app.css?v=35" />
   <script>
     (function () {
       var q = location.search || "";
@@ -66,13 +66,17 @@
       </div>
     </div>
     <div class="header-actions">
-      <div class="unit-bar" aria-label="Weight units">
-        <div class="unit-toggle" role="group" aria-label="Weight">
+      <div class="unit-bar" aria-label="Units">
+        <div class="unit-toggle" role="group" aria-label="Temperature">
+          <button type="button" class="unit-btn active" data-unit-temp="f">°F</button>
+          <button type="button" class="unit-btn" data-unit-temp="c">°C</button>
+        </div>
+        <div class="unit-toggle unit-bar-weight" role="group" aria-label="Weight">
           <button type="button" class="unit-btn active" data-unit-weight="kg">kg</button>
           <button type="button" class="unit-btn" data-unit-weight="lb">lb</button>
         </div>
       </div>
-      <p class="unit-hint" id="unitHint">Temps show °C and °F together</p>
+      <p class="unit-hint" id="unitHint">Temps in °F first · weight in kg</p>
       <button type="button" class="btn-share-link" id="copyShareLink" title="Copy link to share">Copy link</button>
     </div>
   </header>
@@ -315,10 +319,10 @@
         <div class="simple-step">
           <span class="simple-step-label">1</span>
           <div class="simple-step-body">
-            <label for="simplePullF">Pull temperature</label>
+            <label for="simplePull">Pull temperature</label>
             <div class="simple-pull-row">
-              <input type="number" id="simplePullF" class="simple-pull-input" min="165" max="210" step="1" value="195" inputmode="numeric" aria-describedby="localTimeHint" />
-              <span class="simple-pull-unit">°F</span>
+              <input type="number" id="simplePull" class="simple-pull-input" min="165" max="210" step="1" value="195" inputmode="numeric" aria-describedby="localTimeHint" />
+              <span class="simple-pull-unit" id="simplePullUnit">°F</span>
             </div>
             <p class="hint" id="localTimeHint">Local time loads in your browser — no account or API needed.</p>
           </div>
@@ -329,6 +333,7 @@
           <div class="simple-step-body plan-slice-field plan-slice-field-prominent">
             <label for="targetSliceTime">When do you want to slice?</label>
             <input type="time" id="targetSliceTime" />
+            <p class="hint plan-slice-clock-hint">Time picker follows your device; results show <strong>12-hr</strong> and <strong>24-hr</strong> together.</p>
             <p class="hint plan-slice-hint" id="pitStartHint">Set a slice time for serve and put-on-pit columns.</p>
           </div>
         </div>
@@ -645,6 +650,6 @@
   </footer>
 
   <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
-  <script src="app.js?v=33"></script>
+  <script src="app.js?v=35"></script>
 </body>
 </html>

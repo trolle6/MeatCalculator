@@ -15,6 +15,7 @@ const state = {
   betweenNote: "",
   activeProfileId: null,
   weightUnit: "kg",
+  tempUnit: "f",
 };
 
 const $ = (id) => document.getElementById(id);
@@ -240,10 +241,10 @@ async function renderHoldOptionsTable() {
       const boxCell = `<strong>${row.boxLabel}</strong><span class="hold-option-sub">${row.steadyLabel} steady after cool-in</span>`;
       let timeCells = "";
       if (sliceSet && row.schedule) {
-        timeCells = `<td><strong>${formatClockTime(row.schedule.start)}</strong><span class="hold-option-sub">≈${row.schedule.totalH.toFixed(0)} hr total</span></td>
-          <td><strong>${formatClockTime(row.schedule.slice)}</strong></td>`;
+        timeCells = `<td><strong>${clockTimeHtml(row.schedule.start)}</strong><span class="hold-option-sub">≈${row.schedule.totalH.toFixed(0)} hr total</span></td>
+          <td><strong>${clockTimeHtml(row.schedule.slice)}</strong></td>`;
       } else if (row.readyIfNow) {
-        timeCells = `<td><strong>${formatClockTime(row.readyIfNow)}</strong><span class="hold-option-sub">after pull into box</span></td>`;
+        timeCells = `<td><strong>${clockTimeHtml(row.readyIfNow)}</strong><span class="hold-option-sub">after pull into box</span></td>`;
       } else {
         timeCells = sliceSet ? `<td>—</td><td>—</td>` : `<td>—</td>`;
       }
@@ -287,8 +288,27 @@ function parseSliceTimeToday(timeStr) {
   return d;
 }
 
+function formatClock24(d) {
+  const hh = d.getHours();
+  const mm = d.getMinutes();
+  return `${String(hh).padStart(2, "0")}:${String(mm).padStart(2, "0")}`;
+}
+
+function formatClock12(d) {
+  return d.toLocaleTimeString("en-US", { hour: "numeric", minute: "2-digit", hour12: true });
+}
+
+/** 12-hr AM/PM first, 24-hr beside it (plain text). */
+function clockTimeText(d) {
+  return `${formatClock12(d)} (${formatClock24(d)})`;
+}
+
+function clockTimeHtml(d) {
+  return `<span class="clock-pair"><span class="clock-pair-val">${formatClock12(d)}</span><span class="clock-pair-alt">${formatClock24(d)}</span></span>`;
+}
+
 function formatClockTime(d) {
-  return d.toLocaleTimeString(undefined, { hour: "numeric", minute: "2-digit" });
+  return clockTimeText(d);
 }
 
 function computePitStartSchedule(holdData) {
@@ -332,6 +352,7 @@ function loadUnitPrefs() {
   try {
     const u = JSON.parse(localStorage.getItem(COOK_STORAGE_KEY) || "{}");
     if (u.weight === "kg" || u.weight === "lb") state.weightUnit = u.weight;
+    if (u.temp === "c" || u.temp === "f") state.tempUnit = u.temp;
   } catch {
     /* ignore */
   }
@@ -342,6 +363,7 @@ function collectCookState() {
   const target = parseFloat($("targetPercent")?.value);
   return {
     weight: state.weightUnit,
+    temp: state.tempUnit,
     pull: tempInputValueC($("pullTemp")),
     hold: tempInputValueC($("holdTemp")),
     probe: getSliderTempC(),
@@ -379,6 +401,7 @@ function cookStateToSearchParams() {
   if (s.target !== 100) p.set("target", String(Math.round(s.target)));
   if (s.profile && PROFILE_IDS.has(s.profile)) p.set("profile", s.profile);
   if (s.weight === "lb") p.set("weight", "lb");
+  if (s.temp === "c") p.set("temp", "c");
   if (s.grade && s.grade !== DEFAULT_GRADE_ID) p.set("grade", s.grade);
   return p;
 }
@@ -407,6 +430,8 @@ function parseUrlCookState() {
   const grade = p.get("grade");
 
   if (w === "kg" || w === "lb") data.weight = w;
+  const t = p.get("temp");
+  if (t === "c" || t === "f") data.temp = t;
   if (Number.isFinite(pull) && pull >= 55 && pull <= 99) data.pull = pull;
   if (Number.isFinite(hold) && hold >= 57 && hold <= 90) data.hold = hold;
   if (Number.isFinite(probe) && probe >= 55 && probe <= 99) data.probe = probe;
@@ -446,6 +471,7 @@ function applyCookState(data) {
   cookStateRestoring = true;
   try {
     if (data.weight === "kg" || data.weight === "lb") state.weightUnit = data.weight;
+    if (data.temp === "c" || data.temp === "f") state.tempUnit = data.temp;
 
     if (data.profile && PROFILE_IDS.has(data.profile)) {
       applyCookProfile(data.profile);
@@ -475,6 +501,7 @@ function applyCookState(data) {
     }
 
     if (data.tab) goToTab(IS_PUBLIC_SIMPLE ? "plan" : data.tab);
+    applyUnitPrefs();
   } finally {
     cookStateRestoring = false;
     saveCookPrefs();
@@ -560,39 +587,69 @@ function configureWeightInput({ kg: kgOverride } = {}) {
 function tempInputValueC(inputEl) {
   if (!inputEl) return 90.5;
   const n = parseFloat(inputEl.value);
-  if (!Number.isFinite(n)) return parseFloat(inputEl.dataset.c) || 90.5;
-  return n;
+  if (Number.isFinite(n)) {
+    const c = state.tempUnit === "f" ? fToC(n) : n;
+    inputEl.dataset.c = String(c);
+    return c;
+  }
+  const stored = parseFloat(inputEl.dataset.c);
+  if (Number.isFinite(stored)) return stored;
+  return 90.5;
 }
 
 function setTempInputFromC(inputEl, c) {
   if (!inputEl) return;
   inputEl.dataset.c = String(c);
-  inputEl.value = Number(c).toFixed(1);
+  if (state.tempUnit === "f") {
+    inputEl.value = String(Math.round(cToF(c)));
+    inputEl.step = "1";
+    inputEl.min = String(Math.round(cToF(55)));
+    inputEl.max = String(Math.round(cToF(99)));
+  } else {
+    inputEl.value = Number(c).toFixed(1);
+    inputEl.step = "0.5";
+    inputEl.min = "55";
+    inputEl.max = "99";
+  }
 }
 
 function syncFieldUnits() {
+  const alt = state.tempUnit === "f" ? "°C in results" : "°F in results";
   document.querySelectorAll(".field-temp-unit").forEach((el) => {
-    el.innerHTML = `°C <span class="temp-f-inline">(°F shown with results)</span>`;
+    if (state.tempUnit === "f") {
+      el.innerHTML = `°F <span class="temp-f-inline">(${alt})</span>`;
+    } else {
+      el.innerHTML = `°C <span class="temp-f-inline">(${alt})</span>`;
+    }
   });
 }
 
-/** Always °C then °F in sync; hero uses vertical divider */
+function formatTempPrimary(c) {
+  return state.tempUnit === "f" ? `${cToF(c).toFixed(0)} °F` : `${Number(c).toFixed(1)} °C`;
+}
+
+function formatTempSecondary(c) {
+  return state.tempUnit === "f" ? `${Number(c).toFixed(1)} °C` : `${cToF(c).toFixed(0)} °F`;
+}
+
+/** Primary unit from toggle; secondary shown smaller */
 function tempHtml(c, { big = false } = {}) {
-  const cStr = `${Number(c).toFixed(1)} °C`;
-  const fStr = `${cToF(c).toFixed(0)} °F`;
+  const primary = formatTempPrimary(c);
+  const secondary = formatTempSecondary(c);
 
   if (big) {
-    return `<span class="temp-hero-val">${cStr}</span><span class="temp-hero-divider" aria-hidden="true"></span><span class="temp-hero-val">${fStr}</span>`;
+    return `<span class="temp-hero-val">${primary}</span><span class="temp-hero-divider" aria-hidden="true"></span><span class="temp-hero-val temp-hero-secondary">${secondary}</span>`;
   }
 
-  return `<span class="temp-pair"><span class="temp-pair-val">${cStr}</span><span class="temp-pair-divider" aria-hidden="true"></span><span class="temp-pair-val">${fStr}</span></span>`;
+  return `<span class="temp-pair"><span class="temp-pair-val">${primary}</span><span class="temp-pair-alt">${secondary}</span></span>`;
 }
 
 function tempText(c) {
-  return `${Number(c).toFixed(1)} °C (${cToF(c).toFixed(0)} °F)`;
+  return `${formatTempPrimary(c)} (${formatTempSecondary(c)})`;
 }
 
 function stallRangeText() {
+  if (state.tempUnit === "f") return "150–165 °F internal (65.5–74 °C)";
   return "65.5–74 °C internal (150–165 °F)";
 }
 
@@ -615,18 +672,30 @@ function refreshStaticUnitCopy() {
   const gaugeCtx = $("gaugeContext");
   if (gaugeCtx) {
     gaugeCtx.textContent =
-      "Drag the dot on the arc to your flat probe temp. ~40% at 90.5 °C / 195 °F before a long hot hold is normal.";
+      state.tempUnit === "f"
+        ? "Drag the dot on the arc to your flat probe temp. ~40% at 195 °F / 90.5 °C before a long hot hold is normal."
+        : "Drag the dot on the arc to your flat probe temp. ~40% at 90.5 °C / 195 °F before a long hot hold is normal.";
   }
   const stallBtn = $("stallPresetBtn");
   if (stallBtn) {
-    stallBtn.textContent = "Stall rescue (~76.5 °C / 170 °F)";
+    stallBtn.textContent =
+      state.tempUnit === "f" ? "Stall rescue (~170 °F / 76.5 °C)" : "Stall rescue (~76.5 °C / 170 °F)";
   }
 }
 
-async function refreshAllForUnits({ weight = false } = {}) {
-  if (!weight) return;
-  await updateYield();
-  updatePlanSummaryDebounced();
+async function refreshAllForUnits({ weight = false, temp = false } = {}) {
+  if (temp) {
+    renderHoldOptionsDebounced();
+    if (!IS_PUBLIC_SIMPLE) {
+      updatePlanSummaryDebounced();
+      updateHold();
+      updateRenderingDebounced();
+    }
+  }
+  if (weight) {
+    await updateYield();
+    if (!IS_PUBLIC_SIMPLE) updatePlanSummaryDebounced();
+  }
 }
 
 function updateUnitBar() {
@@ -634,6 +703,18 @@ function updateUnitBar() {
     btn.classList.toggle("active", btn.dataset.unitWeight === state.weightUnit);
     btn.setAttribute("aria-pressed", btn.dataset.unitWeight === state.weightUnit);
   });
+  document.querySelectorAll("[data-unit-temp]").forEach((btn) => {
+    btn.classList.toggle("active", btn.dataset.unitTemp === state.tempUnit);
+    btn.setAttribute("aria-pressed", btn.dataset.unitTemp === state.tempUnit);
+  });
+  const hint = $("unitHint");
+  if (hint) {
+    const t = state.tempUnit === "f" ? "°F" : "°C";
+    const w = state.weightUnit;
+    hint.textContent = IS_PUBLIC_SIMPLE
+      ? `Temps in ${t} (tap to switch) · other unit in the table`
+      : `Temps in ${t} first · weight in ${w}`;
+  }
 }
 
 function applyUnitPrefs() {
@@ -642,6 +723,8 @@ function applyUnitPrefs() {
   syncFieldUnits();
   syncProbeSliderUnits();
   syncLabels();
+  syncSimplePullFromModel();
+  syncSimplePullChrome();
 }
 
 function initUnits() {
@@ -656,6 +739,16 @@ function initUnits() {
       configureWeightInput({ kg });
       updateUnitBar();
       void refreshAllForUnits({ weight: true });
+    });
+  });
+  document.querySelectorAll("[data-unit-temp]").forEach((btn) => {
+    btn.addEventListener("click", () => {
+      const next = btn.dataset.unitTemp;
+      if (next === state.tempUnit) return;
+      state.tempUnit = next;
+      saveUnitPrefs();
+      applyUnitPrefs();
+      void refreshAllForUnits({ temp: true });
     });
   });
   applyUnitPrefs();
@@ -799,26 +892,47 @@ function updateLocalTimeHint() {
   if (!el) return;
   const now = new Date();
   const tz = Intl.DateTimeFormat().resolvedOptions().timeZone || "local";
-  el.textContent = `Your local time now: ${formatClockTime(now)} (${tz}) — from your device, not a server.`;
+  el.textContent = `Your local time now: ${clockTimeText(now)} (${tz}) — from your device, not a server.`;
+}
+
+function syncSimplePullChrome() {
+  const unitEl = $("simplePullUnit");
+  const input = $("simplePull");
+  if (!unitEl || !input) return;
+  if (state.tempUnit === "f") {
+    unitEl.textContent = "°F";
+    input.min = "165";
+    input.max = "210";
+    input.step = "1";
+  } else {
+    unitEl.textContent = "°C";
+    input.min = "74";
+    input.max = "99";
+    input.step = "0.5";
+  }
 }
 
 function syncSimplePullFromModel() {
-  const f = $("simplePullF");
-  if (!f) return;
+  const input = $("simplePull");
+  if (!input) return;
   const { pull } = getPullHoldC();
-  f.value = String(Math.round(cToF(pull)));
+  if (state.tempUnit === "f") {
+    input.value = String(Math.round(cToF(pull)));
+  } else {
+    input.value = Number(pull).toFixed(1);
+  }
 }
 
 function wireSimplePullInput() {
-  const f = $("simplePullF");
-  if (!f) return;
+  const input = $("simplePull");
+  if (!input) return;
   const apply = () => {
-    const tempF = parseFloat(f.value);
-    if (!Number.isFinite(tempF)) return;
-    setTempInputFromC($("pullTemp"), fToC(tempF));
+    const raw = parseFloat(input.value);
+    if (!Number.isFinite(raw)) return;
+    const c = state.tempUnit === "f" ? fToC(raw) : raw;
+    setTempInputFromC($("pullTemp"), c);
     const slider = $("tempSlider");
     if (slider) {
-      const c = fToC(tempF);
       slider.value = c.toFixed(1);
       slider.dataset.c = String(c);
     }
@@ -828,9 +942,10 @@ function wireSimplePullInput() {
     else renderHoldOptionsTable();
     saveCookPrefsDebounced();
   };
-  f.addEventListener("input", apply);
-  f.addEventListener("change", apply);
+  input.addEventListener("input", apply);
+  input.addEventListener("change", apply);
   syncSimplePullFromModel();
+  syncSimplePullChrome();
 }
 
 function initPublicSimpleMode() {
@@ -2473,7 +2588,7 @@ async function updatePlanSummary() {
       <p class="plan-lead">${meatRaw} raw → about <strong>${formatWeight(yieldData.cookedKg)}</strong> cooked · pull ${tempHtml(pull)} · hold ${tempHtml(hold)} · <strong>${holdHoursText}</strong></p>
       ${
         schedule
-          ? `<p class="plan-schedule"><strong>Put on pit ~${formatClockTime(schedule.start)}</strong> for slice ~${formatClockTime(schedule.slice)} <span class="hint">(≈${schedule.smokeH} hr smoke + ${schedule.cooldown.toFixed(0)} hr cool + ${schedule.holdH.toFixed(0)} hr hold — planning estimate)</span></p>`
+          ? `<p class="plan-schedule"><strong>Put on pit ~${clockTimeHtml(schedule.start)}</strong> for slice ~${clockTimeHtml(schedule.slice)} <span class="hint">(≈${schedule.smokeH} hr smoke + ${schedule.cooldown.toFixed(0)} hr cool + ${schedule.holdH.toFixed(0)} hr hold — planning estimate)</span></p>`
           : ""
       }
       ${activeProfile?.isBetween ? `<p class="hint">In-between: midpoint between 195&nbsp;°F juicy pull and 203&nbsp;°F grate-done pull.</p>` : ""}
@@ -2512,7 +2627,7 @@ async function updatePlanSummary() {
           <li><span>Start pit</span><strong>~${parts.pitStart}</strong></li>
           <li><span>After stall</span><strong>~${parts.pitBoost}</strong></li>
           <li><span>Time on smoke</span><strong>${parts.pitHours} (rough)</strong></li>
-          ${schedule ? `<li><span>Put on pit (if slicing ${formatClockTime(schedule.slice)})</span><strong>~${formatClockTime(schedule.start)}</strong></li>` : ""}
+          ${schedule ? `<li><span>Put on pit (if slicing ${clockTimeText(schedule.slice)})</span><strong>~${clockTimeHtml(schedule.start)}</strong></li>` : ""}
           <li><span>Stall zone</span><strong>${parts.stallRange}</strong></li>
         </ul>
       </article>

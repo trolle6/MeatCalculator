@@ -128,6 +128,12 @@ footer {
   .unit-hint {
     display: none;
   }
+
+  html.site-simple .unit-hint {
+    display: block;
+    font-size: 0.68rem;
+    max-width: 9rem;
+  }
 }
 
 .intro-hero-summary {
@@ -393,6 +399,59 @@ footer {
   font-family: var(--mono);
   font-weight: 500;
   color: var(--text);
+}
+
+.temp-pair-alt,
+.temp-hero-secondary {
+  font-family: var(--mono);
+  font-size: 0.82em;
+  font-weight: 500;
+  color: var(--smoke);
+}
+
+.temp-pair-alt::before {
+  content: "·";
+  margin-right: 0.35rem;
+  color: var(--border);
+}
+
+.clock-pair {
+  display: inline-flex;
+  align-items: baseline;
+  flex-wrap: wrap;
+  gap: 0.2rem 0.4rem;
+  font-family: var(--mono);
+  font-weight: 600;
+}
+
+.clock-pair-val {
+  white-space: nowrap;
+}
+
+.clock-pair-alt {
+  font-size: 0.88em;
+  font-weight: 500;
+  color: var(--smoke);
+  white-space: nowrap;
+}
+
+.clock-pair-alt::before {
+  content: "·";
+  margin-right: 0.3rem;
+  color: var(--border);
+}
+
+.hold-options-table strong .clock-pair {
+  font-size: 0.95rem;
+}
+
+.plan-slice-clock-hint {
+  margin: 0.25rem 0 0.35rem;
+}
+
+.temp-hero-secondary {
+  font-size: clamp(1rem, 4vw, 1.35rem);
+  color: var(--muted);
 }
 
 .temp-pair-divider {
@@ -3052,8 +3111,8 @@ html.site-simple #panel-sources,
 html.site-simple .plan-hero-full,
 html.site-simple .plan-sheet-full,
 html.site-simple .plan-hold-options-title-full,
-html.site-simple .header-actions .unit-bar,
-html.site-simple .header-actions .unit-hint,
+html.site-simple .header-actions .unit-bar-weight,
+html.site-simple .header-actions .btn-share-link,
 html.site-simple .footer-links,
 html.site-simple .footer-attribution,
 html.site-simple #openSources,
