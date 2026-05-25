@@ -449,6 +449,32 @@ footer {
   margin: 0.25rem 0 0.35rem;
 }
 
+.slice-time-label {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.4rem 0.5rem;
+}
+
+.optional-tag {
+  font-size: 0.72rem;
+  font-weight: 600;
+  letter-spacing: 0.02em;
+  text-transform: uppercase;
+  color: var(--muted);
+  background: var(--surface-2);
+  border: 1px dashed var(--border);
+  border-radius: 4px;
+  padding: 0.12rem 0.45rem;
+}
+
+.plan-slice-optional-lead {
+  margin: 0.2rem 0 0.5rem;
+  font-size: 0.82rem;
+  color: var(--text-muted);
+  line-height: 1.45;
+}
+
 .temp-hero-secondary {
   font-size: clamp(1rem, 4vw, 1.35rem);
   color: var(--muted);

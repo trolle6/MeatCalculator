@@ -21,7 +21,7 @@
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
   <link href="https://fonts.googleapis.com/css2?family=DM+Sans:ital,opsz,wght@0,9..40,400;0,9..40,600;0,9..40,700;1,9..40,400&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet" />
-  <link rel="stylesheet" href="app.css?v=35" />
+  <link rel="stylesheet" href="app.css?v=36" />
   <script>
     (function () {
       var q = location.search || "";
@@ -331,10 +331,14 @@
         <div class="simple-step">
           <span class="simple-step-label">2</span>
           <div class="simple-step-body plan-slice-field plan-slice-field-prominent">
-            <label for="targetSliceTime">When do you want to slice?</label>
-            <input type="time" id="targetSliceTime" />
-            <p class="hint plan-slice-clock-hint">Time picker follows your device; results show <strong>12-hr</strong> and <strong>24-hr</strong> together.</p>
-            <p class="hint plan-slice-hint" id="pitStartHint">Set a slice time for serve and put-on-pit columns.</p>
+            <label for="targetSliceTime" class="slice-time-label">
+              When do you want to slice?
+              <span class="optional-tag">Optional</span>
+            </label>
+            <p class="hint plan-slice-optional-lead">You can skip this — step 3 still works with hold hours only. Add a time if you want put-on-pit and serve times in the table.</p>
+            <input type="time" id="targetSliceTime" aria-describedby="pitStartHint planSliceOptionalLead" />
+            <p class="hint plan-slice-clock-hint" id="planSliceOptionalLead">Picker follows your device; results show <strong>12-hr</strong> and <strong>24-hr</strong> together.</p>
+            <p class="hint plan-slice-hint" id="pitStartHint">Leave blank for “Ready about” only — no pit schedule needed.</p>
           </div>
         </div>
 
@@ -650,6 +654,6 @@
   </footer>
 
   <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
-  <script src="app.js?v=35"></script>
+  <script src="app.js?v=36"></script>
 </body>
 </html>

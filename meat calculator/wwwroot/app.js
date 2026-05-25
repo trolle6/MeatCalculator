@@ -227,8 +227,8 @@ async function renderHoldOptionsTable() {
   const pitHint = $("pitStartHint");
   if (pitHint) {
     pitHint.textContent = sliceSet
-      ? "Serve time is your goal; put-on-pit varies by hold temp (≈11 hr smoke + box time in the model)."
-      : "No slice time — “Ready” assumes you go into the box now after pull.";
+      ? "Optional time set — serve is your goal; put-on-pit varies by hold (≈11 hr smoke + box in the model)."
+      : "Optional — left blank. Table shows “Ready about” after pull; no put-on-pit or serve columns.";
   }
 
   const thead = sliceSet
