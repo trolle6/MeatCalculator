@@ -3174,6 +3174,16 @@ html.site-simple .site-header {
   padding-bottom: 0.75rem;
 }
 
+html.site-simple .brand-icon,
+html.site-simple .tagline {
+  display: none !important;
+}
+
+html.site-simple .brand h1 {
+  margin: 0;
+  font-size: 1.15rem;
+}
+
 html.site-simple main {
   max-width: 520px;
   margin: 0 auto;
