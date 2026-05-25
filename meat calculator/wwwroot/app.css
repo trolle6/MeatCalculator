@@ -3356,6 +3356,84 @@ html.site-simple .plan-hold-options-card {
   margin-bottom: 0.75rem;
 }
 
+/* Ray-traced style glow around the simple planner tool */
+html.site-simple .planner-tool-ray {
+  position: relative;
+  z-index: 1;
+  overflow: visible;
+  border-color: rgba(232, 106, 26, 0.35);
+  box-shadow:
+    0 0 0 1px rgba(232, 106, 26, 0.15),
+    0 0 28px rgba(232, 106, 26, 0.2),
+    0 0 56px rgba(94, 184, 232, 0.1),
+    inset 0 0 40px rgba(232, 106, 26, 0.04);
+}
+
+html.site-simple .planner-tool-ray::before {
+  content: "";
+  position: absolute;
+  inset: -4px;
+  z-index: -1;
+  border-radius: calc(var(--radius) + 4px);
+  background: conic-gradient(
+    from 0deg,
+    rgba(94, 184, 232, 0.95),
+    rgba(232, 106, 26, 0.95) 22%,
+    rgba(245, 200, 66, 0.85) 45%,
+    rgba(94, 184, 232, 0.95) 68%,
+    rgba(232, 106, 26, 0.95) 88%,
+    rgba(94, 184, 232, 0.95)
+  );
+  filter: blur(7px);
+  opacity: 0.65;
+  animation: plannerRayTrace 9s linear infinite;
+  pointer-events: none;
+}
+
+html.site-simple .planner-tool-ray::after {
+  content: "";
+  position: absolute;
+  inset: -28px;
+  z-index: -2;
+  border-radius: calc(var(--radius) + 24px);
+  pointer-events: none;
+  background:
+    radial-gradient(ellipse 95% 70% at 50% -15%, rgba(232, 106, 26, 0.28), transparent 58%),
+    radial-gradient(ellipse 55% 90% at -5% 45%, rgba(94, 184, 232, 0.18), transparent 52%),
+    radial-gradient(ellipse 55% 85% at 105% 55%, rgba(232, 106, 26, 0.16), transparent 52%),
+    radial-gradient(ellipse 80% 50% at 50% 110%, rgba(245, 200, 66, 0.08), transparent 55%);
+  opacity: 0.8;
+  animation: plannerRayPulse 5.5s ease-in-out infinite alternate;
+}
+
+@keyframes plannerRayTrace {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+@keyframes plannerRayPulse {
+  from {
+    opacity: 0.5;
+    transform: scale(0.97);
+  }
+  to {
+    opacity: 0.88;
+    transform: scale(1.03);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  html.site-simple .planner-tool-ray::before,
+  html.site-simple .planner-tool-ray::after {
+    animation: none;
+  }
+
+  html.site-simple .brand h1 {
+    text-shadow: 0 0 12px rgba(232, 106, 26, 0.35);
+  }
+}
+
 .simple-footnote {
   display: none;
   margin: 1rem 0 0;
