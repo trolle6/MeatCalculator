@@ -211,6 +211,7 @@ async function renderHoldOptionsTable() {
   const pullLabel = $("holdOptionsPull");
   if (!body) return;
 
+  const gen = ++holdOptionsRenderGen;
   const { pull } = getPullHoldC();
   const target = parseFloat($("targetPercent")?.value) || 100;
   if (pullLabel) pullLabel.innerHTML = tempHtml(pull);
@@ -218,6 +219,7 @@ async function renderHoldOptionsTable() {
   body.innerHTML = `<p class="placeholder">Calculating hold options…</p>`;
 
   const rows = await buildHoldOptionRows(pull, target);
+  if (gen !== holdOptionsRenderGen) return;
   if (!rows.length) {
     body.innerHTML = `<p class="hint">Hold options need pull hotter than hold — raise probe temp or lower hold.</p>`;
     return;
@@ -277,6 +279,7 @@ async function renderHoldOptionsTable() {
   });
 }
 
+let holdOptionsRenderGen = 0;
 const renderHoldOptionsDebounced = debounce(() => renderHoldOptionsTable(), 200);
 
 function parseSliceTimeToday(timeStr) {
@@ -584,17 +587,24 @@ function configureWeightInput({ kg: kgOverride } = {}) {
   }
 }
 
-function tempInputValueC(inputEl) {
-  if (!inputEl) return 90.5;
+/** Read °C from a temp field. Uses stored dataset.c unless the user is actively typing. */
+function tempInputValueC(inputEl, defaultC = 90.5) {
+  if (!inputEl) return defaultC;
+  const stored = parseFloat(inputEl.dataset.c);
   const n = parseFloat(inputEl.value);
+  const editing = document.activeElement === inputEl;
+  if (editing && Number.isFinite(n)) {
+    const c = state.tempUnit === "f" ? fToC(n) : n;
+    inputEl.dataset.c = String(c);
+    return c;
+  }
+  if (Number.isFinite(stored)) return stored;
   if (Number.isFinite(n)) {
     const c = state.tempUnit === "f" ? fToC(n) : n;
     inputEl.dataset.c = String(c);
     return c;
   }
-  const stored = parseFloat(inputEl.dataset.c);
-  if (Number.isFinite(stored)) return stored;
-  return 90.5;
+  return defaultC;
 }
 
 function setTempInputFromC(inputEl, c) {
@@ -684,13 +694,10 @@ function refreshStaticUnitCopy() {
 }
 
 async function refreshAllForUnits({ weight = false, temp = false } = {}) {
-  if (temp) {
-    renderHoldOptionsDebounced();
-    if (!IS_PUBLIC_SIMPLE) {
-      updatePlanSummaryDebounced();
-      updateHold();
-      updateRenderingDebounced();
-    }
+  if (temp && !IS_PUBLIC_SIMPLE) {
+    updatePlanSummaryDebounced();
+    updateHold();
+    updateRenderingDebounced();
   }
   if (weight) {
     await updateYield();
@@ -749,6 +756,7 @@ function initUnits() {
       state.tempUnit = next;
       saveUnitPrefs();
       applyUnitPrefs();
+      void renderHoldOptionsTable();
       void refreshAllForUnits({ temp: true });
     });
   });
@@ -927,13 +935,18 @@ function syncSimplePullChrome() {
 
 function syncSimplePullFromModel() {
   const input = $("simplePull");
+  const pullHidden = $("pullTemp");
   if (!input) return;
-  const { pull } = getPullHoldC();
+  const stored = parseFloat(pullHidden?.dataset.c);
+  const pull = Number.isFinite(stored) ? stored : getPullHoldC().pull;
+  input.dataset.c = String(pull);
+  if (pullHidden) pullHidden.dataset.c = String(pull);
   if (state.tempUnit === "f") {
     input.value = String(Math.round(cToF(pull)));
   } else {
     input.value = Number(pull).toFixed(1);
   }
+  if (pullHidden) setTempInputFromC(pullHidden, pull);
 }
 
 function wireSimplePullInput() {
@@ -943,7 +956,10 @@ function wireSimplePullInput() {
     const raw = parseFloat(input.value);
     if (!Number.isFinite(raw)) return;
     const c = state.tempUnit === "f" ? fToC(raw) : raw;
-    setTempInputFromC($("pullTemp"), c);
+    const pullHidden = $("pullTemp");
+    if (pullHidden) pullHidden.dataset.c = String(c);
+    input.dataset.c = String(c);
+    setTempInputFromC(pullHidden, c);
     const slider = $("tempSlider");
     if (slider) {
       slider.value = c.toFixed(1);
@@ -1516,10 +1532,17 @@ async function updateRendering() {
 function getPullHoldC() {
   const pullEl = $("pullTemp");
   const holdEl = $("holdTemp");
-  const pull = tempInputValueC(pullEl);
-  const hold = tempInputValueC(holdEl);
-  pullEl.dataset.c = String(pull);
-  holdEl.dataset.c = String(hold);
+  const simple = $("simplePull");
+  let pull = tempInputValueC(pullEl, 90.5);
+  if (simple && IS_PUBLIC_SIMPLE) {
+    const raw = parseFloat(simple.value);
+    if (document.activeElement === simple && Number.isFinite(raw)) {
+      pull = state.tempUnit === "f" ? fToC(raw) : raw;
+    }
+    if (pullEl) pullEl.dataset.c = String(pull);
+    simple.dataset.c = String(pull);
+  }
+  const hold = tempInputValueC(holdEl, 65.5);
   return { pull, hold };
 }
 
