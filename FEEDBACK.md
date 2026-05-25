@@ -31,7 +31,9 @@ Use this while waiting on Discord / GitHub comments. **Do not chase one-off nits
 
 **Agrees:** app feels **too much information** — gauge, science, rest sim, recipes, breakdowns, multiple tabs.
 
-**Proposed product shape (not built yet):**
+**Live on GitHub Pages:** `site-simple` mode (default). One screen: pull °F → slice time → hold table. Add `?full=1` for full planner. No external time API — browser local clock. FireBoard-style probe APIs = future only.
+
+**Proposed product shape (now default on Pages):**
 
 1. **Pull temp in** (e.g. 195) — one field, from Probe or Plan.
 2. **Hold options table** — model runs `/api/hold` for each standard hold (150 / 160 / 170 / 140 °F); optional slice time → pit start + serve line per row.

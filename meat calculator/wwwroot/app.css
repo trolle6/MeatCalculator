@@ -3040,3 +3040,169 @@ footer {
   font-size: 0.75rem;
   color: var(--smoke);
 }
+
+/* —— Public site (GitHub Pages): one-screen planner —— */
+html.site-simple .tab-nav-main,
+html.site-simple #panel-dashboard,
+html.site-simple #panel-hold,
+html.site-simple #panel-learn,
+html.site-simple #panel-science,
+html.site-simple .panel-deep,
+html.site-simple #panel-sources,
+html.site-simple .plan-hero-full,
+html.site-simple .plan-sheet-full,
+html.site-simple .plan-hold-options-title-full,
+html.site-simple .header-actions .unit-bar,
+html.site-simple .header-actions .unit-hint,
+html.site-simple .footer-links,
+html.site-simple .footer-attribution,
+html.site-simple #openSources,
+html.site-simple .pages-setup-banner {
+  display: none !important;
+}
+
+html.site-simple #panel-plan {
+  display: block !important;
+}
+
+html.site-simple #panel-plan.panel {
+  padding-top: 0.5rem;
+}
+
+html.site-simple .site-header {
+  padding-bottom: 0.75rem;
+}
+
+html.site-simple main {
+  max-width: 520px;
+  margin: 0 auto;
+}
+
+.simple-hero {
+  display: none;
+  margin-bottom: 1rem;
+}
+
+html.site-simple .simple-hero {
+  display: block;
+}
+
+.simple-hero h2 {
+  margin: 0 0 0.35rem;
+  font-size: 1.35rem;
+}
+
+.simple-hero-lead {
+  margin: 0;
+  font-size: 0.95rem;
+  color: var(--text-muted);
+}
+
+.plan-hold-options-title-simple {
+  display: none;
+  margin: 0 0 0.35rem;
+  font-size: 1.05rem;
+}
+
+html.site-simple .plan-hold-options-title-simple {
+  display: block;
+}
+
+.simple-step {
+  display: none;
+  gap: 0.75rem;
+  margin-bottom: 1.1rem;
+  align-items: flex-start;
+}
+
+html.site-simple .simple-step {
+  display: flex;
+}
+
+html.site-simple .simple-step-table {
+  margin-bottom: 0;
+}
+
+.simple-step-label {
+  flex-shrink: 0;
+  width: 1.75rem;
+  height: 1.75rem;
+  border-radius: 50%;
+  background: var(--ember);
+  color: #fff;
+  font-family: var(--mono);
+  font-weight: 700;
+  font-size: 0.85rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  line-height: 1;
+}
+
+.simple-step-body {
+  flex: 1;
+  min-width: 0;
+}
+
+.simple-step-body label {
+  display: block;
+  font-weight: 600;
+  margin-bottom: 0.35rem;
+}
+
+.simple-pull-row {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.simple-pull-input {
+  width: 5.5rem;
+  font-size: 1.75rem;
+  font-weight: 700;
+  font-family: var(--mono);
+  padding: 0.35rem 0.5rem;
+  border: 2px solid var(--ember);
+  border-radius: var(--radius);
+  background: var(--surface);
+  color: var(--text);
+}
+
+.simple-pull-unit {
+  font-size: 1.25rem;
+  font-weight: 600;
+  color: var(--text-muted);
+}
+
+html.site-simple .plan-slice-field-prominent {
+  margin-bottom: 0;
+  padding-bottom: 0;
+  border-bottom: none;
+}
+
+html.site-simple .plan-hold-options-card {
+  margin-bottom: 0.75rem;
+}
+
+.simple-footnote {
+  display: none;
+  margin: 1rem 0 0;
+  font-size: 0.78rem;
+  color: var(--text-muted);
+  line-height: 1.5;
+  text-align: center;
+}
+
+html.site-simple .simple-footnote {
+  display: block;
+}
+
+.simple-full-link {
+  display: inline-block;
+  margin-left: 0.35rem;
+  color: var(--ember);
+}
+
+html.site-simple .footer-fine {
+  margin-top: 0.5rem;
+}

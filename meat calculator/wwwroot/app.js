@@ -36,6 +36,9 @@ function getPagesBase() {
 
 const PAGES_BASE = getPagesBase();
 const USE_STATIC_API = location.hostname.endsWith("github.io");
+/** Public GitHub Pages: one-screen Steve flow. Add <code>?full=1</code> for the full planner. */
+const IS_PUBLIC_SIMPLE =
+  location.hostname.endsWith("github.io") && !new URLSearchParams(location.search).has("full");
 
 function apiUrl(path) {
   const p = path.startsWith("/") ? path.slice(1) : path;
@@ -167,8 +170,12 @@ function isHoldOptionSelected(holdC) {
 function selectHoldOption(holdC) {
   setTempInputFromC($("holdTemp"), holdC);
   syncActiveProfileUI();
-  updateHold();
-  updatePlanSummaryDebounced();
+  if (!IS_PUBLIC_SIMPLE) {
+    updateHold();
+    updatePlanSummaryDebounced();
+  } else {
+    renderHoldOptionsTable();
+  }
   saveCookPrefsDebounced();
 }
 
@@ -467,7 +474,7 @@ function applyCookState(data) {
       void updateYield();
     }
 
-    if (data.tab) goToTab(data.tab);
+    if (data.tab) goToTab(IS_PUBLIC_SIMPLE ? "plan" : data.tab);
   } finally {
     cookStateRestoring = false;
     saveCookPrefs();
@@ -487,8 +494,8 @@ function restoreCookStateAfterLoad() {
 function wireCookStatePersistence() {
   const save = () => saveCookPrefsDebounced();
   const planRefresh = () => {
-    updatePlanSummaryDebounced();
     renderHoldOptionsDebounced();
+    if (!IS_PUBLIC_SIMPLE) updatePlanSummaryDebounced();
   };
   ["pullTemp", "holdTemp", "targetPercent", "lossPercent", "grade", "startWeight"].forEach((id) => {
     const el = $(id);
@@ -787,7 +794,61 @@ function initHoldTempSummary() {
   });
 }
 
+function updateLocalTimeHint() {
+  const el = $("localTimeHint");
+  if (!el) return;
+  const now = new Date();
+  const tz = Intl.DateTimeFormat().resolvedOptions().timeZone || "local";
+  el.textContent = `Your local time now: ${formatClockTime(now)} (${tz}) — from your device, not a server.`;
+}
+
+function syncSimplePullFromModel() {
+  const f = $("simplePullF");
+  if (!f) return;
+  const { pull } = getPullHoldC();
+  f.value = String(Math.round(cToF(pull)));
+}
+
+function wireSimplePullInput() {
+  const f = $("simplePullF");
+  if (!f) return;
+  const apply = () => {
+    const tempF = parseFloat(f.value);
+    if (!Number.isFinite(tempF)) return;
+    setTempInputFromC($("pullTemp"), fToC(tempF));
+    const slider = $("tempSlider");
+    if (slider) {
+      const c = fToC(tempF);
+      slider.value = c.toFixed(1);
+      slider.dataset.c = String(c);
+    }
+    syncActiveProfileUI();
+    renderHoldOptionsDebounced();
+    if (!IS_PUBLIC_SIMPLE) updatePlanSummaryDebounced();
+    else renderHoldOptionsTable();
+    saveCookPrefsDebounced();
+  };
+  f.addEventListener("input", apply);
+  f.addEventListener("change", apply);
+  syncSimplePullFromModel();
+}
+
+function initPublicSimpleMode() {
+  if (!IS_PUBLIC_SIMPLE) return;
+  const tag = document.querySelector(".tagline");
+  if (tag) tag.textContent = "Pull temp · hold hours · when to slice";
+  wireSimplePullInput();
+  updateLocalTimeHint();
+  window.setInterval(updateLocalTimeHint, 60_000);
+  activatePanel("plan");
+}
+
+function shouldLoadHeavyPanels() {
+  return !IS_PUBLIC_SIMPLE;
+}
+
 function activatePanel(panelId) {
+  if (IS_PUBLIC_SIMPLE && panelId !== "plan") return;
   document.querySelectorAll(".panel").forEach((p) => p.classList.remove("active"));
   const panel = document.getElementById(`panel-${panelId}`);
   if (panel) panel.classList.add("active");
@@ -2322,6 +2383,8 @@ function buildPlanPlainText(parts, profileName) {
 }
 
 async function updatePlanSummary() {
+  if (IS_PUBLIC_SIMPLE) return;
+
   const sheet = $("planSheet");
   if (!sheet) return;
 
@@ -2712,12 +2775,14 @@ initUnits();
 
 loadData()
   .then(() => {
-    initQuickStart();
-    wireGaugeArcDrag();
-    initRest();
+    if (shouldLoadHeavyPanels()) {
+      initQuickStart();
+      wireGaugeArcDrag();
+      initRest();
+    }
     initPlan();
     initHoldTempSummary();
-    initExpandSections();
+    if (shouldLoadHeavyPanels()) initExpandSections();
     wireGlobalNav();
     syncHoldTempSummary();
     wireShareLinks();
@@ -2727,22 +2792,30 @@ loadData()
       updateHold();
       goToTab("plan");
     });
-    return Promise.all([updateRest(), updatePlanSummary()]);
+    const boot = shouldLoadHeavyPanels()
+      ? Promise.all([updateRest(), updatePlanSummary()])
+      : Promise.all([renderHoldOptionsTable()]);
+    return boot;
   })
-  .then(() =>
-    Promise.allSettled([
+  .then(() => {
+    if (!shouldLoadHeavyPanels()) return;
+    return Promise.allSettled([
       loadScience(),
       loadGuide(),
       loadRecipes(),
       loadRestEnvironments(),
       loadProfiles(),
       loadSources(),
-    ])
-  )
+    ]);
+  })
   .then(() => {
     applyUnitPrefs();
     restoreCookStateAfterLoad();
-    return refreshAllForUnits({ weight: true });
+    if (IS_PUBLIC_SIMPLE) {
+      initPublicSimpleMode();
+      syncSimplePullFromModel();
+    }
+    return refreshAllForUnits({ weight: shouldLoadHeavyPanels() });
   })
   .catch(console.error);
 

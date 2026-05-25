@@ -21,7 +21,15 @@
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
   <link href="https://fonts.googleapis.com/css2?family=DM+Sans:ital,opsz,wght@0,9..40,400;0,9..40,600;0,9..40,700;1,9..40,400&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet" />
-  <link rel="stylesheet" href="app.css?v=32" />
+  <link rel="stylesheet" href="app.css?v=33" />
+  <script>
+    (function () {
+      var q = location.search || "";
+      if (location.hostname.endsWith("github.io") && q.indexOf("full=1") === -1) {
+        document.documentElement.classList.add("site-simple");
+      }
+    })();
+  </script>
 </head>
 <body>
   <div class="smoke-bg" aria-hidden="true"></div>
@@ -290,7 +298,7 @@
     </section>
 
     <section id="panel-plan" class="panel">
-      <header class="guide-hero plan-hero">
+      <header class="guide-hero plan-hero plan-hero-full">
         <h2>Cook plan</h2>
         <p class="guide-sub">Pick a hold schedule for your pull temp, then use the sheet below.</p>
         <div class="plan-toolbar">
@@ -298,22 +306,56 @@
         </div>
       </header>
 
+      <header class="simple-hero">
+        <h2>Pull · hold · slice</h2>
+        <p class="simple-hero-lead">Enter pull temp, when you want to slice, then pick a hold setting.</p>
+      </header>
+
       <article class="card plan-hold-options-card">
-        <h3 class="plan-hold-options-title">Hold options for <span id="holdOptionsPull">—</span></h3>
-        <p class="plan-hold-options-lead">If you pull at this temp, here’s how long in the hot box at common hold settings (model).</p>
-        <div class="plan-slice-field plan-slice-field-prominent">
-          <label for="targetSliceTime">When do you want to slice? <span class="hint">(optional — enables serve / pit times)</span></label>
-          <input type="time" id="targetSliceTime" />
-          <p class="hint plan-slice-hint" id="pitStartHint">Set a slice time to see serve and put-on-pit times per row.</p>
+        <div class="simple-step">
+          <span class="simple-step-label">1</span>
+          <div class="simple-step-body">
+            <label for="simplePullF">Pull temperature</label>
+            <div class="simple-pull-row">
+              <input type="number" id="simplePullF" class="simple-pull-input" min="165" max="210" step="1" value="195" inputmode="numeric" aria-describedby="localTimeHint" />
+              <span class="simple-pull-unit">°F</span>
+            </div>
+            <p class="hint" id="localTimeHint">Local time loads in your browser — no account or API needed.</p>
+          </div>
         </div>
-        <div id="holdOptionsBody" class="hold-options-body" aria-live="polite">
-          <p class="placeholder">Loading hold options…</p>
+
+        <div class="simple-step">
+          <span class="simple-step-label">2</span>
+          <div class="simple-step-body plan-slice-field plan-slice-field-prominent">
+            <label for="targetSliceTime">When do you want to slice?</label>
+            <input type="time" id="targetSliceTime" />
+            <p class="hint plan-slice-hint" id="pitStartHint">Set a slice time for serve and put-on-pit columns.</p>
+          </div>
+        </div>
+
+        <div class="simple-step simple-step-table">
+          <span class="simple-step-label">3</span>
+          <div class="simple-step-body">
+            <h3 class="plan-hold-options-title plan-hold-options-title-full">Hold options for <span id="holdOptionsPull">—</span></h3>
+            <h3 class="plan-hold-options-title-simple">Pick a hold temperature</h3>
+            <p class="plan-hold-options-lead">Hours are modeled time in the hot box (cool-in + steady at hold).</p>
+            <div id="holdOptionsBody" class="hold-options-body" aria-live="polite">
+              <p class="placeholder">Loading hold options…</p>
+            </div>
+          </div>
         </div>
       </article>
 
-      <div id="planSheet" class="plan-sheet">
+      <div id="planSheet" class="plan-sheet plan-sheet-full">
         <p class="placeholder">Loading your plan…</p>
       </div>
+
+      <p class="simple-footnote">
+        Planning model only — probe and feel win. Inspired by
+        <a href="https://www.youtube.com/@SmokeTrailsBBQ" rel="noopener noreferrer" target="_blank">Smoke Trails BBQ</a>
+        (not affiliated).
+        <a href="?full=1" class="simple-full-link">Full planner</a> hides on local dev; adds gauge, science, weight, and more.
+      </p>
     </section>
 
     <section id="panel-learn" class="panel">
@@ -603,6 +645,6 @@
   </footer>
 
   <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
-  <script src="app.js?v=32"></script>
+  <script src="app.js?v=33"></script>
 </body>
 </html>
