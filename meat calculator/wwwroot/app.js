@@ -725,6 +725,7 @@ function applyUnitPrefs() {
   syncLabels();
   syncSimplePullFromModel();
   syncSimplePullChrome();
+  updatePullTempReminder();
 }
 
 function initUnits() {
@@ -887,6 +888,18 @@ function initHoldTempSummary() {
   });
 }
 
+function updatePullTempReminder() {
+  const el = $("pullTempReminder");
+  if (!el) return;
+  if (state.tempUnit === "f") {
+    el.textContent =
+      "Typical flat probe pull: about 195–203 °F (many long hot holds start ~195 °F). Probe feel still wins over the number.";
+  } else {
+    el.textContent =
+      "Typical flat probe pull: about 90.5–95 °C (many long hot holds start ~90.5 °C). Probe feel still wins over the number.";
+  }
+}
+
 function updateLocalTimeHint() {
   const el = $("localTimeHint");
   if (!el) return;
@@ -953,6 +966,7 @@ function initPublicSimpleMode() {
   const tag = document.querySelector(".tagline");
   if (tag) tag.textContent = "Pull temp · hold hours · when to slice";
   wireSimplePullInput();
+  updatePullTempReminder();
   updateLocalTimeHint();
   window.setInterval(updateLocalTimeHint, 60_000);
   activatePanel("plan");

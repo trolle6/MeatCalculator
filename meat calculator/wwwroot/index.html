@@ -21,7 +21,7 @@
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
   <link href="https://fonts.googleapis.com/css2?family=DM+Sans:ital,opsz,wght@0,9..40,400;0,9..40,600;0,9..40,700;1,9..40,400&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet" />
-  <link rel="stylesheet" href="app.css?v=36" />
+  <link rel="stylesheet" href="app.css?v=37" />
   <script>
     (function () {
       var q = location.search || "";
@@ -321,9 +321,10 @@
           <div class="simple-step-body">
             <label for="simplePull">Pull temperature</label>
             <div class="simple-pull-row">
-              <input type="number" id="simplePull" class="simple-pull-input" min="165" max="210" step="1" value="195" inputmode="numeric" aria-describedby="localTimeHint" />
+              <input type="number" id="simplePull" class="simple-pull-input" min="165" max="210" step="1" value="195" inputmode="numeric" aria-describedby="pullTempReminder localTimeHint" />
               <span class="simple-pull-unit" id="simplePullUnit">°F</span>
             </div>
+            <p class="hint pull-temp-reminder" id="pullTempReminder" aria-live="polite"></p>
             <p class="hint" id="localTimeHint">Local time loads in your browser — no account or API needed.</p>
           </div>
         </div>
@@ -654,6 +655,6 @@
   </footer>
 
   <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
-  <script src="app.js?v=36"></script>
+  <script src="app.js?v=37"></script>
 </body>
 </html>

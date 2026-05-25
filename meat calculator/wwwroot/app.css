@@ -475,6 +475,17 @@ footer {
   line-height: 1.45;
 }
 
+.pull-temp-reminder {
+  margin: 0.45rem 0 0.25rem;
+  padding: 0.45rem 0.55rem;
+  font-size: 0.78rem;
+  line-height: 1.45;
+  color: var(--muted);
+  background: var(--surface-2);
+  border-left: 3px solid var(--safe);
+  border-radius: 0 var(--radius) var(--radius) 0;
+}
+
 .temp-hero-secondary {
   font-size: clamp(1rem, 4vw, 1.35rem);
   color: var(--muted);
