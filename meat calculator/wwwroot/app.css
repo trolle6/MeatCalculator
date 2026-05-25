@@ -3249,22 +3249,27 @@ html.site-simple .simple-step-table {
 .simple-pull-row {
   display: flex;
   align-items: center;
-  gap: 0.5rem;
+  gap: 0.65rem;
+  width: 100%;
+  max-width: 20rem;
 }
 
 .simple-pull-input {
-  width: min(100%, 8.25rem);
-  min-width: 7.25rem;
-  font-size: 2rem;
+  flex: 1 1 auto;
+  width: 11.5rem;
+  min-width: 10rem;
+  max-width: 100%;
+  font-size: 2.15rem;
   font-weight: 700;
   font-family: var(--mono);
-  padding: 0.5rem 0.65rem;
+  padding: 0.6rem 0.85rem;
   border: 2px solid var(--ember);
   border-radius: var(--radius);
   background: var(--surface);
   color: var(--text);
-  letter-spacing: 0.02em;
+  letter-spacing: 0.03em;
   box-sizing: border-box;
+  text-align: center;
 }
 
 .simple-pull-unit {
