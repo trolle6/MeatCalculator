@@ -21,7 +21,7 @@
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
   <link href="https://fonts.googleapis.com/css2?family=DM+Sans:ital,opsz,wght@0,9..40,400;0,9..40,600;0,9..40,700;1,9..40,400&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet" />
-  <link rel="stylesheet" href="app.css?v=44" />
+  <link rel="stylesheet" href="app.css?v=45" />
   <script>
     (function () {
       var q = location.search || "";
@@ -337,8 +337,25 @@
               <span class="optional-tag">Optional</span>
             </label>
             <p class="hint plan-slice-optional-lead">You can skip this — step 3 still works with hold hours only. Add a time if you want put-on-pit and serve times in the table.</p>
-            <input type="time" id="targetSliceTime" aria-describedby="pitStartHint planSliceOptionalLead" />
-            <p class="hint plan-slice-clock-hint" id="planSliceOptionalLead">Picker follows your device; results show <strong>12-hr</strong> and <strong>24-hr</strong> together.</p>
+            <div class="slice-time-controls" aria-describedby="pitStartHint planSliceOptionalLead">
+              <div class="unit-toggle slice-clock-toggle" role="group" aria-label="Time input format">
+                <button type="button" class="unit-btn active" data-clock-input="12">12-hr</button>
+                <button type="button" class="unit-btn" data-clock-input="24">24-hr</button>
+              </div>
+              <div id="sliceTime12Wrap" class="slice-time-12-wrap">
+                <div class="slice-time-12-fields">
+                  <select id="sliceHour12" class="slice-time-part" aria-label="Hour"></select>
+                  <span class="slice-time-sep" aria-hidden="true">:</span>
+                  <select id="sliceMin12" class="slice-time-part" aria-label="Minute"></select>
+                  <div class="unit-toggle slice-ampm-toggle" role="group" aria-label="AM or PM">
+                    <button type="button" class="unit-btn" data-slice-ampm="AM">AM</button>
+                    <button type="button" class="unit-btn active" data-slice-ampm="PM">PM</button>
+                  </div>
+                </div>
+              </div>
+              <input type="time" id="targetSliceTime" class="slice-time-24-input hidden" aria-label="Slice time 24-hour" />
+            </div>
+            <p class="hint plan-slice-clock-hint" id="planSliceOptionalLead">Use hour · minute · AM/PM, or switch to 24-hr. Results always show both formats.</p>
             <p class="hint plan-slice-hint" id="pitStartHint">Leave blank for “Ready about” only — no pit schedule needed.</p>
           </div>
         </div>
@@ -655,6 +672,6 @@
   </footer>
 
   <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
-  <script src="app.js?v=44"></script>
+  <script src="app.js?v=45"></script>
 </body>
 </html>

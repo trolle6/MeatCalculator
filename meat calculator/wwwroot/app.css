@@ -449,6 +449,62 @@ footer {
   margin: 0.25rem 0 0.35rem;
 }
 
+.slice-time-controls {
+  margin-top: 0.35rem;
+}
+
+.slice-clock-toggle {
+  margin-bottom: 0.5rem;
+}
+
+.slice-time-12-fields {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 0.4rem;
+}
+
+.slice-time-part {
+  font-family: var(--mono);
+  font-size: 1rem;
+  font-weight: 600;
+  padding: 0.45rem 0.5rem;
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  background: var(--surface);
+  color: var(--text);
+  min-width: 3.25rem;
+}
+
+.slice-time-sep {
+  font-family: var(--mono);
+  font-size: 1.1rem;
+  font-weight: 700;
+  color: var(--muted);
+}
+
+.slice-ampm-toggle .unit-btn {
+  min-width: 2.75rem;
+}
+
+.slice-time-24-input {
+  display: block;
+  width: 100%;
+  max-width: 12rem;
+  font-family: var(--mono);
+  font-size: 1rem;
+  padding: 0.45rem 0.55rem;
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  background: var(--surface);
+  color: var(--text);
+}
+
+.slice-time-24-input.hidden,
+.slice-time-12-wrap.hidden {
+  display: none !important;
+}
+
 .slice-time-label {
   display: flex;
   flex-wrap: wrap;

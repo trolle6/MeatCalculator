@@ -16,6 +16,8 @@ const state = {
   activeProfileId: null,
   weightUnit: "kg",
   tempUnit: "f",
+  clockInputUnit: "12",
+  sliceAmPm: "PM",
 };
 
 const $ = (id) => document.getElementById(id);
@@ -225,7 +227,7 @@ async function renderHoldOptionsTable() {
     return;
   }
 
-  const sliceSet = !!parseSliceTimeToday($("targetSliceTime")?.value);
+  const sliceSet = !!parseSliceTimeToday(getTargetSliceTimeStr());
   const pitHint = $("pitStartHint");
   if (pitHint) {
     pitHint.textContent = sliceSet
@@ -291,6 +293,146 @@ function parseSliceTimeToday(timeStr) {
   return d;
 }
 
+function timeStrTo24hFrom12(hour12, minute, ampm) {
+  let hh = parseInt(hour12, 10);
+  const mm = parseInt(minute, 10);
+  if (!Number.isFinite(hh) || !Number.isFinite(mm)) return "";
+  if (ampm === "PM" && hh !== 12) hh += 12;
+  if (ampm === "AM" && hh === 12) hh = 0;
+  return `${String(hh).padStart(2, "0")}:${String(mm).padStart(2, "0")}`;
+}
+
+function parse24hTo12Parts(timeStr) {
+  const [hh, mm] = timeStr.split(":").map(Number);
+  if (!Number.isFinite(hh) || !Number.isFinite(mm)) return null;
+  const ampm = hh >= 12 ? "PM" : "AM";
+  let hour12 = hh % 12;
+  if (hour12 === 0) hour12 = 12;
+  return { hour12: String(hour12), minute: String(mm).padStart(2, "0"), ampm };
+}
+
+function syncSliceTimeFromInputs() {
+  const hidden = $("targetSliceTime");
+  if (!hidden || state.clockInputUnit === "24") return;
+  const h = $("sliceHour12")?.value;
+  const m = $("sliceMin12")?.value;
+  if (!h || m === "") {
+    hidden.value = "";
+    return;
+  }
+  hidden.value = timeStrTo24hFrom12(h, m, state.sliceAmPm);
+}
+
+function getTargetSliceTimeStr() {
+  syncSliceTimeFromInputs();
+  return $("targetSliceTime")?.value ?? "";
+}
+
+function fillSliceTime12Selects() {
+  const hourSel = $("sliceHour12");
+  const minSel = $("sliceMin12");
+  if (!hourSel || !minSel || hourSel.options.length > 1) return;
+  hourSel.innerHTML = '<option value="">—</option>';
+  for (let h = 1; h <= 12; h++) {
+    const opt = document.createElement("option");
+    opt.value = String(h);
+    opt.textContent = String(h);
+    hourSel.appendChild(opt);
+  }
+  minSel.innerHTML = '<option value="">—</option>';
+  for (let m = 0; m < 60; m++) {
+    const s = String(m).padStart(2, "0");
+    const opt = document.createElement("option");
+    opt.value = s;
+    opt.textContent = s;
+    minSel.appendChild(opt);
+  }
+}
+
+function updateSliceAmPmUI() {
+  document.querySelectorAll("[data-slice-ampm]").forEach((btn) => {
+    const on = btn.dataset.sliceAmpm === state.sliceAmPm;
+    btn.classList.toggle("active", on);
+    btn.setAttribute("aria-pressed", on);
+  });
+}
+
+function sync12hInputsFromHidden() {
+  const v = $("targetSliceTime")?.value;
+  const hourSel = $("sliceHour12");
+  const minSel = $("sliceMin12");
+  if (!hourSel || !minSel) return;
+  if (!v) {
+    hourSel.value = "";
+    minSel.value = "";
+    return;
+  }
+  const parts = parse24hTo12Parts(v);
+  if (!parts) return;
+  hourSel.value = parts.hour12;
+  minSel.value = parts.minute;
+  state.sliceAmPm = parts.ampm;
+  updateSliceAmPmUI();
+}
+
+function applySliceClockInputUI() {
+  const is12 = state.clockInputUnit === "12";
+  $("sliceTime12Wrap")?.classList.toggle("hidden", !is12);
+  const native = $("targetSliceTime");
+  if (native) native.classList.toggle("hidden", is12);
+  document.querySelectorAll("[data-clock-input]").forEach((btn) => {
+    const on = btn.dataset.clockInput === state.clockInputUnit;
+    btn.classList.toggle("active", on);
+    btn.setAttribute("aria-pressed", on);
+  });
+  const hint = $("planSliceOptionalLead");
+  if (hint) {
+    hint.innerHTML = is12
+      ? "Use <strong>hour · minute · AM/PM</strong> below. Table results always show <strong>12-hr</strong> and <strong>24-hr</strong> together."
+      : "Use <strong>24-hr</strong> time below. Table results always show <strong>12-hr</strong> and <strong>24-hr</strong> together.";
+  }
+  if (is12) sync12hInputsFromHidden();
+}
+
+function initSliceTimeInput() {
+  fillSliceTime12Selects();
+  const planRefresh = () => {
+    syncSliceTimeFromInputs();
+    renderHoldOptionsDebounced();
+    if (!IS_PUBLIC_SIMPLE) updatePlanSummaryDebounced();
+    saveCookPrefsDebounced();
+  };
+
+  document.querySelectorAll("[data-clock-input]").forEach((btn) => {
+    btn.addEventListener("click", () => {
+      const next = btn.dataset.clockInput;
+      if (next === state.clockInputUnit) return;
+      if (state.clockInputUnit === "12") syncSliceTimeFromInputs();
+      state.clockInputUnit = next;
+      saveUnitPrefs();
+      applySliceClockInputUI();
+      planRefresh();
+    });
+  });
+
+  document.querySelectorAll("[data-slice-ampm]").forEach((btn) => {
+    btn.addEventListener("click", () => {
+      state.sliceAmPm = btn.dataset.sliceAmpm;
+      updateSliceAmPmUI();
+      planRefresh();
+    });
+  });
+
+  ["sliceHour12", "sliceMin12"].forEach((id) => {
+    $(id)?.addEventListener("change", planRefresh);
+  });
+
+  $("targetSliceTime")?.addEventListener("change", planRefresh);
+  $("targetSliceTime")?.addEventListener("input", planRefresh);
+
+  applySliceClockInputUI();
+}
+
 function formatClock24(d) {
   const hh = d.getHours();
   const mm = d.getMinutes();
@@ -315,7 +457,7 @@ function formatClockTime(d) {
 }
 
 function computePitStartSchedule(holdData) {
-  const slice = parseSliceTimeToday($("targetSliceTime")?.value);
+  const slice = parseSliceTimeToday(getTargetSliceTimeStr());
   if (!slice) return null;
   const smokeH = SMOKE_HOURS_ESTIMATE;
   const cooldown = holdData.cooldownHours ?? 4;
@@ -356,6 +498,8 @@ function loadUnitPrefs() {
     const u = JSON.parse(localStorage.getItem(COOK_STORAGE_KEY) || "{}");
     if (u.weight === "kg" || u.weight === "lb") state.weightUnit = u.weight;
     if (u.temp === "c" || u.temp === "f") state.tempUnit = u.temp;
+    if (u.clock === "12" || u.clock === "24") state.clockInputUnit = u.clock;
+    if (u.sliceAmPm === "AM" || u.sliceAmPm === "PM") state.sliceAmPm = u.sliceAmPm;
   } catch {
     /* ignore */
   }
@@ -367,6 +511,8 @@ function collectCookState() {
   return {
     weight: state.weightUnit,
     temp: state.tempUnit,
+    clock: state.clockInputUnit,
+    sliceAmPm: state.sliceAmPm,
     pull: tempInputValueC($("pullTemp")),
     hold: tempInputValueC($("holdTemp")),
     probe: getSliderTempC(),
@@ -475,6 +621,8 @@ function applyCookState(data) {
   try {
     if (data.weight === "kg" || data.weight === "lb") state.weightUnit = data.weight;
     if (data.temp === "c" || data.temp === "f") state.tempUnit = data.temp;
+    if (data.clock === "12" || data.clock === "24") state.clockInputUnit = data.clock;
+    if (data.sliceAmPm === "AM" || data.sliceAmPm === "PM") state.sliceAmPm = data.sliceAmPm;
 
     if (data.profile && PROFILE_IDS.has(data.profile)) {
       applyCookProfile(data.profile);
@@ -505,6 +653,7 @@ function applyCookState(data) {
 
     if (data.tab) goToTab(IS_PUBLIC_SIMPLE ? "plan" : data.tab);
     applyUnitPrefs();
+    applySliceClockInputUI();
   } finally {
     cookStateRestoring = false;
     saveCookPrefs();
@@ -541,8 +690,6 @@ function wireCookStatePersistence() {
   });
   $("tempSlider")?.addEventListener("input", save);
   $("tempSlider")?.addEventListener("change", save);
-  $("targetSliceTime")?.addEventListener("change", planRefresh);
-  $("targetSliceTime")?.addEventListener("input", planRefresh);
 }
 
 function formatWeight(kg, { showBoth = false } = {}) {
@@ -2924,6 +3071,7 @@ function initRest() {
 }
 
 initUnits();
+initSliceTimeInput();
 
 loadData()
   .then(() => {
@@ -2962,6 +3110,7 @@ loadData()
   })
   .then(() => {
     applyUnitPrefs();
+    applySliceClockInputUI();
     restoreCookStateAfterLoad();
     if (IS_PUBLIC_SIMPLE) {
       initPublicSimpleMode();
