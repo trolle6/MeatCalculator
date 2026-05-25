@@ -3253,19 +3253,22 @@ html.site-simple .simple-step-table {
 }
 
 .simple-pull-input {
-  width: 5.5rem;
-  font-size: 1.75rem;
+  width: min(100%, 8.25rem);
+  min-width: 7.25rem;
+  font-size: 2rem;
   font-weight: 700;
   font-family: var(--mono);
-  padding: 0.35rem 0.5rem;
+  padding: 0.5rem 0.65rem;
   border: 2px solid var(--ember);
   border-radius: var(--radius);
   background: var(--surface);
   color: var(--text);
+  letter-spacing: 0.02em;
+  box-sizing: border-box;
 }
 
 .simple-pull-unit {
-  font-size: 1.25rem;
+  font-size: 1.5rem;
   font-weight: 600;
   color: var(--text-muted);
 }
