@@ -486,6 +486,11 @@ footer {
   border-radius: 0 var(--radius) var(--radius) 0;
 }
 
+.pull-temp-reminder strong {
+  color: var(--text);
+  font-weight: 600;
+}
+
 .temp-hero-secondary {
   font-size: clamp(1rem, 4vw, 1.35rem);
   color: var(--muted);

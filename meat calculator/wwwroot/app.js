@@ -900,11 +900,11 @@ function updatePullTempReminder() {
   const el = $("pullTempReminder");
   if (!el) return;
   if (state.tempUnit === "f") {
-    el.textContent =
-      "Typical flat probe pull: about 195–203 °F (many long hot holds start ~195 °F). Probe feel still wins over the number.";
+    el.innerHTML =
+      "Normally recommended <strong>center internal</strong> temp when you pull brisket: about <strong>195–203 °F</strong> — hot enough to eat safely, with many long hot holds starting around <strong>195 °F</strong>. Probe feel still beats the number.";
   } else {
-    el.textContent =
-      "Typical flat probe pull: about 90.5–95 °C (many long hot holds start ~90.5 °C). Probe feel still wins over the number.";
+    el.innerHTML =
+      "Normally recommended <strong>center internal</strong> temp when you pull brisket: about <strong>90.5–95 °C</strong> — hot enough to eat safely, with many long hot holds starting around <strong>90.5 °C</strong>. Probe feel still beats the number.";
   }
 }
 
