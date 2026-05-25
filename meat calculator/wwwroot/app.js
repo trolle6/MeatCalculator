@@ -979,6 +979,8 @@ function wireSimplePullInput() {
 
 function initPublicSimpleMode() {
   if (!IS_PUBLIC_SIMPLE) return;
+  const tag = document.querySelector(".tagline");
+  if (tag) tag.textContent = "Pull temp · hold hours · when to slice";
   wireSimplePullInput();
   updatePullTempReminder();
   updateLocalTimeHint();

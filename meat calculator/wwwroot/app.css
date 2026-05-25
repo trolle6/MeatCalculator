@@ -3174,14 +3174,13 @@ html.site-simple .site-header {
   padding-bottom: 0.75rem;
 }
 
-html.site-simple .brand-icon,
-html.site-simple .tagline {
+html.site-simple .brand-icon {
   display: none !important;
 }
 
-html.site-simple .brand h1 {
-  margin: 0;
-  font-size: 1.15rem;
+html.site-simple .tagline {
+  margin: 0.15rem 0 0;
+  font-size: 0.8rem;
 }
 
 html.site-simple main {
