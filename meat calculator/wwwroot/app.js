@@ -313,14 +313,24 @@ function parse24hTo12Parts(timeStr) {
 
 function syncSliceTimeFromInputs() {
   const hidden = $("targetSliceTime");
-  if (!hidden || state.clockInputUnit === "24") return;
-  const h = $("sliceHour12")?.value;
-  const m = $("sliceMin12")?.value;
-  if (!h || m === "") {
+  if (!hidden) return;
+  if (state.clockInputUnit === "12") {
+    const h = $("sliceHour12")?.value;
+    const m = $("sliceMin12")?.value;
+    if (!h || m === "") {
+      hidden.value = "";
+      return;
+    }
+    hidden.value = timeStrTo24hFrom12(h, m, state.sliceAmPm);
+    return;
+  }
+  const h = $("sliceHour24")?.value;
+  const m = $("sliceMin24")?.value;
+  if (h === "" || m === "") {
     hidden.value = "";
     return;
   }
-  hidden.value = timeStrTo24hFrom12(h, m, state.sliceAmPm);
+  hidden.value = `${h}:${m}`;
 }
 
 function getTargetSliceTimeStr() {
@@ -328,15 +338,14 @@ function getTargetSliceTimeStr() {
   return $("targetSliceTime")?.value ?? "";
 }
 
-function fillSliceTime12Selects() {
-  const hourSel = $("sliceHour12");
-  const minSel = $("sliceMin12");
+function fillSliceTimeSelects(hourSel, minSel, { hourMin, hourMax, hourPad = false }) {
   if (!hourSel || !minSel || hourSel.options.length > 1) return;
   hourSel.innerHTML = '<option value="">—</option>';
-  for (let h = 1; h <= 12; h++) {
+  for (let h = hourMin; h <= hourMax; h++) {
     const opt = document.createElement("option");
-    opt.value = String(h);
-    opt.textContent = String(h);
+    const val = hourPad ? String(h).padStart(2, "0") : String(h);
+    opt.value = val;
+    opt.textContent = val;
     hourSel.appendChild(opt);
   }
   minSel.innerHTML = '<option value="">—</option>';
@@ -349,6 +358,14 @@ function fillSliceTime12Selects() {
   }
 }
 
+function fillSliceTime12Selects() {
+  fillSliceTimeSelects($("sliceHour12"), $("sliceMin12"), { hourMin: 1, hourMax: 12 });
+}
+
+function fillSliceTime24Selects() {
+  fillSliceTimeSelects($("sliceHour24"), $("sliceMin24"), { hourMin: 0, hourMax: 23, hourPad: true });
+}
+
 function updateSliceAmPmUI() {
   document.querySelectorAll("[data-slice-ampm]").forEach((btn) => {
     const on = btn.dataset.sliceAmpm === state.sliceAmPm;
@@ -357,29 +374,46 @@ function updateSliceAmPmUI() {
   });
 }
 
-function sync12hInputsFromHidden() {
+function clearSliceTimeSelects() {
+  ["sliceHour12", "sliceMin12", "sliceHour24", "sliceMin24"].forEach((id) => {
+    const el = $(id);
+    if (el) el.value = "";
+  });
+}
+
+function syncVisibleSliceInputsFromHidden() {
   const v = $("targetSliceTime")?.value;
-  const hourSel = $("sliceHour12");
-  const minSel = $("sliceMin12");
-  if (!hourSel || !minSel) return;
+  const hour12 = $("sliceHour12");
+  const min12 = $("sliceMin12");
+  const hour24 = $("sliceHour24");
+  const min24 = $("sliceMin24");
   if (!v) {
-    hourSel.value = "";
-    minSel.value = "";
+    clearSliceTimeSelects();
     return;
   }
-  const parts = parse24hTo12Parts(v);
-  if (!parts) return;
-  hourSel.value = parts.hour12;
-  minSel.value = parts.minute;
-  state.sliceAmPm = parts.ampm;
-  updateSliceAmPmUI();
+  const [hh, mm] = v.split(":").map(Number);
+  if (!Number.isFinite(hh) || !Number.isFinite(mm)) return;
+
+  if (state.clockInputUnit === "12") {
+    const parts = parse24hTo12Parts(v);
+    if (!parts || !hour12 || !min12) return;
+    hour12.value = parts.hour12;
+    min12.value = parts.minute;
+    state.sliceAmPm = parts.ampm;
+    updateSliceAmPmUI();
+    return;
+  }
+
+  if (hour24 && min24) {
+    hour24.value = String(hh).padStart(2, "0");
+    min24.value = String(mm).padStart(2, "0");
+  }
 }
 
 function applySliceClockInputUI() {
   const is12 = state.clockInputUnit === "12";
   $("sliceTime12Wrap")?.classList.toggle("hidden", !is12);
-  const native = $("targetSliceTime");
-  if (native) native.classList.toggle("hidden", is12);
+  $("sliceTime24Wrap")?.classList.toggle("hidden", is12);
   document.querySelectorAll("[data-clock-input]").forEach((btn) => {
     const on = btn.dataset.clockInput === state.clockInputUnit;
     btn.classList.toggle("active", on);
@@ -388,14 +422,15 @@ function applySliceClockInputUI() {
   const hint = $("planSliceOptionalLead");
   if (hint) {
     hint.innerHTML = is12
-      ? "Use <strong>hour · minute · AM/PM</strong> below. Table results always show <strong>12-hr</strong> and <strong>24-hr</strong> together."
-      : "Use <strong>24-hr</strong> time below. Table results always show <strong>12-hr</strong> and <strong>24-hr</strong> together.";
+      ? "<strong>12-hr:</strong> hour 1–12 + <strong>AM/PM</strong> — no 24-hr typing here. Table still shows both formats."
+      : "<strong>24-hr:</strong> hour <strong>00–23</strong> (e.g. <strong>13:13</strong> = 1:13 PM) — no AM/PM. Table still shows both formats.";
   }
-  if (is12) sync12hInputsFromHidden();
+  syncVisibleSliceInputsFromHidden();
 }
 
 function initSliceTimeInput() {
   fillSliceTime12Selects();
+  fillSliceTime24Selects();
   const planRefresh = () => {
     syncSliceTimeFromInputs();
     renderHoldOptionsDebounced();
@@ -407,7 +442,7 @@ function initSliceTimeInput() {
     btn.addEventListener("click", () => {
       const next = btn.dataset.clockInput;
       if (next === state.clockInputUnit) return;
-      if (state.clockInputUnit === "12") syncSliceTimeFromInputs();
+      syncSliceTimeFromInputs();
       state.clockInputUnit = next;
       saveUnitPrefs();
       applySliceClockInputUI();
@@ -423,12 +458,9 @@ function initSliceTimeInput() {
     });
   });
 
-  ["sliceHour12", "sliceMin12"].forEach((id) => {
+  ["sliceHour12", "sliceMin12", "sliceHour24", "sliceMin24"].forEach((id) => {
     $(id)?.addEventListener("change", planRefresh);
   });
-
-  $("targetSliceTime")?.addEventListener("change", planRefresh);
-  $("targetSliceTime")?.addEventListener("input", planRefresh);
 
   applySliceClockInputUI();
 }

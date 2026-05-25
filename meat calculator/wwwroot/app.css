@@ -487,20 +487,14 @@ footer {
   min-width: 2.75rem;
 }
 
-.slice-time-24-input {
-  display: block;
-  width: 100%;
-  max-width: 12rem;
-  font-family: var(--mono);
-  font-size: 1rem;
-  padding: 0.45rem 0.55rem;
-  border: 1px solid var(--border);
-  border-radius: var(--radius);
-  background: var(--surface);
-  color: var(--text);
+.slice-time-24-fields {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 0.4rem;
 }
 
-.slice-time-24-input.hidden,
+.slice-time-24-wrap.hidden,
 .slice-time-12-wrap.hidden {
   display: none !important;
 }

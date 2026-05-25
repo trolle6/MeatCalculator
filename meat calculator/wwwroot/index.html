@@ -21,7 +21,7 @@
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
   <link href="https://fonts.googleapis.com/css2?family=DM+Sans:ital,opsz,wght@0,9..40,400;0,9..40,600;0,9..40,700;1,9..40,400&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet" />
-  <link rel="stylesheet" href="app.css?v=47" />
+  <link rel="stylesheet" href="app.css?v=48" />
   <script>
     (function () {
       var q = location.search || "";
@@ -332,19 +332,19 @@
         <div class="simple-step">
           <span class="simple-step-label">2</span>
           <div class="simple-step-body plan-slice-field plan-slice-field-prominent">
-            <label for="targetSliceTime" class="slice-time-label">
+            <label id="sliceTimeLabel" class="slice-time-label">
               When do you want to slice?
               <span class="optional-tag">Optional</span>
             </label>
             <p class="hint plan-slice-optional-lead">You can skip this — step 3 still works with hold hours only. Add a time if you want put-on-pit and serve times in the table.</p>
-            <div class="slice-time-controls" aria-describedby="pitStartHint planSliceOptionalLead">
+            <div class="slice-time-controls" aria-labelledby="sliceTimeLabel" aria-describedby="pitStartHint planSliceOptionalLead">
               <div class="unit-toggle slice-clock-toggle" role="group" aria-label="Time input format">
                 <button type="button" class="unit-btn active" data-clock-input="12">12-hr</button>
                 <button type="button" class="unit-btn" data-clock-input="24">24-hr</button>
               </div>
               <div id="sliceTime12Wrap" class="slice-time-12-wrap">
                 <div class="slice-time-12-fields">
-                  <select id="sliceHour12" class="slice-time-part" aria-label="Hour"></select>
+                  <select id="sliceHour12" class="slice-time-part" aria-label="Hour 1 to 12"></select>
                   <span class="slice-time-sep" aria-hidden="true">:</span>
                   <select id="sliceMin12" class="slice-time-part" aria-label="Minute"></select>
                   <div class="unit-toggle slice-ampm-toggle" role="group" aria-label="AM or PM">
@@ -353,9 +353,16 @@
                   </div>
                 </div>
               </div>
-              <input type="time" id="targetSliceTime" class="slice-time-24-input hidden" aria-label="Slice time 24-hour" />
+              <div id="sliceTime24Wrap" class="slice-time-24-wrap hidden">
+                <div class="slice-time-24-fields">
+                  <select id="sliceHour24" class="slice-time-part" aria-label="Hour 00 to 23"></select>
+                  <span class="slice-time-sep" aria-hidden="true">:</span>
+                  <select id="sliceMin24" class="slice-time-part" aria-label="Minute"></select>
+                </div>
+              </div>
+              <input type="hidden" id="targetSliceTime" value="" />
             </div>
-            <p class="hint plan-slice-clock-hint" id="planSliceOptionalLead">Use hour · minute · AM/PM, or switch to 24-hr. Results always show both formats.</p>
+            <p class="hint plan-slice-clock-hint" id="planSliceOptionalLead">12-hr uses AM/PM; 24-hr uses 00–23. Results always show both formats.</p>
             <p class="hint plan-slice-hint" id="pitStartHint">Leave blank for “Ready about” only — no pit schedule needed.</p>
           </div>
         </div>
@@ -672,6 +679,6 @@
   </footer>
 
   <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
-  <script src="app.js?v=46"></script>
+  <script src="app.js?v=48"></script>
 </body>
 </html>
