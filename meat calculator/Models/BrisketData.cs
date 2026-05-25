@@ -27,6 +27,8 @@ public static class BrisketData
     public const double WeightLossMin = 30;
     public const double WeightLossMax = 40;
     public const double WeightLossMaxJuicy = 43;
+    public const double WeightLossSliderMin = 0;
+    public const double WeightLossSliderMax = 50;
 
     public const double PitTempStartC = 121;
     public const double PitTempStartMaxC = 135;

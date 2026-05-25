@@ -21,7 +21,7 @@
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
   <link href="https://fonts.googleapis.com/css2?family=DM+Sans:ital,opsz,wght@0,9..40,400;0,9..40,600;0,9..40,700;1,9..40,400&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet" />
-  <link rel="stylesheet" href="app.css?v=29" />
+  <link rel="stylesheet" href="app.css?v=32" />
 </head>
 <body>
   <div class="smoke-bg" aria-hidden="true"></div>
@@ -292,21 +292,25 @@
     <section id="panel-plan" class="panel">
       <header class="guide-hero plan-hero">
         <h2>Cook plan</h2>
-        <p class="guide-sub">Screenshot or <strong>Copy plan</strong> for the fridge door. Set <strong>Weight</strong> and <strong>Hold</strong> first (under Learn).</p>
+        <p class="guide-sub">Pick a hold schedule for your pull temp, then use the sheet below.</p>
         <div class="plan-toolbar">
           <button type="button" class="btn-ghost" id="copyPlan">Copy plan</button>
         </div>
       </header>
-      <details class="expand-section plan-slice-expand">
-        <summary>Set a slice time (optional)</summary>
-        <div class="expand-body">
-          <div class="plan-slice-field">
-            <label for="targetSliceTime">When do you want to slice?</label>
-            <input type="time" id="targetSliceTime" />
-            <p class="hint plan-slice-hint" id="pitStartHint">Pick a time to see when to put the brisket on the pit (rough model).</p>
-          </div>
+
+      <article class="card plan-hold-options-card">
+        <h3 class="plan-hold-options-title">Hold options for <span id="holdOptionsPull">—</span></h3>
+        <p class="plan-hold-options-lead">If you pull at this temp, here’s how long in the hot box at common hold settings (model).</p>
+        <div class="plan-slice-field plan-slice-field-prominent">
+          <label for="targetSliceTime">When do you want to slice? <span class="hint">(optional — enables serve / pit times)</span></label>
+          <input type="time" id="targetSliceTime" />
+          <p class="hint plan-slice-hint" id="pitStartHint">Set a slice time to see serve and put-on-pit times per row.</p>
         </div>
-      </details>
+        <div id="holdOptionsBody" class="hold-options-body" aria-live="polite">
+          <p class="placeholder">Loading hold options…</p>
+        </div>
+      </article>
+
       <div id="planSheet" class="plan-sheet">
         <p class="placeholder">Loading your plan…</p>
       </div>
@@ -422,9 +426,10 @@
             <select id="grade"></select>
           </div>
           <div class="field">
-            <label for="lossPercent">Shrink during cook (trim + moisture)</label>
-            <input type="range" id="lossPercent" min="30" max="43" value="35" class="slider-ember" />
+            <label for="lossPercent">Total shrink (trim + cook)</label>
+            <input type="range" id="lossPercent" min="0" max="50" step="1" value="35" class="slider-ember" />
             <output id="lossDisplay">35%</output>
+            <p class="hint">Typical brisket cook is ~30–43%. Use 0% if your weight is already trimmed; heavy trim + cook can approach ~50%.</p>
           </div>
         </article>
         <article class="card">
@@ -598,6 +603,6 @@
   </footer>
 
   <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
-  <script src="app.js?v=30"></script>
+  <script src="app.js?v=32"></script>
 </body>
 </html>

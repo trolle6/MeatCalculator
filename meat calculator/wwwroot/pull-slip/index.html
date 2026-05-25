@@ -440,9 +440,10 @@
             <select id="grade"></select>
           </div>
           <div class="field">
-            <label for="lossPercent">Shrink during cook (trim + moisture)</label>
-            <input type="range" id="lossPercent" min="30" max="43" value="35" class="slider-ember" />
+            <label for="lossPercent">Total shrink (trim + cook)</label>
+            <input type="range" id="lossPercent" min="0" max="50" step="1" value="35" class="slider-ember" />
             <output id="lossDisplay">35%</output>
+            <p class="hint">Typical brisket cook is ~30–43%. Use 0% if your weight is already trimmed; heavy trim + cook can approach ~50%.</p>
           </div>
         </article>
         <article class="card">
@@ -616,6 +617,6 @@
   </footer>
 
   <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
-  <script src="app.js?v=30"></script>
+  <script src="app.js?v=31"></script>
 </body>
 </html>

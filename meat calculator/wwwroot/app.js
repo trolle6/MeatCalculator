@@ -139,7 +139,137 @@ function capCarryForTeachingPlan(pull, hold, renderedAtPull, carryAdded, target,
   return Math.min(carryAdded, maxCarry);
 }
 
+/** Common cambro / holding-oven temps for the Plan hold-options table. */
+const HOLD_OPTION_PRESETS = [
+  { holdC: 65.5, tag: "Classic cambro" },
+  { holdC: 71, tag: "Warmer hold" },
+  { holdC: 76.5, tag: "Hot hold" },
+  { holdC: 60, tag: "Low & slow" },
+];
+
 const SMOKE_HOURS_ESTIMATE = 11;
+
+function computeServeIfPulledNow(holdData) {
+  const boxH =
+    (holdData.cooldownHours ?? 0) +
+    (typeof holdData.holdHours === "number" && Number.isFinite(holdData.holdHours)
+      ? holdData.holdHours
+      : 0);
+  if (boxH <= 0) return null;
+  return new Date(Date.now() + boxH * 3600000);
+}
+
+function isHoldOptionSelected(holdC) {
+  const { hold } = getPullHoldC();
+  return Math.abs(hold - holdC) < 0.6;
+}
+
+function selectHoldOption(holdC) {
+  setTempInputFromC($("holdTemp"), holdC);
+  syncActiveProfileUI();
+  updateHold();
+  updatePlanSummaryDebounced();
+  saveCookPrefsDebounced();
+}
+
+async function buildHoldOptionRows(pullC, target) {
+  const margin = carryConstants().endMarginC ?? 0.5;
+  const presets = HOLD_OPTION_PRESETS.filter((p) => p.holdC < pullC - margin);
+  const plans = await Promise.all(
+    presets.map(async (preset) => {
+      const data = await fetchHoldPlan(pullC, preset.holdC, target);
+      return { preset, data };
+    })
+  );
+  return plans.map(({ preset, data }) => {
+    const schedule = computePitStartSchedule(data);
+    const readyIfNow = computeServeIfPulledNow(data);
+    const boxLabel = formatTotalBoxHoursRange(data);
+    const steadyLabel = formatHoldHoursRange(data);
+    return {
+      preset,
+      data,
+      schedule,
+      readyIfNow,
+      boxLabel,
+      steadyLabel,
+      selected: isHoldOptionSelected(preset.holdC),
+    };
+  });
+}
+
+async function renderHoldOptionsTable() {
+  const body = $("holdOptionsBody");
+  const pullLabel = $("holdOptionsPull");
+  if (!body) return;
+
+  const { pull } = getPullHoldC();
+  const target = parseFloat($("targetPercent")?.value) || 100;
+  if (pullLabel) pullLabel.innerHTML = tempHtml(pull);
+
+  body.innerHTML = `<p class="placeholder">Calculating hold options…</p>`;
+
+  const rows = await buildHoldOptionRows(pull, target);
+  if (!rows.length) {
+    body.innerHTML = `<p class="hint">Hold options need pull hotter than hold — raise probe temp or lower hold.</p>`;
+    return;
+  }
+
+  const sliceSet = !!parseSliceTimeToday($("targetSliceTime")?.value);
+  const pitHint = $("pitStartHint");
+  if (pitHint) {
+    pitHint.textContent = sliceSet
+      ? "Serve time is your goal; put-on-pit varies by hold temp (≈11 hr smoke + box time in the model)."
+      : "No slice time — “Ready” assumes you go into the box now after pull.";
+  }
+
+  const thead = sliceSet
+    ? `<tr><th scope="col">Hold</th><th scope="col">Hot box</th><th scope="col">Put on pit</th><th scope="col">Serve</th><th scope="col"></th></tr>`
+    : `<tr><th scope="col">Hold</th><th scope="col">Hot box</th><th scope="col">Ready about</th><th scope="col"></th></tr>`;
+
+  const tbody = rows
+    .map((row) => {
+      const holdCell = `<span class="hold-option-temp">${tempHtml(row.preset.holdC)}</span><span class="hold-option-tag">${row.preset.tag}</span>`;
+      const boxCell = `<strong>${row.boxLabel}</strong><span class="hold-option-sub">${row.steadyLabel} steady after cool-in</span>`;
+      let timeCells = "";
+      if (sliceSet && row.schedule) {
+        timeCells = `<td><strong>${formatClockTime(row.schedule.start)}</strong><span class="hold-option-sub">≈${row.schedule.totalH.toFixed(0)} hr total</span></td>
+          <td><strong>${formatClockTime(row.schedule.slice)}</strong></td>`;
+      } else if (row.readyIfNow) {
+        timeCells = `<td><strong>${formatClockTime(row.readyIfNow)}</strong><span class="hold-option-sub">after pull into box</span></td>`;
+      } else {
+        timeCells = sliceSet ? `<td>—</td><td>—</td>` : `<td>—</td>`;
+      }
+      const btnClass = row.selected ? "btn-ghost hold-option-btn hold-option-btn-active" : "btn-ghost hold-option-btn";
+      const btnLabel = row.selected ? "Selected" : "Use this";
+      return `<tr class="hold-option-row${row.selected ? " hold-option-row-active" : ""}" data-hold-c="${row.preset.holdC}">
+        <td>${holdCell}</td>
+        <td>${boxCell}</td>
+        ${timeCells}
+        <td class="hold-option-action"><button type="button" class="${btnClass}" data-hold-pick="${row.preset.holdC}">${btnLabel}</button></td>
+      </tr>`;
+    })
+    .join("");
+
+  body.innerHTML = `
+    <div class="hold-options-table-wrap">
+      <table class="hold-options-table">
+        <thead>${thead}</thead>
+        <tbody>${tbody}</tbody>
+      </table>
+    </div>
+    <p class="hint hold-options-foot">Tap <strong>Use this</strong> to load that hold into your cook sheet. Probe + feel always win.</p>
+  `;
+
+  body.querySelectorAll("[data-hold-pick]").forEach((btn) => {
+    btn.addEventListener("click", () => {
+      const c = parseFloat(btn.dataset.holdPick);
+      if (Number.isFinite(c)) selectHoldOption(c);
+    });
+  });
+}
+
+const renderHoldOptionsDebounced = debounce(() => renderHoldOptionsTable(), 200);
 
 function parseSliceTimeToday(timeStr) {
   if (!timeStr) return null;
@@ -274,7 +404,7 @@ function parseUrlCookState() {
   if (Number.isFinite(hold) && hold >= 57 && hold <= 90) data.hold = hold;
   if (Number.isFinite(probe) && probe >= 55 && probe <= 99) data.probe = probe;
   if (Number.isFinite(kg) && kg > 0 && kg < 50) data.kg = kg;
-  if (Number.isFinite(loss) && loss >= 30 && loss <= 43) data.loss = loss;
+  if (Number.isFinite(loss) && loss >= 0 && loss <= 50) data.loss = loss;
   if (Number.isFinite(target) && target >= 80 && target <= 120) data.target = target;
   if (profile && PROFILE_IDS.has(profile)) data.profile = profile;
   if (grade) data.grade = normalizeGradeId(grade);
@@ -356,7 +486,10 @@ function restoreCookStateAfterLoad() {
 
 function wireCookStatePersistence() {
   const save = () => saveCookPrefsDebounced();
-  const planRefresh = () => updatePlanSummaryDebounced();
+  const planRefresh = () => {
+    updatePlanSummaryDebounced();
+    renderHoldOptionsDebounced();
+  };
   ["pullTemp", "holdTemp", "targetPercent", "lossPercent", "grade", "startWeight"].forEach((id) => {
     const el = $(id);
     if (!el) return;
@@ -661,7 +794,10 @@ function activatePanel(panelId) {
   document.querySelectorAll(".tab").forEach((t) => {
     t.classList.toggle("active", t.dataset.panel === mainTabForPanel(panelId));
   });
-  if (panelId === "plan") updatePlanSummary();
+  if (panelId === "plan") {
+    updatePlanSummary();
+    renderHoldOptionsTable();
+  }
   window.scrollTo({ top: 0, behavior: "smooth" });
 }
 
@@ -1077,6 +1213,7 @@ function syncProbeToPullInput() {
   if (!pull || !$("tempSlider")) return;
   setTempInputFromC(pull, getSliderTempC());
   syncActiveProfileUI();
+  renderHoldOptionsDebounced();
 }
 
 function onTempSliderInput() {
@@ -1299,6 +1436,7 @@ async function updateYield() {
 
   const y = await fetchYieldPlan(kg, grade, loss);
   state.lastYield = y;
+  const c = state.constants || {};
 
   const cookedPct = (y.cookedKg / y.startKg) * 100;
   $("yieldCooked").style.width = `${cookedPct}%`;
@@ -1311,7 +1449,7 @@ async function updateYield() {
     <div><dt>Grading system</dt><dd>${y.gradeRegionLabel || y.gradeRegion || "—"}</dd></div>
     <div><dt>Weight lost</dt><dd>${formatWeight(y.lostKg)}</dd></div>
     <div><dt>Raw water content</dt><dd>~${y.waterContentPercent}%</dd></div>
-    <div><dt>Typical loss band</dt><dd>30–43%</dd></div>
+    <div><dt>Typical loss band</dt><dd>${c.weightLossTypicalMin ?? 30}–${c.weightLossTypicalMax ?? 43}% (slider 0–${c.weightLossSliderMax ?? 50}%)</dd></div>
   `;
   updatePlanSummaryDebounced();
 }
@@ -2186,6 +2324,8 @@ function buildPlanPlainText(parts, profileName) {
 async function updatePlanSummary() {
   const sheet = $("planSheet");
   if (!sheet) return;
+
+  void renderHoldOptionsTable();
 
   const { pull, hold } = getPullHoldC();
   const target = parseFloat($("targetPercent")?.value) || 100;

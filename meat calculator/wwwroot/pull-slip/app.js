@@ -274,7 +274,7 @@ function parseUrlCookState() {
   if (Number.isFinite(hold) && hold >= 57 && hold <= 90) data.hold = hold;
   if (Number.isFinite(probe) && probe >= 55 && probe <= 99) data.probe = probe;
   if (Number.isFinite(kg) && kg > 0 && kg < 50) data.kg = kg;
-  if (Number.isFinite(loss) && loss >= 30 && loss <= 43) data.loss = loss;
+  if (Number.isFinite(loss) && loss >= 0 && loss <= 50) data.loss = loss;
   if (Number.isFinite(target) && target >= 80 && target <= 120) data.target = target;
   if (profile && PROFILE_IDS.has(profile)) data.profile = profile;
   if (grade) data.grade = normalizeGradeId(grade);
@@ -1299,6 +1299,7 @@ async function updateYield() {
 
   const y = await fetchYieldPlan(kg, grade, loss);
   state.lastYield = y;
+  const c = state.constants || {};
 
   const cookedPct = (y.cookedKg / y.startKg) * 100;
   $("yieldCooked").style.width = `${cookedPct}%`;
@@ -1311,7 +1312,7 @@ async function updateYield() {
     <div><dt>Grading system</dt><dd>${y.gradeRegionLabel || y.gradeRegion || "—"}</dd></div>
     <div><dt>Weight lost</dt><dd>${formatWeight(y.lostKg)}</dd></div>
     <div><dt>Raw water content</dt><dd>~${y.waterContentPercent}%</dd></div>
-    <div><dt>Typical loss band</dt><dd>30–43%</dd></div>
+    <div><dt>Typical loss band</dt><dd>${c.weightLossTypicalMin ?? 30}–${c.weightLossTypicalMax ?? 43}% (slider 0–${c.weightLossSliderMax ?? 50}%)</dd></div>
   `;
   updatePlanSummaryDebounced();
 }

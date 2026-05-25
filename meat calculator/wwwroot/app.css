@@ -1021,6 +1021,138 @@ footer {
   margin: 0.5rem 0 0;
 }
 
+.plan-hold-options-card {
+  margin-bottom: 1.25rem;
+  padding: 1.1rem 1.2rem;
+  border: 1px solid var(--ember);
+  background: linear-gradient(160deg, rgba(232, 93, 4, 0.08), var(--surface));
+}
+
+.plan-hold-options-title {
+  margin: 0 0 0.35rem;
+  font-size: 1.15rem;
+}
+
+.plan-hold-options-lead {
+  margin: 0 0 1rem;
+  font-size: 0.9rem;
+  color: var(--text-muted);
+}
+
+.plan-slice-field-prominent {
+  margin-bottom: 1rem;
+  padding-bottom: 1rem;
+  border-bottom: 1px solid var(--border);
+}
+
+.plan-slice-field-prominent label {
+  display: block;
+  font-weight: 600;
+  margin-bottom: 0.35rem;
+}
+
+.hold-options-body .placeholder {
+  margin: 0;
+  font-size: 0.9rem;
+  color: var(--text-muted);
+}
+
+.hold-options-table-wrap {
+  overflow-x: auto;
+  margin: 0 -0.25rem;
+}
+
+.hold-options-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 0.88rem;
+}
+
+.hold-options-table th,
+.hold-options-table td {
+  padding: 0.65rem 0.5rem;
+  text-align: left;
+  vertical-align: top;
+  border-bottom: 1px solid var(--border);
+}
+
+.hold-options-table th {
+  font-size: 0.72rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  color: var(--text-muted);
+}
+
+.hold-option-row-active {
+  background: rgba(232, 93, 4, 0.1);
+}
+
+.hold-option-temp {
+  display: block;
+  font-weight: 700;
+  font-size: 1rem;
+}
+
+.hold-option-tag {
+  display: block;
+  font-size: 0.75rem;
+  color: var(--text-muted);
+  margin-top: 0.15rem;
+}
+
+.hold-option-sub {
+  display: block;
+  font-size: 0.72rem;
+  color: var(--text-muted);
+  margin-top: 0.2rem;
+  font-weight: 400;
+}
+
+.hold-option-action {
+  text-align: right;
+  white-space: nowrap;
+}
+
+.hold-option-btn {
+  font-size: 0.78rem;
+  padding: 0.35rem 0.65rem;
+}
+
+.hold-option-btn-active {
+  border-color: var(--ember);
+  color: var(--ember);
+}
+
+.hold-options-foot {
+  margin: 0.75rem 0 0;
+}
+
+@media (max-width: 640px) {
+  .hold-options-table thead {
+    display: none;
+  }
+
+  .hold-options-table tr {
+    display: block;
+    margin-bottom: 0.75rem;
+    padding: 0.75rem;
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+  }
+
+  .hold-options-table td {
+    display: block;
+    border: none;
+    padding: 0.25rem 0;
+  }
+
+  .hold-options-table td.hold-option-action {
+    margin-top: 0.5rem;
+    text-align: left;
+  }
+}
+
 .plan-sheet {
   display: flex;
   flex-direction: column;
