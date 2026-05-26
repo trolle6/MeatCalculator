@@ -86,6 +86,34 @@ footer {
   flex-wrap: wrap;
   gap: 0.5rem;
   justify-content: flex-end;
+  align-items: flex-start;
+}
+
+.unit-temp-stack {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: 0.2rem;
+}
+
+.unit-temp-alt {
+  margin: 0;
+  font-family: var(--mono);
+  font-size: 0.68rem;
+  font-weight: 500;
+  color: var(--muted);
+  letter-spacing: 0.02em;
+  white-space: nowrap;
+}
+
+@media (max-width: 640px) {
+  .unit-temp-alt {
+    font-size: 0.64rem;
+    max-width: 7.5rem;
+    white-space: normal;
+    text-align: right;
+    line-height: 1.25;
+  }
 }
 
 .unit-toggle {
@@ -3349,11 +3377,70 @@ html.site-simple .simple-step-table {
   margin-bottom: 0.35rem;
 }
 
+html.site-simple .header-actions .unit-bar {
+  display: none !important;
+}
+
 .simple-pull-layout {
   display: flex;
-  flex-wrap: wrap;
-  align-items: center;
-  gap: 0.5rem 0.65rem;
+  flex-direction: column;
+  align-items: stretch;
+  gap: 0.45rem;
+}
+
+.simple-pull-badge-row {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 0.5rem;
+  width: 100%;
+}
+
+.simple-pull-unit-switch {
+  display: none;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: 0.2rem;
+  flex-shrink: 0;
+}
+
+html.site-simple .simple-pull-unit-switch {
+  display: flex;
+}
+
+.unit-toggle-inline-temp {
+  border-radius: 7px;
+}
+
+.unit-toggle-inline-temp .unit-btn {
+  font-size: 0.72rem;
+  padding: 0.28rem 0.48rem;
+}
+
+.unit-temp-alt--inline {
+  font-size: 0.64rem;
+  max-width: 6.5rem;
+  text-align: right;
+  line-height: 1.25;
+}
+
+@media (max-width: 400px) {
+  .simple-pull-badge-row {
+    flex-wrap: wrap;
+  }
+
+  .simple-pull-unit-switch {
+    width: 100%;
+    flex-direction: row;
+    align-items: center;
+    justify-content: flex-end;
+    gap: 0.5rem;
+  }
+
+  .unit-temp-alt--inline {
+    max-width: none;
+    text-align: right;
+  }
 }
 
 .simple-pull-row {
@@ -3388,9 +3475,9 @@ html.site-simple .simple-step-table {
 }
 
 .pull-temp-badge {
-  flex: 1 1 7rem;
-  min-width: 7rem;
-  max-width: 11rem;
+  flex: 1 1 auto;
+  min-width: 0;
+  max-width: none;
   padding: 0.5rem 0.65rem;
   border-radius: 8px;
   border: 1px solid var(--border);
