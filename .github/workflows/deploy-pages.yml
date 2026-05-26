@@ -69,7 +69,7 @@ jobs:
         run: |
           grep -q 'pullTempBadge' _site/index.html
           grep -q 'smoke-lab-build' _site/index.html
-          grep -q 'app.css?v=53' _site/index.html
+          grep -q 'app.css?v=54' _site/index.html
           grep -q 'getPullTempGuide' _site/app.js
 
       - uses: actions/upload-pages-artifact@v3
