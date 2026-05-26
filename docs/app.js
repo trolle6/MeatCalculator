@@ -924,11 +924,15 @@ function updateUnitBar() {
   });
   const hint = $("unitHint");
   if (hint) {
-    const t = state.tempUnit === "f" ? "°F" : "°C";
-    const w = state.weightUnit;
-    hint.textContent = IS_PUBLIC_SIMPLE
-      ? `°F / °C next to pull guide · ≈ opposite unit below the switch`
-      : `Temps in ${t} first · weight in ${w}`;
+    if (IS_PUBLIC_SIMPLE) {
+      hint.textContent = "";
+      hint.hidden = true;
+    } else {
+      hint.hidden = false;
+      const t = state.tempUnit === "f" ? "°F" : "°C";
+      const w = state.weightUnit;
+      hint.textContent = `Temps in ${t} first · weight in ${w}`;
+    }
   }
 }
 
