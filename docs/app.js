@@ -297,6 +297,10 @@ function parseSliceTimeToday(timeStr) {
   if (!Number.isFinite(hh) || !Number.isFinite(mm)) return null;
   const d = new Date();
   d.setHours(hh, mm, 0, 0);
+  const now = new Date();
+  if (d.getTime() <= now.getTime()) {
+    d.setDate(d.getDate() + 1);
+  }
   return d;
 }
 

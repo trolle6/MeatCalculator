@@ -8,7 +8,7 @@
   <meta property="og:title" content="Smoke Lab - BBQ — brisket pull &amp; hold planner" />
   <meta property="og:description" content="Plan your pull temp, hot hold, and cook sheet — collagen render model, hold hours, and shareable plan." />
   <meta name="theme-color" content="#12100e" />
-  <meta name="smoke-lab-build" content="63" />
+  <meta name="smoke-lab-build" content="70" />
   <meta property="og:type" content="website" />
   <meta property="og:url" content="https://trolle6.github.io/SmokeLab/" />
   <link rel="canonical" href="https://trolle6.github.io/SmokeLab/" />
@@ -22,7 +22,7 @@
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
   <link href="https://fonts.googleapis.com/css2?family=DM+Sans:ital,opsz,wght@0,9..40,400;0,9..40,600;0,9..40,700;1,9..40,400&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet" />
-  <link rel="stylesheet" href="app.css?v=62" />
+  <link rel="stylesheet" href="app.css?v=70" />
   <script>
     (function () {
       var q = location.search || "";
@@ -353,37 +353,39 @@
         <div class="simple-step">
           <span class="simple-step-label">2</span>
           <div class="simple-step-body plan-slice-field plan-slice-field-prominent">
-            <label id="sliceTimeLabel" class="slice-time-label">
-              When do you want to slice?
-              <span class="optional-tag">Optional</span>
-            </label>
+            <div class="plan-slice-heading-row">
+              <label id="sliceTimeLabel" class="slice-time-label">
+                When do you want to slice?
+                <span class="optional-tag">Optional</span>
+              </label>
+              <p class="plan-slice-local-time" id="planSliceLocalTime"></p>
+            </div>
             <p class="hint plan-slice-optional-lead">You can skip this — step 3 still works with hold hours only. Add a time if you want put-on-pit and serve times in the table.</p>
-            <div class="slice-time-controls" aria-labelledby="sliceTimeLabel" aria-describedby="pitStartHint planSliceOptionalLead">
-              <div class="unit-toggle slice-clock-toggle" role="group" aria-label="Time input format">
-                <button type="button" class="unit-btn active" data-clock-input="12">12-hr</button>
-                <button type="button" class="unit-btn" data-clock-input="24">24-hr</button>
-              </div>
-              <div id="sliceTime12Wrap" class="slice-time-12-wrap">
-                <div class="slice-time-12-fields">
-                  <select id="sliceHour12" class="slice-time-part" aria-label="Hour 1 to 12"></select>
-                  <span class="slice-time-sep" aria-hidden="true">:</span>
-                  <select id="sliceMin12" class="slice-time-part" aria-label="Minute"></select>
-                  <div class="unit-toggle slice-ampm-toggle" role="group" aria-label="AM or PM">
-                    <button type="button" class="unit-btn" data-slice-ampm="AM">AM</button>
-                    <button type="button" class="unit-btn active" data-slice-ampm="PM">PM</button>
+            <div class="slice-time-controls-wrap">
+              <div class="slice-time-controls" aria-labelledby="sliceTimeLabel" aria-describedby="pitStartHint planSliceOptionalLead">
+                <div class="unit-toggle unit-toggle-inline-temp slice-clock-toggle" role="group" aria-label="Time input format">
+                  <button type="button" class="unit-btn active" data-clock-input="12">12-hr</button>
+                  <button type="button" class="unit-btn" data-clock-input="24">24-hr</button>
+                </div>
+                <div id="sliceTime12Wrap" class="slice-time-12-wrap">
+                  <div class="slice-time-12-fields">
+                    <input type="text" id="sliceTime12Text" class="slice-time-text" inputmode="numeric" autocomplete="off" spellcheck="false" placeholder="5:30" aria-label="Slice time, 12-hour (type hour and minute)" />
+                    <div class="unit-toggle unit-toggle-inline-temp slice-ampm-toggle" role="group" aria-label="AM or PM">
+                      <button type="button" class="unit-btn" data-slice-ampm="AM">AM</button>
+                      <button type="button" class="unit-btn active" data-slice-ampm="PM">PM</button>
+                    </div>
                   </div>
                 </div>
-              </div>
-              <div id="sliceTime24Wrap" class="slice-time-24-wrap hidden">
-                <div class="slice-time-24-fields">
-                  <select id="sliceHour24" class="slice-time-part" aria-label="Hour 00 to 23"></select>
-                  <span class="slice-time-sep" aria-hidden="true">:</span>
-                  <select id="sliceMin24" class="slice-time-part" aria-label="Minute"></select>
+                <div id="sliceTime24Wrap" class="slice-time-24-wrap hidden">
+                  <div class="slice-time-24-fields">
+                    <input type="text" id="sliceTime24Text" class="slice-time-text" inputmode="numeric" autocomplete="off" spellcheck="false" placeholder="17:30" aria-label="Slice time, 24-hour (type hour and minute)" />
+                  </div>
                 </div>
+                <input type="hidden" id="targetSliceTime" value="" />
               </div>
-              <input type="hidden" id="targetSliceTime" value="" />
+              <p class="plan-slice-until" id="planSliceUntil"></p>
             </div>
-            <p class="hint plan-slice-clock-hint" id="planSliceOptionalLead">12-hr uses AM/PM; 24-hr uses 00–23. Results always show both formats.</p>
+            <p class="hint plan-slice-clock-hint" id="planSliceOptionalLead">Type a time like 5:30 or 17:30 — leave blank to skip.</p>
             <p class="hint plan-slice-hint" id="pitStartHint">Leave blank for “Ready about” only — no pit schedule needed.</p>
           </div>
         </div>
@@ -700,6 +702,6 @@
   </footer>
 
   <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
-  <script src="app.js?v=63"></script>
+  <script src="app.js?v=70"></script>
 </body>
 </html>

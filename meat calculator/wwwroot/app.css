@@ -491,61 +491,126 @@ footer {
   margin: 0.25rem 0 0.35rem;
 }
 
-.slice-time-controls {
+.slice-time-controls-wrap {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.45rem 0.65rem;
   margin-top: 0.35rem;
+  width: fit-content;
+  max-width: 100%;
+}
+
+.slice-time-controls {
+  display: inline-flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.4rem 0.5rem;
+  flex: 0 0 auto;
+  width: auto;
+  max-width: 100%;
+  margin: 0;
+}
+
+.plan-slice-until {
+  margin: 0;
+  flex: 0 0 auto;
+  font-family: var(--mono);
+  font-size: 0.72rem;
+  font-weight: 500;
+  color: var(--muted);
+  line-height: 1.35;
+  text-align: left;
+  white-space: nowrap;
+}
+
+.plan-slice-until:empty {
+  display: none;
+}
+
+.plan-slice-until--past {
+  color: var(--ember);
+}
+
+@media (max-width: 420px) {
+  .slice-time-controls-wrap {
+    width: 100%;
+  }
+
+  .slice-time-controls {
+    width: 100%;
+  }
+
+  .plan-slice-until {
+    flex: 1 1 100%;
+    white-space: normal;
+  }
 }
 
 .slice-clock-toggle {
-  margin-bottom: 0.5rem;
+  margin-bottom: 0;
+  flex-shrink: 0;
 }
 
-.slice-time-12-fields {
-  display: flex;
+html.site-simple .slice-time-controls .unit-toggle-inline-temp {
+  display: inline-flex;
+  border-radius: 8px;
+}
+
+html.site-simple .slice-time-controls .unit-toggle-inline-temp .unit-btn {
+  flex: 1 1 0;
+  min-width: 0;
+  font-size: 0.8rem;
+  padding: 0.34rem 0.5rem;
+  text-align: center;
+}
+
+.slice-time-12-fields,
+.slice-time-24-fields {
+  display: inline-flex;
   align-items: center;
   flex-wrap: wrap;
   gap: 0.4rem;
 }
 
-.slice-time-part {
+.slice-time-12-wrap,
+.slice-time-24-wrap {
+  display: inline-flex;
+  align-items: center;
+}
+
+.slice-time-text {
+  flex: 0 0 auto;
+  width: 6.25rem;
+  min-width: 6.25rem;
+  max-width: 6.25rem;
   font-family: var(--mono);
-  font-size: 1.05rem;
-  font-weight: 600;
-  padding: 0.55rem 2rem 0.55rem 0.85rem;
-  border: 1px solid var(--border);
+  font-size: 1.35rem;
+  font-weight: 700;
+  padding: 0.5rem 0.45rem;
+  border: 2px solid var(--ember);
   border-radius: var(--radius);
   background: var(--surface);
   color: var(--text);
-  min-width: 4rem;
-  text-align: center;
-  text-align-last: center;
-  letter-spacing: 0.06em;
+  letter-spacing: 0.04em;
   box-sizing: border-box;
+  text-align: center;
 }
 
-#sliceHour24,
-#sliceMin24 {
-  min-width: 4.75rem;
-  font-size: 1.15rem;
-  padding-left: 1rem;
-  padding-right: 2.25rem;
-}
-
-.slice-time-sep {
-  font-family: var(--mono);
-  font-size: 1.1rem;
-  font-weight: 700;
+.slice-time-text::placeholder {
   color: var(--muted);
+  font-weight: 500;
+  opacity: 0.75;
+}
+
+.slice-time-text:focus {
+  outline: none;
+  border-color: var(--gold);
+  box-shadow: 0 0 0 2px rgba(232, 106, 26, 0.25);
 }
 
 .slice-ampm-toggle .unit-btn {
   min-width: 2.75rem;
-}
-
-.slice-time-24-fields {
-  display: flex;
-  align-items: center;
-  flex-wrap: wrap;
-  gap: 0.4rem;
 }
 
 .slice-time-24-wrap.hidden,
@@ -1254,6 +1319,38 @@ footer {
   display: block;
   font-weight: 600;
   margin-bottom: 0.35rem;
+}
+
+.plan-slice-heading-row {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 0.35rem 0.75rem;
+  margin-bottom: 0.35rem;
+}
+
+.plan-slice-field-prominent .plan-slice-heading-row > .slice-time-label {
+  margin-bottom: 0;
+}
+
+.plan-slice-local-time {
+  margin: 0;
+  font-family: var(--mono);
+  font-size: 0.72rem;
+  font-weight: 500;
+  color: var(--muted);
+  text-align: right;
+  line-height: 1.35;
+  white-space: nowrap;
+}
+
+@media (max-width: 420px) {
+  .plan-slice-local-time {
+    flex: 1 1 100%;
+    text-align: left;
+    white-space: normal;
+  }
 }
 
 .hold-options-body .placeholder {
@@ -3399,10 +3496,13 @@ html.site-simple #unitHint {
 }
 
 html.site-simple .simple-pull-unit-switch {
-  display: flex;
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  width: fit-content;
+  max-width: 100%;
   margin-left: auto;
-  align-items: stretch;
   gap: 0.3rem;
+  align-items: stretch;
 }
 
 .unit-toggle-inline-temp {
@@ -3414,10 +3514,12 @@ html.site-simple .simple-pull-unit-switch {
   padding: 0.28rem 0.48rem;
 }
 
-/* Simple pull: °F/°C pill same width as the ≈ temp line below (stacked symmetry). */
+/* Grid shrink-wraps to the wider of the two rows so the pill and ≈ line share one width. */
 html.site-simple .simple-pull-unit-switch .unit-toggle-inline-temp {
   display: flex;
   width: 100%;
+  min-width: 0;
+  box-sizing: border-box;
   border-radius: 8px;
 }
 
@@ -3425,16 +3527,17 @@ html.site-simple .simple-pull-unit-switch .unit-toggle-inline-temp .unit-btn {
   flex: 1 1 0;
   min-width: 0;
   font-size: 0.8rem;
-  padding: 0.34rem 0.45rem;
+  padding: 0.34rem 0.5rem;
   text-align: center;
 }
 
 html.site-simple .simple-pull-unit-switch .unit-temp-alt--inline {
   width: 100%;
+  min-width: 0;
   max-width: none;
-  font-size: 0.72rem;
+  font-size: 0.78rem;
   text-align: center;
-  line-height: 1.3;
+  line-height: 1.35;
 }
 
 .unit-temp-alt--inline {
@@ -3448,24 +3551,7 @@ html.site-simple .simple-pull-unit-switch .unit-temp-alt--inline {
   html.site-simple .simple-pull-unit-switch {
     margin-left: 0;
     width: 100%;
-    flex-direction: row;
-    align-items: center;
-    justify-content: flex-end;
-    gap: 0.5rem;
-  }
-
-  html.site-simple .simple-pull-unit-switch .unit-toggle-inline-temp {
-    width: auto;
-    flex: 0 0 auto;
-  }
-
-  html.site-simple .simple-pull-unit-switch .unit-toggle-inline-temp .unit-btn {
-    flex: 0 0 auto;
-  }
-
-  html.site-simple .simple-pull-unit-switch .unit-temp-alt--inline {
-    width: auto;
-    text-align: right;
+    max-width: none;
   }
 
   .unit-temp-alt--inline {
