@@ -3221,6 +3221,7 @@ loadData()
       initPublicSimpleMode();
       syncSimplePullFromModel();
     }
+    updatePullTempBadge();
     return refreshAllForUnits({ weight: shouldLoadHeavyPanels() });
   })
   .catch(console.error);

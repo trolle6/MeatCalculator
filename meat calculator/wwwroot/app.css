@@ -3317,10 +3317,18 @@ html.site-simple .simple-step-table {
   margin-bottom: 0.35rem;
 }
 
+.simple-pull-layout {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.5rem 0.65rem;
+}
+
 .simple-pull-row {
   display: flex;
   align-items: center;
   gap: 0.65rem;
+  flex: 0 0 auto;
 }
 
 .simple-pull-input {
@@ -3348,21 +3356,22 @@ html.site-simple .simple-step-table {
 }
 
 .pull-temp-badge {
-  flex: 1 1 auto;
-  min-width: 5.5rem;
-  max-width: 9rem;
-  padding: 0.35rem 0.55rem;
+  flex: 1 1 7rem;
+  min-width: 7rem;
+  max-width: 11rem;
+  padding: 0.5rem 0.65rem;
   border-radius: 8px;
   border: 1px solid var(--border);
   text-align: center;
   line-height: 1.2;
+  box-shadow: 0 0 12px rgba(82, 183, 136, 0.15);
 }
 
 .pull-temp-badge-label {
   display: block;
-  font-size: 0.78rem;
+  font-size: 0.82rem;
   font-weight: 700;
-  letter-spacing: 0.03em;
+  letter-spacing: 0.04em;
   text-transform: uppercase;
 }
 
@@ -3411,7 +3420,7 @@ html.site-simple .plan-hold-options-card {
 html.site-simple .planner-tool-ray {
   position: relative;
   z-index: 1;
-  overflow: hidden;
+  overflow: visible;
   isolation: isolate;
   border-color: rgba(232, 106, 26, 0.55);
   box-shadow:
