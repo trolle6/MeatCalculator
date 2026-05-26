@@ -1,0 +1,693 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Smoke Lab - BBQ — brisket pull &amp; hold planner</title>
+  <meta name="description" content="Free brisket pull-and-hold planner: collagen render %, hot-box hours, 195 vs 203°F, printable cook sheet." />
+  <meta property="og:title" content="Smoke Lab - BBQ — brisket pull &amp; hold planner" />
+  <meta property="og:description" content="Plan your pull temp, hot hold, and cook sheet — collagen render model, hold hours, and shareable plan." />
+  <meta name="theme-color" content="#12100e" />
+  <meta name="smoke-lab-build" content="56" />
+  <meta property="og:type" content="website" />
+  <meta property="og:url" content="https://trolle6.github.io/SmokeLab/" />
+  <link rel="canonical" href="https://trolle6.github.io/SmokeLab/" />
+  <meta property="og:image" content="https://trolle6.github.io/SmokeLab/og-image.png" />
+  <meta property="og:image:width" content="1024" />
+  <meta property="og:image:height" content="576" />
+  <meta property="og:image:alt" content="Smoke Lab research dashboard — brisket thermal model and cook session" />
+  <link rel="icon" href="favicon.svg" type="image/svg+xml" />
+  <link rel="icon" href="og-image.png" type="image/png" sizes="any" />
+  <link rel="apple-touch-icon" href="og-image.png" />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=DM+Sans:ital,opsz,wght@0,9..40,400;0,9..40,600;0,9..40,700;1,9..40,400&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="app.css?v=56" />
+  <script>
+    (function () {
+      var q = location.search || "";
+      var h = location.hostname;
+      var local = h === "localhost" || h === "127.0.0.1";
+      if ((h.endsWith("github.io") || local) && q.indexOf("full=1") === -1) {
+        document.documentElement.classList.add("site-simple");
+      }
+    })();
+  </script>
+</head>
+<body>
+  <div class="smoke-bg" aria-hidden="true"></div>
+
+  <aside id="pagesSetupBanner" class="pages-setup-banner" hidden>
+    <p><strong>Site not published yet.</strong> Repo owner: <a href="https://github.com/trolle6/SmokeLab/settings/pages">GitHub Pages</a> → branch <code>gh-pages</code>, folder <code>/ (root)</code>. Also set Actions workflow permissions to <strong>Read and write</strong>.</p>
+  </aside>
+
+  <header class="site-header">
+    <a class="brand brand-home" href="./" aria-label="Smoke Lab - BBQ home">
+      <span class="brand-icon" aria-hidden="true">
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 32 32" focusable="false">
+          <g transform="translate(16 16)">
+            <!-- Carving fork — sits back -->
+            <g transform="rotate(-38) translate(-2.2 1.8)">
+              <rect x="-1.45" y="3.5" width="2.9" height="10.5" rx="0.9" fill="currentColor" opacity="0.9"/>
+              <path d="M-3.8 3.5 V-5.5 Q-3.8 -8.8 -2.2 -8.8 Q-0.5 -8.8 -0.5 -5.5 V3.5 Z" fill="currentColor" opacity="0.9"/>
+              <path d="M0.5 3.5 V-5.5 Q0.5 -8.8 2.2 -8.8 Q3.8 -8.8 3.8 -5.5 V3.5 Z" fill="currentColor" opacity="0.9"/>
+            </g>
+            <!-- Butcher knife — wide blade, drawn on top -->
+            <g transform="rotate(36) translate(2.4 -1.6)">
+              <rect x="-1.65" y="6" width="3.3" height="8" rx="1" fill="currentColor"/>
+              <rect x="-2.6" y="4.2" width="5.2" height="2.2" rx="0.45" fill="currentColor"/>
+              <path d="M-7.2 4.2 H7.2 V1.2 Q7.2 -7.5 0 -9.2 Q-7.2 -7.5 -7.2 1.2 Z" fill="currentColor"/>
+              <path d="M-7 4.2 H7" stroke="#fff" stroke-width="0.65" opacity="0.2"/>
+              <path d="M-6.2 1 Q0 -8.8 6.2 1" stroke="#fff" stroke-width="0.45" opacity="0.14" fill="none"/>
+            </g>
+          </g>
+        </svg>
+      </span>
+      <div>
+        <h1>Smoke Lab - BBQ</h1>
+        <p class="tagline">Pull-and-hold brisket planner</p>
+      </div>
+    </a>
+    <div class="header-actions">
+      <div class="unit-bar" aria-label="Units">
+        <div class="unit-toggle" role="group" aria-label="Temperature">
+          <button type="button" class="unit-btn active" data-unit-temp="f">°F</button>
+          <button type="button" class="unit-btn" data-unit-temp="c">°C</button>
+        </div>
+        <div class="unit-toggle unit-bar-weight" role="group" aria-label="Weight">
+          <button type="button" class="unit-btn active" data-unit-weight="kg">kg</button>
+          <button type="button" class="unit-btn" data-unit-weight="lb">lb</button>
+        </div>
+      </div>
+      <p class="unit-hint" id="unitHint">Temps in °F first · weight in kg</p>
+      <button type="button" class="btn-share-link" id="copyShareLink" title="Copy link to share">Copy link</button>
+    </div>
+  </header>
+
+  <nav class="tab-nav tab-nav-main" aria-label="App sections">
+    <div class="tab-group tab-group-main" role="tablist">
+      <div class="tab-group-buttons">
+        <button class="tab tab-cook active" data-panel="dashboard" role="tab" aria-label="Probe temp and tenderness">Probe</button>
+        <button class="tab tab-cook" data-panel="hold" role="tab" aria-label="Hot hold hours">Hold</button>
+        <button class="tab tab-cook" data-panel="plan" role="tab" aria-label="Printable cook plan">Plan</button>
+        <button class="tab tab-learn" data-panel="learn" role="tab" aria-label="Learn and setup">Learn</button>
+      </div>
+    </div>
+  </nav>
+
+  <main>
+    <section id="panel-dashboard" class="panel active">
+      <article class="card card-hero dashboard-focus">
+        <h2>How tender if you pull now?</h2>
+        <p class="card-desc gauge-context" id="gaugeContext">Drag the dot on the arc to your flat probe temp. ~40% at 90.5&nbsp;°C / 195&nbsp;°F before a long hot hold is normal.</p>
+        <div class="temp-display temp-big-wrap" id="tempDisplay"></div>
+        <input type="range" id="tempSlider" min="55" max="99" step="0.1" value="90.5" data-c="90.5" class="slider-ember slider-sr-only" aria-label="Probe temp in flat" aria-describedby="gaugeLegend gaugePercent" />
+
+        <div class="gauge-wrap" id="gaugeWrap">
+          <svg class="gauge" viewBox="0 0 220 148" aria-label="Tenderness built inside">
+            <defs>
+              <path id="gaugeLabelPit" d="M 16 102 A 94 94 0 0 1 66 22" />
+              <path id="gaugeLabelHold" d="M 66 22 A 94 94 0 0 1 154 22" />
+              <path id="gaugeLabelTender" d="M 154 22 A 94 94 0 0 1 204 102" />
+            </defs>
+            <path class="gauge-zone gauge-zone-pit" d="M 34 102 A 76 76 0 0 1 72 36" />
+            <path class="gauge-zone gauge-zone-hold" d="M 72 36 A 76 76 0 0 1 148 36" />
+            <path class="gauge-zone gauge-zone-tender" d="M 148 36 A 76 76 0 0 1 186 102" />
+            <path class="gauge-track" d="M 34 102 A 76 76 0 0 1 186 102" />
+            <path class="gauge-track-hit" id="gaugeTrackHit" d="M 34 102 A 76 76 0 0 1 186 102" fill="none" stroke="transparent" stroke-width="28" pointer-events="stroke" />
+            <circle class="gauge-marker-hit" id="gaugeMarkerHit" r="14" cx="34" cy="102" fill="transparent" pointer-events="all" />
+            <circle class="gauge-marker" id="gaugeMarker" r="7" cx="34" cy="102" pointer-events="none" />
+            <text class="gauge-zone-label gauge-label-pit">
+              <textPath href="#gaugeLabelPit" startOffset="50%" text-anchor="middle">On smoke</textPath>
+            </text>
+            <text class="gauge-zone-label gauge-label-hold">
+              <textPath href="#gaugeLabelHold" startOffset="50%" text-anchor="middle">Wrap &amp; hold</textPath>
+            </text>
+            <text class="gauge-zone-label gauge-label-tender">
+              <textPath href="#gaugeLabelTender" startOffset="50%" text-anchor="middle">Slice window</textPath>
+            </text>
+            <text x="110" y="90" class="gauge-value" id="gaugePercent">40%</text>
+            <text x="110" y="108" class="gauge-label" id="gaugeSublabel">done inside at pull</text>
+          </svg>
+          <p class="gauge-legend" id="gaugeLegend">Pull-and-hold band</p>
+        </div>
+
+        <div class="stat-row-compact" id="renderStatsCompact"></div>
+        <button type="button" class="btn-primary-cta" id="openCookPlanFromDash">Make my cook plan →</button>
+        <p class="hint probe-foot">Probe + feel always beat the model. Charts, timeline, and model limits live under <button type="button" class="ref-link" data-goto-tab="learn">Learn</button>.</p>
+      </article>
+    </section>
+
+    <section id="panel-science" class="panel panel-reference panel-deep">
+      <p class="panel-deep-nav"><button type="button" class="btn-back-learn" data-goto-tab="learn">← Learn</button></p>
+      <header class="science-hero panel-ref-hero">
+        <p class="panel-eyebrow">Reference</p>
+        <h2 id="scienceTitle">Why 90.5 °C pull beats 95 °C</h2>
+        <p class="science-title-alt" id="scienceTitleAlt">(195 °F vs 203 °F)</p>
+        <p class="science-sub science-sub-compact">Pull on the grate, finish in the hot box — less moisture loss than riding to 203&nbsp;°F on smoke alone.</p>
+      </header>
+
+      <div class="science-focus">
+        <details class="expand-section">
+          <summary>See the 40% → 100% story</summary>
+          <div class="expand-body science-story-body">
+            <article class="card">
+              <div class="rendering-journey">
+                <h3>Where the “missing 60%” goes</h3>
+                <div class="journey-bar">
+                  <div class="journey-seg pit" id="journeyPit" style="width:40%">
+                    <span>On pit @ pull</span>
+                    <strong id="journeyPitPct">40%</strong>
+                  </div>
+                  <div class="journey-seg decline" id="journeyDecline">
+                    <span>Carry-over</span>
+                    <strong id="journeyDeclinePct">—</strong>
+                  </div>
+                  <div class="journey-seg hold" id="journeyHold">
+                    <span>65.5 °C hold</span>
+                    <strong id="journeyHoldPct">→100%</strong>
+                  </div>
+                </div>
+                <p class="journey-caption" id="journeyCaption"></p>
+              </div>
+            </article>
+
+            <article class="card">
+              <div class="compare-pulls">
+                <h3>90.5 °C vs 95 °C pull</h3>
+                <div class="compare-cards" id="comparePulls"></div>
+              </div>
+              <p class="ref-link-row ref-link-row-card">
+                <button type="button" class="ref-link" id="scienceToHold">Apply on Hold tab →</button>
+              </p>
+            </article>
+          </div>
+        </details>
+
+        <details class="expand-section">
+          <summary>Exponential model &amp; render-rate table</summary>
+          <div class="expand-body">
+            <p class="science-programming" id="scienceProgramming"></p>
+            <div class="table-wrap science-table-wrap">
+              <table class="data-table" id="scienceRenderTable">
+                <thead>
+                  <tr>
+                    <th>°C</th>
+                    <th>°F</th>
+                    <th>Multiplier</th>
+                    <th>% / hr</th>
+                    <th>Hrs to 100%</th>
+                  </tr>
+                </thead>
+                <tbody></tbody>
+              </table>
+            </div>
+            <ul class="science-notes" id="scienceNotes"></ul>
+          </div>
+        </details>
+
+        <details class="expand-section">
+          <summary>Deep dive: moisture, collagen, step-by-step</summary>
+          <div class="expand-body science-split">
+            <article class="card science-col">
+              <h3>Dryness vs. tenderness</h3>
+              <div class="viz-block moisture-trap">
+                <div class="viz-icon" aria-hidden="true">
+                  <svg viewBox="0 0 120 80" class="fiber-svg">
+                    <ellipse cx="60" cy="40" rx="48" ry="28" fill="#3d2914" stroke="#6b4423" stroke-width="1"/>
+                    <path class="fiber-squeeze" d="M25 25 Q60 15 95 25 M25 55 Q60 65 95 55" fill="none" stroke="#c9a227" stroke-width="2"/>
+                    <circle class="drip" cx="60" cy="68" r="3" fill="#4ea8de"/>
+                    <circle class="drip drip-2" cx="48" cy="72" r="2" fill="#4ea8de"/>
+                    <circle class="drip drip-3" cx="72" cy="70" r="2" fill="#4ea8de"/>
+                  </svg>
+                </div>
+                <div>
+                  <h4>The <span id="trapTempLabel">93 °C+</span> moisture trap</h4>
+                  <p id="moistureTrapText"></p>
+                </div>
+              </div>
+              <div class="viz-block collagen-viz">
+                <div class="viz-icon" aria-hidden="true">
+                  <svg viewBox="0 0 120 50" class="collagen-svg">
+                    <path class="collagen-raw" d="M8 25 L112 25" stroke="#e8e0d5" stroke-width="3" stroke-dasharray="6 4"/>
+                    <text x="8" y="12" fill="#9a8f7f" font-size="8">collagen</text>
+                    <path class="collagen-gel" d="M8 38 Q30 28 52 38 T96 38" stroke="#ffba08" stroke-width="3" fill="none"/>
+                    <text x="8" y="48" fill="#9a8f7f" font-size="8">gelatin</text>
+                  </svg>
+                </div>
+                <div>
+                  <h4>Collagen rendering</h4>
+                  <p>Tenderness comes from collagen → gelatin. The process is <strong>exponential</strong> — both time and temperature matter.</p>
+                </div>
+              </div>
+              <div class="highlight-table" id="renderHighlightTable"></div>
+              <aside class="fat-note" id="fatNote"></aside>
+            </article>
+            <article class="card science-col method-col">
+              <h3>Undercook &amp; long hold</h3>
+              <ol class="method-steps" id="methodSteps"></ol>
+              <div class="method-stats" id="methodStats"></div>
+            </article>
+          </div>
+        </details>
+      </div>
+    </section>
+
+    <section id="panel-hold" class="panel">
+      <article class="card hold-presets-card">
+        <h2>How long in the hot box?</h2>
+        <p class="card-desc">Pick a style — your answer updates below.</p>
+        <div class="profile-picker" id="profilePicker"></div>
+        <p class="hold-temp-summary" id="holdTempSummary" aria-live="polite"></p>
+      </article>
+      <article class="card result-card hold-answer-card">
+        <h2>Your answer</h2>
+        <div id="holdResults" class="hold-results">
+          <p class="placeholder">Choose a preset above.</p>
+        </div>
+        <details class="expand-section" id="holdDetailsExpand">
+          <summary>See the breakdown</summary>
+          <div class="expand-body">
+            <div id="holdBreakdown"></div>
+            <div class="carry-viz" id="carryViz" hidden>
+              <h3>Carry-over while the pack cools to hold temp</h3>
+              <div class="carry-steps" id="carrySteps"></div>
+            </div>
+          </div>
+        </details>
+      </article>
+      <details class="expand-section hold-custom-expand" id="holdCustomExpand">
+        <summary>Set temps manually (optional)</summary>
+        <div class="expand-body">
+          <div class="preset-row preset-row-secondary">
+            <button type="button" class="btn-preset" id="stallPresetBtn" data-pull="76.5" data-hold="76.5">Stall rescue (~76.5 °C)</button>
+          </div>
+          <div class="field">
+            <label for="pullTemp">Pull off smoker (probe in flat)</label>
+            <div class="input-row">
+              <input type="number" id="pullTemp" value="90.5" step="0.5" min="55" max="99" data-c="90.5" />
+              <span class="field-unit field-temp-unit">°C <span class="temp-f-inline">(°F)</span></span>
+            </div>
+          </div>
+          <div class="field">
+            <label for="holdTemp">Hot hold temp (cambro / oven)</label>
+            <div class="input-row">
+              <input type="number" id="holdTemp" value="65.5" step="0.5" min="57" max="90" data-c="65.5" />
+              <span class="field-unit field-temp-unit">°C <span class="temp-f-inline">(°F)</span></span>
+            </div>
+          </div>
+          <div class="field">
+            <label for="targetPercent">How done you want it (100% = usual slice goal)</label>
+            <input type="number" id="targetPercent" value="100" min="80" max="120" step="5" />
+          </div>
+        </div>
+      </details>
+    </section>
+
+    <section id="panel-plan" class="panel">
+      <header class="guide-hero plan-hero plan-hero-full">
+        <h2>Cook plan</h2>
+        <p class="guide-sub">Pick a hold schedule for your pull temp, then use the sheet below.</p>
+        <div class="plan-toolbar">
+          <button type="button" class="btn-ghost" id="copyPlan">Copy plan</button>
+        </div>
+      </header>
+
+      <header class="simple-hero">
+        <h2>Pull · hold · slice</h2>
+        <p class="simple-hero-lead">Enter pull temp, when you want to slice, then pick a hold setting.</p>
+      </header>
+
+      <article class="card plan-hold-options-card planner-tool-ray">
+        <div class="simple-step">
+          <span class="simple-step-label">1</span>
+          <div class="simple-step-body">
+            <label for="simplePull">Pull temperature</label>
+            <div class="simple-pull-layout">
+              <div class="simple-pull-row">
+                <input type="number" id="simplePull" class="simple-pull-input" min="165" max="210" step="1" value="195" inputmode="numeric" aria-describedby="pullTempBadgeHint pullTempReminder localTimeHint" />
+                <span class="simple-pull-unit" id="simplePullUnit">°F</span>
+              </div>
+              <div class="pull-temp-badge pull-temp-badge--ok" id="pullTempBadge" aria-live="polite" title="Modeled brisket pull guide">
+                <span class="pull-temp-badge-label" id="pullTempBadgeLabel">Juicy zone</span>
+              </div>
+            </div>
+            <p class="hint pull-temp-badge-hint" id="pullTempBadgeHint">~40% collagen at pull — long hot hold is normal.</p>
+            <p class="hint pull-temp-reminder" id="pullTempReminder" aria-live="polite"></p>
+            <p class="hint" id="localTimeHint">Local time loads in your browser — no account or API needed.</p>
+          </div>
+        </div>
+
+        <div class="simple-step">
+          <span class="simple-step-label">2</span>
+          <div class="simple-step-body plan-slice-field plan-slice-field-prominent">
+            <label id="sliceTimeLabel" class="slice-time-label">
+              When do you want to slice?
+              <span class="optional-tag">Optional</span>
+            </label>
+            <p class="hint plan-slice-optional-lead">You can skip this — step 3 still works with hold hours only. Add a time if you want put-on-pit and serve times in the table.</p>
+            <div class="slice-time-controls" aria-labelledby="sliceTimeLabel" aria-describedby="pitStartHint planSliceOptionalLead">
+              <div class="unit-toggle slice-clock-toggle" role="group" aria-label="Time input format">
+                <button type="button" class="unit-btn active" data-clock-input="12">12-hr</button>
+                <button type="button" class="unit-btn" data-clock-input="24">24-hr</button>
+              </div>
+              <div id="sliceTime12Wrap" class="slice-time-12-wrap">
+                <div class="slice-time-12-fields">
+                  <select id="sliceHour12" class="slice-time-part" aria-label="Hour 1 to 12"></select>
+                  <span class="slice-time-sep" aria-hidden="true">:</span>
+                  <select id="sliceMin12" class="slice-time-part" aria-label="Minute"></select>
+                  <div class="unit-toggle slice-ampm-toggle" role="group" aria-label="AM or PM">
+                    <button type="button" class="unit-btn" data-slice-ampm="AM">AM</button>
+                    <button type="button" class="unit-btn active" data-slice-ampm="PM">PM</button>
+                  </div>
+                </div>
+              </div>
+              <div id="sliceTime24Wrap" class="slice-time-24-wrap hidden">
+                <div class="slice-time-24-fields">
+                  <select id="sliceHour24" class="slice-time-part" aria-label="Hour 00 to 23"></select>
+                  <span class="slice-time-sep" aria-hidden="true">:</span>
+                  <select id="sliceMin24" class="slice-time-part" aria-label="Minute"></select>
+                </div>
+              </div>
+              <input type="hidden" id="targetSliceTime" value="" />
+            </div>
+            <p class="hint plan-slice-clock-hint" id="planSliceOptionalLead">12-hr uses AM/PM; 24-hr uses 00–23. Results always show both formats.</p>
+            <p class="hint plan-slice-hint" id="pitStartHint">Leave blank for “Ready about” only — no pit schedule needed.</p>
+          </div>
+        </div>
+
+        <div class="simple-step simple-step-table">
+          <span class="simple-step-label">3</span>
+          <div class="simple-step-body">
+            <h3 class="plan-hold-options-title plan-hold-options-title-full">Hold options for <span id="holdOptionsPull">—</span></h3>
+            <h3 class="plan-hold-options-title-simple">Pick a hold temperature</h3>
+            <p class="plan-hold-options-lead">Hours are modeled time in the hot box (cool-in + steady at hold).</p>
+            <div id="holdOptionsBody" class="hold-options-body" aria-live="polite">
+              <p class="placeholder">Loading hold options…</p>
+            </div>
+          </div>
+        </div>
+      </article>
+
+      <div id="planSheet" class="plan-sheet plan-sheet-full">
+        <p class="placeholder">Loading your plan…</p>
+      </div>
+
+      <p class="simple-footnote">
+        Planning model only — probe and feel win. Inspired by
+        <a href="https://www.youtube.com/@SmokeTrailsBBQ" rel="noopener noreferrer" target="_blank">Smoke Trails BBQ</a>
+        (not affiliated).
+        <a href="?full=1" class="simple-full-link">Full planner</a> adds gauge, science, weight, and more.
+      </p>
+    </section>
+
+    <section id="panel-learn" class="panel">
+      <header class="learn-hero">
+        <h2>Learn &amp; setup</h2>
+        <p class="learn-lead">Pick a topic below. Mid-cook: stay on Probe → Hold → Plan.</p>
+      </header>
+      <div class="learn-grid" role="list">
+        <button type="button" class="learn-card" data-goto-tab="yield" role="listitem">
+          <span class="learn-card-title">Weight &amp; yield</span>
+          <span class="learn-card-desc">Raw weight, shrink %, grade band — feeds your cook plan.</span>
+        </button>
+        <button type="button" class="learn-card" data-goto-tab="science" role="listitem">
+          <span class="learn-card-title">Why 195°?</span>
+          <span class="learn-card-desc">Pull-and-hold vs riding to 203 °F — collagen model and compare pulls.</span>
+        </button>
+        <button type="button" class="learn-card" data-goto-tab="rest" role="listitem">
+          <span class="learn-card-title">Rest &amp; cooling</span>
+          <span class="learn-card-desc">Counter, cambro, or fridge — temp drift and extra render %.</span>
+        </button>
+        <button type="button" class="learn-card" data-goto-tab="guide" role="listitem">
+          <span class="learn-card-title">Pit notes</span>
+          <span class="learn-card-desc">Wrap, bark, fuel, stall, and hold reminders.</span>
+        </button>
+        <button type="button" class="learn-card" data-goto-tab="recipes" role="listitem">
+          <span class="learn-card-title">Methods</span>
+          <span class="learn-card-desc">Foil boat, long hold, confit, reverse smoke.</span>
+        </button>
+        <button type="button" class="learn-card" data-goto-tab="reference" role="listitem">
+          <span class="learn-card-title">Render tables &amp; charts</span>
+          <span class="learn-card-desc">Steady-temp %/hr, rate chart, timeline, marbling bands.</span>
+        </button>
+        <button type="button" class="learn-card" data-goto-tab="sources" role="listitem">
+          <span class="learn-card-title">Sources &amp; videos</span>
+          <span class="learn-card-desc">Steve Gow teaching, thumbnail grid, full bibliography.</span>
+        </button>
+      </div>
+      <p class="learn-foot hint"><strong>Probe + feel always beat the model.</strong> Inspired by public teaching from Steve Gow (Smoke Trails BBQ) — not affiliated.</p>
+    </section>
+
+    <section id="panel-rest" class="panel panel-reference panel-deep">
+      <p class="panel-deep-nav"><button type="button" class="btn-back-learn" data-goto-tab="learn">← Learn</button></p>
+      <header class="guide-hero panel-ref-hero">
+        <p class="panel-eyebrow">Reference</p>
+        <h2>Rest &amp; hold curve</h2>
+        <p class="guide-sub">Pulled hot → cambro, counter, or fridge: modeled temp drift and extra render %.</p>
+      </header>
+      <div class="grid-2">
+        <article class="card">
+          <h3>Your scenario</h3>
+          <div class="field">
+            <label for="restStartTemp">Temp when it leaves the cooker (°C)</label>
+            <div class="input-row">
+              <input type="number" id="restStartTemp" value="90.5" step="0.5" min="40" max="100" />
+              <button type="button" class="ref-link" id="restUseDashboard">Same as probe slider →</button>
+            </div>
+          </div>
+          <div class="field">
+            <label for="restHours">How long it sits (hours)</label>
+            <input type="range" id="restHours" min="0.5" max="12" step="0.5" value="1" class="slider-ember" />
+            <output id="restHoursDisplay">1 hr</output>
+          </div>
+          <div class="field">
+            <label>Where it sits</label>
+            <div class="rest-env-bar" id="restEnvBar" role="radiogroup" aria-label="Where it sits"></div>
+            <select id="restEnv" class="rest-env-native" aria-label="Where it sits">
+              <option value="hold150">Warm holder / cambro — ~65.5 °C</option>
+              <option value="counter">Kitchen counter — ~21 °C</option>
+              <option value="fridge">Fridge — ~4 °C</option>
+              <option value="custom">Custom ambient</option>
+            </select>
+          </div>
+          <div class="field" id="restCustomAmbientField" hidden>
+            <label for="restAmbient">Target ambient (°C)</label>
+            <input type="number" id="restAmbient" value="65.5" step="0.5" min="4" max="90" />
+          </div>
+        </article>
+        <article class="card result-card">
+          <h3>Then the meat is about…</h3>
+          <div id="restResults"></div>
+          <details class="expand-section" id="restDetailsExpand">
+            <summary>Hour by hour (detail)</summary>
+            <div class="expand-body rest-curve" id="restCurve">
+              <div class="rest-steps" id="restSteps"></div>
+            </div>
+          </details>
+        </article>
+      </div>
+    </section>
+
+    <section id="panel-yield" class="panel panel-setup panel-deep">
+      <p class="panel-deep-nav"><button type="button" class="btn-back-learn" data-goto-tab="learn">← Learn</button></p>
+      <header class="panel-setup-hero">
+        <p class="panel-eyebrow">Setup</p>
+        <h2>Weight &amp; shrink</h2>
+        <p class="guide-sub">Feeds your cook plan — set raw weight and expected loss before you smoke.</p>
+      </header>
+      <div class="grid-2">
+        <article class="card">
+          <h2>How much brisket?</h2>
+          <p class="card-desc">Raw weight before trim — use <strong>kg</strong> or <strong>lb</strong> in the header.</p>
+          <div class="field">
+            <label for="startWeight" id="startWeightLabel">Raw weight (kg)</label>
+            <input type="number" id="startWeight" value="6" min="1" max="20" step="0.1" />
+            <span class="hint" id="weightAltHint"></span>
+          </div>
+          <div class="field">
+            <label for="grade">Beef grade (optional)</label>
+            <p class="hint grade-region-hint">USDA is the default; pick your sticker — the app maps it to a broad marbling band (low → extreme).</p>
+            <select id="grade"></select>
+          </div>
+          <div class="field">
+            <label for="lossPercent">Total shrink (trim + cook)</label>
+            <input type="range" id="lossPercent" min="0" max="50" step="1" value="35" class="slider-ember" />
+            <output id="lossDisplay">35%</output>
+            <p class="hint">Typical brisket cook is ~30–43%. Use 0% if your weight is already trimmed; heavy trim + cook can approach ~50%.</p>
+          </div>
+        </article>
+        <article class="card">
+          <h2>What you might serve</h2>
+          <div class="yield-viz">
+            <div class="yield-bar">
+              <div class="yield-segment raw" id="yieldRaw" style="width:100%"></div>
+              <div class="yield-segment cooked" id="yieldCooked"></div>
+            </div>
+            <div class="yield-labels">
+              <span>Raw <strong id="yieldStart">6.0 kg</strong></span>
+              <span>Cooked <strong id="yieldEnd">3.9 kg</strong></span>
+            </div>
+          </div>
+          <details class="expand-section">
+            <summary>Grade &amp; extra details</summary>
+            <div class="expand-body">
+              <dl class="yield-stats" id="yieldStats"></dl>
+            </div>
+          </details>
+        </article>
+      </div>
+    </section>
+
+    <section id="panel-guide" class="panel panel-reference panel-deep">
+      <p class="panel-deep-nav"><button type="button" class="btn-back-learn" data-goto-tab="learn">← Learn</button></p>
+      <header class="guide-hero panel-ref-hero">
+        <p class="panel-eyebrow">Reference</p>
+        <h2>Pit notes</h2>
+        <p class="guide-sub">Wrap, bark, fuel, and hold notes.</p>
+      </header>
+      <nav class="guide-nav" id="guideNav" aria-label="Guide sections"></nav>
+      <div class="guide-sections" id="guideSections"></div>
+    </section>
+
+    <section id="panel-recipes" class="panel panel-reference panel-deep">
+      <p class="panel-deep-nav"><button type="button" class="btn-back-learn" data-goto-tab="learn">← Learn</button></p>
+      <header class="guide-hero panel-ref-hero">
+        <p class="panel-eyebrow">Reference</p>
+        <h2>Techniques</h2>
+        <p class="guide-sub">Foil boat, long hold, confit, reverse smoke — cross-check against your rig.</p>
+      </header>
+      <div class="recipe-grid" id="recipeGrid"></div>
+    </section>
+
+    <section id="panel-reference" class="panel panel-reference panel-deep">
+      <p class="panel-deep-nav"><button type="button" class="btn-back-learn" data-goto-tab="learn">← Learn</button></p>
+      <header class="guide-hero panel-ref-hero">
+        <p class="panel-eyebrow">Reference</p>
+        <h2>Render tables &amp; charts</h2>
+        <p class="guide-sub">Steady probe temp → modeled % render per hour. Slice-ready band ≈ <strong>80–120%</strong> total render.</p>
+      </header>
+
+      <article class="card">
+        <div class="gauge-mode" role="group" aria-label="Show tenderness">
+          <label class="gauge-mode-opt"><input type="radio" name="gaugeMode" value="pull" checked /> At pull off the grate</label>
+          <label class="gauge-mode-opt"><input type="radio" name="gaugeMode" value="afterHold" /> After modeled long hold</label>
+        </div>
+        <div class="stat-row stat-row-detail" id="renderStats"></div>
+      </article>
+
+      <article class="card">
+        <h3>Render rate vs steady probe temp</h3>
+        <p class="card-desc">Steady internal temp → modeled % collagen render per hour</p>
+        <canvas id="rateChart" height="220"></canvas>
+        <div class="chart-marker" id="chartMarker"></div>
+      </article>
+
+      <article class="card timeline-card">
+        <h3>Typical brisket timeline (illustrative)</h3>
+        <p class="card-desc">~10–12 hr on the cooker, then hot hold — not a substitute for your cook log.</p>
+        <div class="timeline" id="cookTimeline"></div>
+        <div class="stall-band">
+          <span class="stall-label">Stall zone</span>
+          <span id="stallRange">65.5 – 74°C internal</span>
+        </div>
+      </article>
+
+      <article class="card">
+        <div class="reference-preview-wrap">
+          <div class="table-wrap">
+            <table class="data-table" id="stageTablePreview">
+              <thead>
+                <tr>
+                  <th>°C</th>
+                  <th>°F</th>
+                  <th>Speed ×</th>
+                  <th>Hrs to “100%”</th>
+                  <th>% per hour</th>
+                </tr>
+              </thead>
+              <tbody></tbody>
+            </table>
+          </div>
+        </div>
+        <details class="expand-section">
+          <summary>Show full table</summary>
+          <div class="expand-body">
+            <div class="table-wrap">
+              <table class="data-table" id="stageTable">
+                <thead>
+                  <tr>
+                    <th>°C</th>
+                    <th>°F</th>
+                    <th>Speed ×</th>
+                    <th>Hrs to “100%”</th>
+                    <th>% per hour</th>
+                  </tr>
+                </thead>
+                <tbody></tbody>
+              </table>
+            </div>
+          </div>
+        </details>
+      </article>
+      <details class="expand-section">
+        <summary>Marbling bands &amp; regional stickers (US, UK, Japan, Australia)</summary>
+        <div class="expand-body">
+          <article class="card">
+            <div class="grade-bars" id="gradeBars"></div>
+          </article>
+        </div>
+      </details>
+      <p class="hint reference-sources-note">
+        Research videos &amp; links → <button type="button" class="ref-link" data-goto-tab="sources">Sources tab</button>
+      </p>
+    </section>
+
+    <section id="panel-sources" class="panel panel-sources-panel">
+      <header class="sources-hero">
+        <h2>Sources &amp; links</h2>
+        <p class="sources-hero-lead">Steve Gow (Smoke Trails BBQ) videos and references that shaped this planner. Community tool — <strong>not affiliated</strong> with the channel.</p>
+      </header>
+      <article class="card sources-card">
+        <p class="sources-intro" id="sourcesIntro">Loading sources…</p>
+        <div class="sources-grid" id="sourcesGrid" hidden></div>
+        <ul class="sources-list" id="sourcesList"></ul>
+        <p class="sources-channel">
+          <a href="https://www.youtube.com/@SmokeTrailsBBQ" class="source-link-btn" rel="noopener noreferrer" target="_blank">Steve Gow — YouTube channel ↗</a>
+        </p>
+        <p class="hint sources-repo">
+          Full bibliography:
+          <a href="https://github.com/trolle6/SmokeLab/blob/main/SOURCES.md" rel="noopener noreferrer" target="_blank">SOURCES.md</a>
+          ·
+          <a href="https://github.com/trolle6/SmokeLab/blob/main/LICENSE" rel="noopener noreferrer" target="_blank">MIT License</a>
+          ·
+          <a href="https://github.com/trolle6/SmokeLab/issues" rel="noopener noreferrer" target="_blank">Report an issue</a>
+        </p>
+      </article>
+    </section>
+  </main>
+
+  <footer class="site-footer">
+    <p class="footer-share">Share with pit friends → <strong id="shareUrlDisplay">trolle6.github.io/SmokeLab</strong> <button type="button" class="btn-share-link btn-share-link-small" id="copyShareLinkFooter">Copy</button></p>
+    <p>Smoke Lab · free open-source brisket planner · °C &amp; °F · <span class="footer-version">v1.3</span></p>
+    <nav class="footer-links" aria-label="Project links">
+      <a href="https://github.com/trolle6/SmokeLab" rel="noopener noreferrer" target="_blank">Open source</a>
+      <span class="footer-links-sep" aria-hidden="true">·</span>
+      <button type="button" class="ref-link footer-link-btn" id="openSources">Sources</button>
+      <span class="footer-links-sep" aria-hidden="true">·</span>
+      <a href="https://github.com/trolle6/SmokeLab/issues" rel="noopener noreferrer" target="_blank">Issues</a>
+      <span class="footer-links-sep" aria-hidden="true">·</span>
+      <a href="https://github.com/trolle6/SmokeLab/blob/main/LICENSE" rel="noopener noreferrer" target="_blank">MIT License</a>
+    </nav>
+    <p class="footer-fine">Modeled tenderness and hold times are for planning only — verify with probe and feel on your cooker.</p>
+    <p class="footer-attribution">
+      Smoke Lab was built with AI assistance. Pull-and-hold temps and the collagen model are based on public brisket teaching by
+      <a href="https://www.youtube.com/@SmokeTrailsBBQ" rel="noopener noreferrer" target="_blank">Steve Gow (Smoke Trails BBQ)</a>
+      — not affiliated with or endorsed by him or the channel.
+    </p>
+  </footer>
+
+  <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
+  <script src="app.js?v=56"></script>
+</body>
+</html>

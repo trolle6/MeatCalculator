@@ -92,5 +92,20 @@ git push origin gh-pages
 Pop-Location
 Pop-Location
 
-Write-Host "Published to gh-pages. Live site updates in 1-3 minutes."
+$docsDir = Join-Path $root "docs"
+if (Test-Path $docsDir) { Remove-Item -Recurse -Force $docsDir }
+Copy-Item -Recurse $site $docsDir
+New-Item -ItemType File -Path (Join-Path $docsDir ".nojekyll") -Force | Out-Null
+Push-Location $root
+git add docs/
+if (git diff --cached --quiet docs) {
+  Write-Host "docs/ unchanged on main."
+} else {
+  git commit -m "docs: publish static site build $build for GitHub Pages"
+  git push origin main
+}
+Pop-Location
+
+Write-Host "Published to gh-pages + docs/ on main."
+Write-Host "Pages setting: branch gh-pages (root) OR main (/docs). Then Settings -> Pages -> Save."
 Write-Host "Check: https://trolle6.github.io/SmokeLab/ (view source for smoke-lab-build $build)"
