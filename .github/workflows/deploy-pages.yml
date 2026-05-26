@@ -6,16 +6,14 @@ on:
   workflow_dispatch:
 
 permissions:
-  contents: read
-  pages: write
-  id-token: write
+  contents: write
 
 concurrency:
-  group: pages-deploy
+  group: pages
   cancel-in-progress: false
 
 jobs:
-  build:
+  deploy:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
@@ -69,20 +67,15 @@ jobs:
         run: |
           grep -q 'pullTempBadge' _site/index.html
           grep -q 'smoke-lab-build' _site/index.html
-          grep -q 'app.css?v=54' _site/index.html
           grep -q 'getPullTempGuide' _site/app.js
+          BUILD="$(node -e "const h=require('fs').readFileSync('_site/index.html','utf8'); const m=h.match(/smoke-lab-build\\\" content=\\\"(\\d+)\\\"/); if(!m)process.exit(1); process.stdout.write(m[1]);")"
+          grep -q "app.css?v=${BUILD}" _site/index.html
 
-      - uses: actions/upload-pages-artifact@v3
+      - name: Publish to gh-pages branch
+        uses: peaceiris/actions-gh-pages@v4
         with:
-          path: _site
-
-  deploy:
-    needs: build
-    runs-on: ubuntu-latest
-    environment:
-      name: github-pages
-      url: ${{ steps.deploy.outputs.page_url }}
-    steps:
-      - name: Deploy to GitHub Pages
-        id: deploy
-        uses: actions/deploy-pages@v4
+          github_token: ${{ secrets.GITHUB_TOKEN }}
+          publish_dir: ./_site
+          publish_branch: gh-pages
+          force_orphan: true
+          commit_message: "deploy: ${{ github.sha }}"

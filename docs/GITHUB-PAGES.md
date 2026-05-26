@@ -1,19 +1,39 @@
 # GitHub Pages deploy
 
-The site at **https://trolle6.github.io/SmokeLab/** is published by the **Deploy GitHub Pages** workflow on every push to `main`.
+The site at **https://trolle6.github.io/SmokeLab/** is built from `main` and published to the **`gh-pages`** branch by the **Deploy GitHub Pages** workflow.
 
-## One-time repo setting (required)
+## Pages source (what you should have)
 
-1. Open **Settings → Pages**
-2. Under **Build and deployment → Source**, choose **GitHub Actions** (not “Deploy from branch”).
+In **Settings → Pages → Build and deployment → Source**, use:
 
-If Source stays on the `gh-pages` branch, pushes to `main` may not update what you see on the live URL.
+- **Deploy from a branch**
+- Branch: **`gh-pages`** / **`/ (root)`**
 
-## Check that a deploy ran
+That matches how this repo publishes today. You do **not** need “GitHub Actions” as the Pages source unless we switch deploy methods again.
 
-1. **Actions** → **Deploy GitHub Pages** → latest run should be green.
-2. **Deployments** (or Environments → **github-pages**) should show a new deployment after each push.
-3. On the live site: **View page source** → search for `smoke-lab-build` — should match the number in `index.html` on `main` (e.g. `53`).
+## Why the live site can look “stuck”
+
+| What you see | Meaning |
+|--------------|---------|
+| View source has `app.css?v=50` | Live site is old; `gh-pages` was not updated after the last successful deploy. |
+| `main` on GitHub has `smoke-lab-build` **54** | Code is fine; deploy did not run or did not finish. |
+| No new run under **Actions → Deploy GitHub Pages** after your push | Workflow did not start — see below. |
+
+Last known good deploy to the public URL was tied to commit `dc0cd9e` (build **50**). Several pushes on **2026-05-26** never started a workflow run, so `gh-pages` never received badge, wider time boxes, etc.
+
+## If Actions are not running
+
+1. **Actions** tab → **Deploy GitHub Pages** — any run **waiting for approval**? Approve it.
+2. **Settings → Actions → General** — “Allow all actions and reusable workflows”.
+3. **Settings → Actions → General → Workflow permissions** — **Read and write permissions**.
+4. **Settings → Actions → General** — if “Require approval for all outside collaborators” is on, approve runs for recent pushes.
+5. Manually: **Actions → Deploy GitHub Pages → Run workflow** → branch `main` → **Run workflow**.
+
+## Check that a deploy worked
+
+1. Latest **Deploy GitHub Pages** run is green (takes a few minutes).
+2. **View page source** on the live site → `smoke-lab-build` should match `main` (currently **54**).
+3. Optional: https://raw.githubusercontent.com/trolle6/SmokeLab/gh-pages/index.html should show the same build number.
 
 ## Manual redeploy
 
