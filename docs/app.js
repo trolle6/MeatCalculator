@@ -718,13 +718,18 @@ function wireCookStatePersistence() {
   ["pullTemp", "holdTemp", "targetPercent", "lossPercent", "grade", "startWeight"].forEach((id) => {
     const el = $(id);
     if (!el) return;
+    const onPull = () => {
+      if (id === "pullTemp") updateUnitTempAlt();
+    };
     el.addEventListener("input", () => {
       save();
       planRefresh();
+      onPull();
     });
     el.addEventListener("change", () => {
       save();
       planRefresh();
+      onPull();
     });
   });
   $("tempSlider")?.addEventListener("input", save);
@@ -891,6 +896,23 @@ async function refreshAllForUnits({ weight = false, temp = false } = {}) {
   }
 }
 
+function getReferencePullTempC() {
+  if (IS_PUBLIC_SIMPLE && $("simplePull")) return tempInputValueC($("simplePull"), 90.5);
+  const pullEl = $("pullTemp");
+  if (pullEl) return tempInputValueC(pullEl, getSliderTempC());
+  return getSliderTempC();
+}
+
+function updateUnitTempAlt() {
+  const c = getReferencePullTempC();
+  if (!Number.isFinite(c)) return;
+  const text =
+    state.tempUnit === "f" ? `≈ ${Number(c).toFixed(1)} °C` : `≈ ${Math.round(cToF(c))} °F`;
+  document.querySelectorAll(".unit-temp-alt").forEach((el) => {
+    el.textContent = text;
+  });
+}
+
 function updateUnitBar() {
   document.querySelectorAll("[data-unit-weight]").forEach((btn) => {
     btn.classList.toggle("active", btn.dataset.unitWeight === state.weightUnit);
@@ -905,7 +927,7 @@ function updateUnitBar() {
     const t = state.tempUnit === "f" ? "°F" : "°C";
     const w = state.weightUnit;
     hint.textContent = IS_PUBLIC_SIMPLE
-      ? `Temps in ${t} (tap to switch) · other unit in the table`
+      ? `°F / °C next to pull guide · ≈ opposite unit below the switch`
       : `Temps in ${t} first · weight in ${w}`;
   }
 }
@@ -920,6 +942,7 @@ function applyUnitPrefs() {
   syncSimplePullChrome();
   updatePullTempReminder();
   updatePullTempBadge();
+  updateUnitTempAlt();
 }
 
 function initUnits() {
@@ -1204,6 +1227,7 @@ function syncSimplePullFromModel() {
     input.value = Number(pull).toFixed(1);
   }
   if (pullHidden) setTempInputFromC(pullHidden, pull);
+  updateUnitTempAlt();
 }
 
 function wireSimplePullInput() {
@@ -1228,6 +1252,7 @@ function wireSimplePullInput() {
     if (!IS_PUBLIC_SIMPLE) updatePlanSummaryDebounced();
     else renderHoldOptionsTable();
     saveCookPrefsDebounced();
+    updateUnitTempAlt();
   };
   input.addEventListener("input", apply);
   input.addEventListener("change", apply);
@@ -1691,6 +1716,7 @@ function onTempSliderInput() {
   syncProbeToPullInput();
   syncGaugeFromTemp(tempC, { showDecimal: gaugeDragging || gaugeArcDragging });
   updateRenderingDebounced();
+  updateUnitTempAlt();
 }
 
 const updateRenderingDebounced = debounce(() => updateRendering(), 120);
@@ -1709,6 +1735,7 @@ if (tempSlider) {
     gaugeDragging = false;
     syncGaugeFromTemp(getSliderTempC());
     updateRendering();
+    updateUnitTempAlt();
   });
 }
 
@@ -1865,6 +1892,7 @@ async function updateHold() {
   $(id).addEventListener("input", () => {
     syncActiveProfileUI();
     updateHold();
+    if (id === "pullTemp") updateUnitTempAlt();
   });
 });
 
@@ -1881,6 +1909,7 @@ document.querySelectorAll(".btn-preset").forEach((btn) => {
     setTempInputFromC($("pullTemp"), pull);
     setTempInputFromC($("holdTemp"), hold);
     updateHold();
+    updateUnitTempAlt();
   });
 });
 
