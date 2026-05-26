@@ -617,17 +617,65 @@ html.site-simple .header-advanced-title {
   flex-shrink: 0;
 }
 
+html.site-simple .slice-time-controls-wrap {
+  width: 100%;
+  max-width: 100%;
+}
+
+html.site-simple .slice-time-controls {
+  display: flex;
+  flex-direction: row;
+  flex-wrap: nowrap;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 0.65rem;
+  width: 100%;
+  max-width: 100%;
+}
+
+html.site-simple .slice-time-input-cluster {
+  display: flex;
+  flex: 1 1 auto;
+  min-width: 0;
+  align-items: center;
+}
+
+html.site-simple .slice-clock-toggle {
+  flex: 0 0 auto;
+  width: var(--simple-pull-toggle-w, 7.5rem);
+  min-width: var(--simple-pull-toggle-w, 7.5rem);
+  margin-left: auto;
+  align-self: flex-start;
+}
+
 html.site-simple .slice-time-controls .unit-toggle-inline-temp {
   display: inline-flex;
   border-radius: 8px;
 }
 
-html.site-simple .slice-time-controls .unit-toggle-inline-temp .unit-btn {
+html.site-simple .slice-clock-toggle.unit-toggle-inline-temp {
+  display: flex;
+  min-height: calc(
+    1.35rem * 1.15 + 1rem + 4px
+  );
+}
+
+html.site-simple .slice-clock-toggle .unit-btn {
   flex: 1 1 0;
-  min-width: 0;
-  font-size: 0.8rem;
-  padding: 0.34rem 0.5rem;
+  min-width: 2.75rem;
+  min-height: 100%;
+  font-family: var(--mono);
+  font-size: 1.2rem;
+  font-weight: 700;
+  padding: 0.5rem 0.4rem;
+  line-height: 1.15;
   text-align: center;
+  white-space: nowrap;
+}
+
+html.site-simple .slice-ampm-toggle .unit-btn {
+  font-size: 0.85rem;
+  padding: 0.4rem 0.5rem;
 }
 
 .slice-time-12-fields,
@@ -3408,6 +3456,40 @@ footer {
   color: var(--smoke);
 }
 
+/* One-line credit: shown only in public simple mode (see html.site-simple rules below). */
+.footer-simple-credit {
+  display: none;
+  margin: 0 auto 0.5rem;
+  max-width: 26rem;
+  font-size: 0.72rem;
+  line-height: 1.45;
+  color: var(--text-muted);
+}
+
+.footer-simple-credit a {
+  color: var(--ember);
+  font-weight: 600;
+}
+
+.footer-simple-credit strong {
+  font-weight: 600;
+  color: var(--smoke);
+}
+
+html.site-simple .footer-simple-credit {
+  display: block !important;
+}
+
+html.site-simple .site-footer {
+  padding: 0.6rem 1rem 0.85rem;
+}
+
+html.site-simple .footer-tagline {
+  margin: 0;
+  font-size: 0.72rem;
+  line-height: 1.45;
+}
+
 /* —— Public site (GitHub Pages): one-screen planner —— */
 html.site-simple .tab-nav-main,
 html.site-simple #panel-dashboard,
@@ -3421,6 +3503,9 @@ html.site-simple .plan-sheet-full,
 html.site-simple .plan-hold-options-title-full,
 html.site-simple .header-actions .unit-bar-weight,
 html.site-simple .header-actions .btn-share-link,
+html.site-simple .footer-share,
+html.site-simple .footer-fine,
+html.site-simple .simple-footnote,
 html.site-simple .footer-links,
 html.site-simple .footer-attribution,
 html.site-simple #openSources,
@@ -3433,11 +3518,12 @@ html.site-simple #panel-plan {
 }
 
 html.site-simple #panel-plan.panel {
-  padding-top: 0.5rem;
+  padding-top: 0.35rem;
+  padding-bottom: 0.35rem;
 }
 
 html.site-simple .site-header {
-  padding-bottom: 0.75rem;
+  padding-bottom: 0.45rem;
 }
 
 html.site-simple .brand-icon {
@@ -3476,15 +3562,21 @@ html.site-simple .brand h1 {
 html.site-simple main {
   max-width: 520px;
   margin: 0 auto;
+  padding-bottom: 0.25rem;
 }
 
 .simple-hero {
   display: none;
-  margin-bottom: 1rem;
+  margin-bottom: 0.55rem;
 }
 
 html.site-simple .simple-hero {
   display: block;
+}
+
+html.site-simple .simple-hero h2 {
+  margin: 0 0 0.2rem;
+  font-size: 1.22rem;
 }
 
 .simple-hero h2 {
@@ -3494,7 +3586,8 @@ html.site-simple .simple-hero {
 
 .simple-hero-lead {
   margin: 0;
-  font-size: 0.95rem;
+  font-size: 0.88rem;
+  line-height: 1.35;
   color: var(--text-muted);
 }
 
@@ -3517,6 +3610,7 @@ html.site-simple .plan-hold-options-title-simple {
 
 html.site-simple .simple-step {
   display: flex;
+  margin-bottom: 0.55rem;
 }
 
 html.site-simple .simple-step-table {
@@ -3550,6 +3644,28 @@ html.site-simple .simple-step-table {
   margin-bottom: 0.35rem;
 }
 
+html.site-simple #panel-plan .simple-step-body label {
+  margin-bottom: 0.22rem;
+}
+
+html.site-simple #panel-plan .hint {
+  margin-top: 0.2rem;
+  margin-bottom: 0.1rem;
+  font-size: 0.74rem;
+  line-height: 1.35;
+}
+
+html.site-simple #panel-plan .plan-hold-options-lead {
+  margin: 0 0 0.35rem;
+  font-size: 0.78rem;
+  line-height: 1.35;
+}
+
+html.site-simple .hold-options-foot {
+  margin-top: 0.45rem;
+  font-size: 0.74rem;
+}
+
 html.site-simple .header-actions .unit-bar {
   display: none !important;
 }
@@ -3577,16 +3693,6 @@ html.site-simple #unitHint {
   flex-shrink: 0;
 }
 
-html.site-simple .simple-pull-unit-switch {
-  display: grid;
-  grid-template-columns: minmax(0, 1fr);
-  width: fit-content;
-  max-width: 100%;
-  margin-left: auto;
-  gap: 0.3rem;
-  align-items: stretch;
-}
-
 .unit-toggle-inline-temp {
   border-radius: 7px;
 }
@@ -3596,30 +3702,73 @@ html.site-simple .simple-pull-unit-switch {
   padding: 0.28rem 0.48rem;
 }
 
-/* Grid shrink-wraps to the wider of the two rows so the pill and ≈ line share one width. */
+/* Simple pull: narrow temp field; °F/°C toggle wider (same height as input). */
+html.site-simple .simple-pull-row {
+  --simple-pull-chars: 4;
+  --simple-pull-box-font: 1.85rem;
+  --simple-pull-box-pad-y: 0.5rem;
+  --simple-pull-box-pad-x: 0.45rem;
+  --simple-pull-box-border: 2px;
+  --simple-pull-input-w: calc(
+    var(--simple-pull-chars) * 1ch + 2 * var(--simple-pull-box-pad-x) + 2 * var(--simple-pull-box-border)
+  );
+  /* Wider than input so °F | °C aren’t crushed (still matches input height). */
+  --simple-pull-toggle-w: 7.5rem;
+  align-items: flex-start;
+}
+
+html.site-simple .simple-pull-unit-switch {
+  display: flex;
+  flex-direction: column;
+  align-items: stretch;
+  width: var(--simple-pull-toggle-w);
+  min-width: var(--simple-pull-toggle-w);
+  max-width: var(--simple-pull-toggle-w);
+  margin-left: auto;
+  gap: 0.22rem;
+  flex-shrink: 0;
+}
+
 html.site-simple .simple-pull-unit-switch .unit-toggle-inline-temp {
   display: flex;
   width: 100%;
-  min-width: 0;
   box-sizing: border-box;
-  border-radius: 8px;
+  border: var(--simple-pull-box-border) solid var(--border);
+  border-radius: var(--radius);
+  background: var(--surface);
+  min-height: calc(
+    var(--simple-pull-box-font) * 1.15 + var(--simple-pull-box-pad-y) * 2 +
+      var(--simple-pull-box-border) * 2
+  );
 }
 
 html.site-simple .simple-pull-unit-switch .unit-toggle-inline-temp .unit-btn {
   flex: 1 1 0;
-  min-width: 0;
-  font-size: 0.8rem;
-  padding: 0.34rem 0.5rem;
+  min-width: 2.75rem;
+  min-height: 100%;
+  font-family: var(--mono);
+  font-size: 1.2rem;
+  font-weight: 700;
+  padding: var(--simple-pull-box-pad-y) 0.4rem;
+  line-height: 1.15;
   text-align: center;
 }
 
-html.site-simple .simple-pull-unit-switch .unit-temp-alt--inline {
-  width: 100%;
-  min-width: 0;
-  max-width: none;
-  font-size: 0.78rem;
+html.site-simple .simple-pull-unit-switch .unit-temp-alt.unit-temp-alt--inline {
+  display: block;
+  margin: 0;
+  padding: 0;
+  min-height: 0;
+  border: none;
+  background: none;
+  font-family: var(--mono);
+  font-size: 0.7rem;
+  font-weight: 500;
+  line-height: 1.3;
+  letter-spacing: 0.02em;
+  color: var(--muted);
   text-align: center;
-  line-height: 1.35;
+  white-space: nowrap;
 }
 
 .unit-temp-alt--inline {
@@ -3629,16 +3778,33 @@ html.site-simple .simple-pull-unit-switch .unit-temp-alt--inline {
   line-height: 1.25;
 }
 
+@media (max-width: 640px) {
+  html.site-simple .simple-pull-unit-switch .unit-temp-alt.unit-temp-alt--inline {
+    font-size: 0.68rem;
+    max-width: none;
+    white-space: nowrap;
+    text-align: center;
+  }
+}
+
 @media (max-width: 400px) {
+  html.site-simple .simple-pull-row {
+    --simple-pull-input-w: 100%;
+    --simple-pull-toggle-w: min(100%, 7.5rem);
+    --simple-pull-box-font: 1.65rem;
+  }
+
   html.site-simple .simple-pull-unit-switch {
     margin-left: 0;
-    width: 100%;
+    width: var(--simple-pull-toggle-w);
+    min-width: 0;
     max-width: none;
   }
 
-  .unit-temp-alt--inline {
+  html.site-simple .simple-pull-input {
+    width: var(--simple-pull-input-w);
+    min-width: 0;
     max-width: none;
-    text-align: right;
   }
 }
 
@@ -3666,6 +3832,25 @@ html.site-simple .simple-pull-unit-switch .unit-temp-alt--inline {
   letter-spacing: 0.02em;
   box-sizing: border-box;
   text-align: center;
+}
+
+html.site-simple .simple-pull-input {
+  width: var(--simple-pull-input-w);
+  min-width: var(--simple-pull-input-w);
+  max-width: var(--simple-pull-input-w);
+  font-size: var(--simple-pull-box-font);
+  padding: var(--simple-pull-box-pad-y) var(--simple-pull-box-pad-x);
+  border-width: var(--simple-pull-box-border);
+}
+
+html.site-simple .simple-pull-input.simple-pull-input--ok {
+  border-color: var(--safe);
+  box-shadow: 0 0 0 2px rgba(82, 183, 136, 0.28);
+}
+
+html.site-simple .simple-pull-input.simple-pull-input--invalid {
+  border-color: var(--danger);
+  box-shadow: 0 0 0 2px rgba(230, 57, 70, 0.25);
 }
 
 .simple-pull-input[type="number"] {
@@ -3742,7 +3927,11 @@ html.site-simple .plan-slice-field-prominent {
 }
 
 html.site-simple .plan-hold-options-card {
-  margin-bottom: 0.75rem;
+  margin-bottom: 0.45rem;
+}
+
+html.site-simple .plan-hold-options-card.card {
+  padding: 0.65rem 0.75rem 0.7rem;
 }
 
 /* Soft border glow on the planner card only (no spinning overlay) */
@@ -3837,7 +4026,8 @@ html.site-simple .planner-tool-ray > * {
   text-align: center;
 }
 
-html.site-simple .simple-footnote {
+/* Full planner: keep attribution + link to deeper tools */
+html:not(.site-simple) .simple-footnote {
   display: block;
 }
 
@@ -3845,8 +4035,4 @@ html.site-simple .simple-footnote {
   display: inline-block;
   margin-left: 0.35rem;
   color: var(--ember);
-}
-
-html.site-simple .footer-fine {
-  margin-top: 0.5rem;
 }

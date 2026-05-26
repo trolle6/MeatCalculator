@@ -8,7 +8,7 @@
   <meta property="og:title" content="Smoke Lab - BBQ — brisket pull &amp; hold planner" />
   <meta property="og:description" content="Plan your pull temp, hot hold, and cook sheet — collagen render model, hold hours, and shareable plan." />
   <meta name="theme-color" content="#12100e" />
-  <meta name="smoke-lab-build" content="76" />
+  <meta name="smoke-lab-build" content="89" />
   <meta property="og:type" content="website" />
   <meta property="og:url" content="https://trolle6.github.io/SmokeLab/" />
   <link rel="canonical" href="https://trolle6.github.io/SmokeLab/" />
@@ -22,7 +22,7 @@
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
   <link href="https://fonts.googleapis.com/css2?family=DM+Sans:ital,opsz,wght@0,9..40,400;0,9..40,600;0,9..40,700;1,9..40,400&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet" />
-  <link rel="stylesheet" href="app.css?v=76" />
+  <link rel="stylesheet" href="app.css?v=89" />
   <script>
     (function () {
       var q = location.search || "";
@@ -336,7 +336,7 @@
             <label for="simplePull">Pull temperature</label>
             <div class="simple-pull-layout">
               <div class="simple-pull-row">
-                <input type="number" id="simplePull" class="simple-pull-input" min="165" max="210" step="1" value="195" inputmode="numeric" aria-describedby="pullTempBadgeHint pullTempReminder localTimeHint" />
+                <input type="text" id="simplePull" class="simple-pull-input" maxlength="4" value="195" inputmode="decimal" autocomplete="off" spellcheck="false" aria-describedby="pullTempBadgeHint pullTempReminder localTimeHint" />
                 <span class="simple-pull-unit" id="simplePullUnit">°F</span>
                 <div class="simple-pull-unit-switch" aria-label="Temperature units">
                   <div class="unit-toggle unit-toggle-inline-temp" role="group" aria-label="Temperature">
@@ -371,23 +371,25 @@
             <p class="hint plan-slice-optional-lead">You can skip this — step 3 still works with hold hours only. Add a time if you want put-on-pit and serve times in the table.</p>
             <div class="slice-time-controls-wrap">
               <div class="slice-time-controls" aria-labelledby="sliceTimeLabel" aria-describedby="pitStartHint planSliceOptionalLead">
-                <div class="unit-toggle unit-toggle-inline-temp slice-clock-toggle" role="group" aria-label="Time input format">
-                  <button type="button" class="unit-btn active" data-clock-input="12">12-hr</button>
-                  <button type="button" class="unit-btn" data-clock-input="24">24-hr</button>
-                </div>
-                <div id="sliceTime12Wrap" class="slice-time-12-wrap">
-                  <div class="slice-time-12-fields">
-                    <input type="text" id="sliceTime12Text" class="slice-time-text" inputmode="numeric" autocomplete="off" spellcheck="false" placeholder="5:30" aria-label="Slice time, 12-hour (type hour and minute)" />
-                    <div class="unit-toggle unit-toggle-inline-temp slice-ampm-toggle" role="group" aria-label="AM or PM">
-                      <button type="button" class="unit-btn" data-slice-ampm="AM">AM</button>
-                      <button type="button" class="unit-btn active" data-slice-ampm="PM">PM</button>
+                <div class="slice-time-input-cluster">
+                  <div id="sliceTime12Wrap" class="slice-time-12-wrap">
+                    <div class="slice-time-12-fields">
+                      <input type="text" id="sliceTime12Text" class="slice-time-text" inputmode="numeric" autocomplete="off" spellcheck="false" placeholder="5:30" aria-label="Slice time, 12-hour (type hour and minute)" />
+                      <div class="unit-toggle unit-toggle-inline-temp slice-ampm-toggle" role="group" aria-label="AM or PM">
+                        <button type="button" class="unit-btn" data-slice-ampm="AM">AM</button>
+                        <button type="button" class="unit-btn active" data-slice-ampm="PM">PM</button>
+                      </div>
+                    </div>
+                  </div>
+                  <div id="sliceTime24Wrap" class="slice-time-24-wrap hidden">
+                    <div class="slice-time-24-fields">
+                      <input type="text" id="sliceTime24Text" class="slice-time-text" inputmode="numeric" autocomplete="off" spellcheck="false" placeholder="17:30" aria-label="Slice time, 24-hour (type hour and minute)" />
                     </div>
                   </div>
                 </div>
-                <div id="sliceTime24Wrap" class="slice-time-24-wrap hidden">
-                  <div class="slice-time-24-fields">
-                    <input type="text" id="sliceTime24Text" class="slice-time-text" inputmode="numeric" autocomplete="off" spellcheck="false" placeholder="17:30" aria-label="Slice time, 24-hour (type hour and minute)" />
-                  </div>
+                <div class="unit-toggle unit-toggle-inline-temp slice-clock-toggle" role="group" aria-label="Time input format">
+                  <button type="button" class="unit-btn active" data-clock-input="12">12-hr</button>
+                  <button type="button" class="unit-btn" data-clock-input="24">24-hr</button>
                 </div>
                 <input type="hidden" id="targetSliceTime" value="" />
               </div>
@@ -690,8 +692,13 @@
   </main>
 
   <footer class="site-footer">
+    <p class="footer-simple-credit">
+      Inspired by content from
+      <a href="https://www.youtube.com/@SmokeTrailsBBQ" rel="noopener noreferrer" target="_blank">Smoke Trails BBQ</a>
+      (Steve Gow) — not affiliated.
+    </p>
     <p class="footer-share">Share with pit friends → <strong id="shareUrlDisplay">trolle6.github.io/SmokeLab</strong> <button type="button" class="btn-share-link btn-share-link-small" id="copyShareLinkFooter">Copy</button></p>
-    <p>Smoke Lab · free open-source brisket planner · °C &amp; °F · <span class="footer-version">v1.3</span></p>
+    <p class="footer-tagline">Smoke Lab · free open-source brisket planner · °C &amp; °F · <span class="footer-version" id="footerAppVersion">v80</span></p>
     <nav class="footer-links" aria-label="Project links">
       <a href="https://github.com/trolle6/SmokeLab" rel="noopener noreferrer" target="_blank">Open source</a>
       <span class="footer-links-sep" aria-hidden="true">·</span>
@@ -710,6 +717,6 @@
   </footer>
 
   <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
-  <script src="app.js?v=73"></script>
+  <script src="app.js?v=89"></script>
 </body>
 </html>
