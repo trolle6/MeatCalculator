@@ -22,6 +22,21 @@ const state = {
 
 const $ = (id) => document.getElementById(id);
 
+/*
+ * ---------------------------------------------------------------------------
+ * Smoke Lab client — file map (single bundle). Boot: `startSmokeLabApp()`.
+ * ---------------------------------------------------------------------------
+ *  ENV & HTTP          getPagesBase, USE_STATIC_API, IS_PUBLIC_SIMPLE, apiGet/Post
+ *  Hold planner rows   buildHoldOptionRows, renderHoldOptionsTable, selectHoldOption
+ *  Slice wall-clock    resolveSliceDateTime, parseSliceTimeText, syncSliceTimeFromInputs,
+ *                      initSliceTimeInput, computePitStartSchedule, updateSliceTimeUntilHint
+ *  Cook prefs & URL    loadUnitPrefs, collectCookState, restoreCookStateAfterLoad
+ *  Units & temps       initUnits, applyUnitPrefs, refreshAllForUnits, tempHtml, simple pull
+ *  Probe / hold / plan updateHold, updatePlanSummary, renderPlan…, gauge
+ *  Learn / reference   loadScience, loadGuide, loadSources, initRest
+ * ---------------------------------------------------------------------------
+ */
+
 function debounce(fn, ms) {
   let timer;
   return (...args) => {
@@ -3284,56 +3299,58 @@ function initRest() {
   });
 }
 
-initUnits();
-initSliceTimeInput();
+function startSmokeLabApp() {
+  wireCookStatePersistence();
+  initUnits();
+  initSliceTimeInput();
 
-loadData()
-  .then(() => {
-    if (shouldLoadHeavyPanels()) {
-      initQuickStart();
-      wireGaugeArcDrag();
-      initRest();
-    }
-    initPlan();
-    initHoldTempSummary();
-    if (shouldLoadHeavyPanels()) initExpandSections();
-    wireGlobalNav();
-    syncHoldTempSummary();
-    wireShareLinks();
-    $("openSources")?.addEventListener("click", openSourcesPanel);
-    $("openCookPlanFromDash")?.addEventListener("click", () => {
-      syncProbeToPullInput();
-      updateHold();
-      goToTab("plan");
+  return loadData()
+    .then(() => {
+      if (shouldLoadHeavyPanels()) {
+        initQuickStart();
+        wireGaugeArcDrag();
+        initRest();
+      }
+      initPlan();
+      initHoldTempSummary();
+      if (shouldLoadHeavyPanels()) initExpandSections();
+      wireGlobalNav();
+      syncHoldTempSummary();
+      wireShareLinks();
+      $("openSources")?.addEventListener("click", openSourcesPanel);
+      $("openCookPlanFromDash")?.addEventListener("click", () => {
+        syncProbeToPullInput();
+        updateHold();
+        goToTab("plan");
+      });
+      const boot = shouldLoadHeavyPanels()
+        ? Promise.all([updateRest(), updatePlanSummary()])
+        : Promise.all([renderHoldOptionsTable()]);
+      return boot;
+    })
+    .then(() => {
+      if (!shouldLoadHeavyPanels()) return;
+      return Promise.allSettled([
+        loadScience(),
+        loadGuide(),
+        loadRecipes(),
+        loadRestEnvironments(),
+        loadProfiles(),
+        loadSources(),
+      ]);
+    })
+    .then(() => {
+      applyUnitPrefs();
+      applySliceClockInputUI();
+      restoreCookStateAfterLoad();
+      updateSliceTimeUntilHint();
+      if (IS_PUBLIC_SIMPLE) {
+        initPublicSimpleMode();
+        syncSimplePullFromModel();
+      }
+      updatePullTempBadge();
+      return refreshAllForUnits({ weight: shouldLoadHeavyPanels() });
     });
-    const boot = shouldLoadHeavyPanels()
-      ? Promise.all([updateRest(), updatePlanSummary()])
-      : Promise.all([renderHoldOptionsTable()]);
-    return boot;
-  })
-  .then(() => {
-    if (!shouldLoadHeavyPanels()) return;
-    return Promise.allSettled([
-      loadScience(),
-      loadGuide(),
-      loadRecipes(),
-      loadRestEnvironments(),
-      loadProfiles(),
-      loadSources(),
-    ]);
-  })
-  .then(() => {
-    applyUnitPrefs();
-    applySliceClockInputUI();
-    restoreCookStateAfterLoad();
-    updateSliceTimeUntilHint();
-    if (IS_PUBLIC_SIMPLE) {
-      initPublicSimpleMode();
-      syncSimplePullFromModel();
-    }
-    updatePullTempBadge();
-    return refreshAllForUnits({ weight: shouldLoadHeavyPanels() });
-  })
-  .catch(console.error);
+}
 
-wireCookStatePersistence();
+startSmokeLabApp().catch(console.error);
