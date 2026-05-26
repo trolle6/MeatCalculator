@@ -878,6 +878,17 @@ function readCommittedPullC(defaultC = 90.5) {
   return defaultC;
 }
 
+/** Live #simplePull box → °C for badge, outline, and °F/°C hint (includes out-of-range typing). */
+function readSimplePullDisplayC(defaultC = 90.5) {
+  const input = $("simplePull");
+  if (!input || !IS_PUBLIC_SIMPLE) return readCommittedPullC(defaultC);
+  const trimmed = String(input.value).trim();
+  if (!trimmed || trimmed === ".") return readCommittedPullC(defaultC);
+  const n = parseFloat(input.value);
+  if (!Number.isFinite(n)) return readCommittedPullC(defaultC);
+  return state.tempUnit === "f" ? fToC(n) : n;
+}
+
 /** Read °C from a temp field. Uses stored dataset.c unless the user is actively typing. */
 function tempInputValueC(inputEl, defaultC = 90.5) {
   if (!inputEl) return defaultC;
@@ -1004,7 +1015,7 @@ async function refreshAllForUnits({ weight = false, temp = false } = {}) {
 }
 
 function getReferencePullTempC() {
-  if (IS_PUBLIC_SIMPLE && $("simplePull")) return readCommittedPullC(90.5);
+  if (IS_PUBLIC_SIMPLE && $("simplePull")) return readSimplePullDisplayC(90.5);
   const pullEl = $("pullTemp");
   if (pullEl) return tempInputValueC(pullEl, getSliderTempC());
   return getSliderTempC();
@@ -1013,10 +1024,23 @@ function getReferencePullTempC() {
 function updateUnitTempAlt() {
   const c = getReferencePullTempC();
   if (!Number.isFinite(c)) return;
-  const text =
-    state.tempUnit === "f" ? `≈ ${Number(c).toFixed(1)} °C` : `≈ ${Math.round(cToF(c))} °F`;
+  const input = $("simplePull");
   document.querySelectorAll(".unit-temp-alt").forEach((el) => {
-    el.textContent = text;
+    if (el.classList.contains("unit-temp-alt--inline") && IS_PUBLIC_SIMPLE && input) {
+      const raw = String(input.value).trim();
+      const n = parseFloat(raw);
+      if (state.tempUnit === "f" && Number.isFinite(n)) {
+        el.textContent = `${Math.round(n)} °F ≈ ${Number(c).toFixed(1)} °C`;
+      } else if (Number.isFinite(n)) {
+        el.textContent = `${raw} °C ≈ ${Math.round(cToF(c))} °F`;
+      } else {
+        el.textContent =
+          state.tempUnit === "f" ? `≈ ${Number(c).toFixed(1)} °C` : `≈ ${Math.round(cToF(c))} °F`;
+      }
+      return;
+    }
+    el.textContent =
+      state.tempUnit === "f" ? `≈ ${Number(c).toFixed(1)} °C` : `≈ ${Math.round(cToF(c))} °F`;
   });
 }
 
@@ -1072,8 +1096,19 @@ function initUnits() {
   });
   document.querySelectorAll("[data-unit-temp]").forEach((btn) => {
     btn.addEventListener("click", () => {
-      // Any click on °F or °C flips the other way (including re-clicking the active side).
-      state.tempUnit = state.tempUnit === "f" ? "c" : "f";
+      const next = btn.dataset.unitTemp;
+      if (next !== "f" && next !== "c") return;
+      if (next === state.tempUnit) return;
+      const input = $("simplePull");
+      if (input && IS_PUBLIC_SIMPLE) {
+        const c = readSimplePullDisplayC(90.5);
+        state.tempUnit = next;
+        if (Number.isFinite(c)) {
+          input.value = next === "f" ? String(Math.round(cToF(c))) : Number(c).toFixed(1);
+        }
+      } else {
+        state.tempUnit = next;
+      }
       saveUnitPrefs();
       applyUnitPrefs();
       void renderHoldOptionsTable();
@@ -1228,7 +1263,7 @@ function getPullTempGuide(pullC) {
   if (pullC < 71) {
     return {
       label: "Underdone",
-      hint: `~${pct}% modeled render — still tough; needs more pit time (not a “rare” brisket pull).`,
+      hint: `Below the usual pull band (~90–95 °C / 195–203 °F). ~${pct}% modeled render — still tough; needs more pit time.`,
       cls: "warn",
     };
   }
@@ -1279,7 +1314,8 @@ function updatePullTempBadge() {
   const labelEl = $("pullTempBadgeLabel");
   const hintEl = $("pullTempBadgeHint");
   if (!badge || !labelEl) return;
-  const { pull } = getPullHoldC();
+  const pull =
+    IS_PUBLIC_SIMPLE && $("simplePull") ? readSimplePullDisplayC(90.5) : getPullHoldC().pull;
   const guide = getPullTempGuide(pull);
   labelEl.textContent = guide.label;
   badge.className = `pull-temp-badge pull-temp-badge--${guide.cls}`;
@@ -1456,7 +1492,8 @@ function wireSimplePullInput() {
   input.addEventListener("input", () => {
     clampSimplePullInputField(input);
     clearSimplePullRangeError();
-    updateSimplePullInputOutline();
+    updatePullTempBadge();
+    updateUnitTempAlt();
   });
   input.addEventListener("blur", commitSimplePullInput);
   input.addEventListener("keydown", (e) => {
