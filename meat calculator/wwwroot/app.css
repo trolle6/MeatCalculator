@@ -156,12 +156,6 @@ footer {
   .unit-hint {
     display: none;
   }
-
-  html.site-simple .unit-hint {
-    display: block;
-    font-size: 0.68rem;
-    max-width: 9rem;
-  }
 }
 
 .intro-hero-summary {
@@ -3381,6 +3375,10 @@ html.site-simple .header-actions .unit-bar {
   display: none !important;
 }
 
+html.site-simple #unitHint {
+  display: none !important;
+}
+
 .simple-pull-layout {
   display: flex;
   flex-direction: column;
@@ -3389,10 +3387,6 @@ html.site-simple .header-actions .unit-bar {
 }
 
 .simple-pull-badge-row {
-  display: flex;
-  align-items: flex-start;
-  justify-content: space-between;
-  gap: 0.5rem;
   width: 100%;
 }
 
@@ -3406,6 +3400,7 @@ html.site-simple .header-actions .unit-bar {
 
 html.site-simple .simple-pull-unit-switch {
   display: flex;
+  margin-left: auto;
 }
 
 .unit-toggle-inline-temp {
@@ -3425,11 +3420,8 @@ html.site-simple .simple-pull-unit-switch {
 }
 
 @media (max-width: 400px) {
-  .simple-pull-badge-row {
-    flex-wrap: wrap;
-  }
-
-  .simple-pull-unit-switch {
+  html.site-simple .simple-pull-unit-switch {
+    margin-left: 0;
     width: 100%;
     flex-direction: row;
     align-items: center;
@@ -3446,8 +3438,9 @@ html.site-simple .simple-pull-unit-switch {
 .simple-pull-row {
   display: flex;
   align-items: center;
-  gap: 0.65rem;
-  flex: 0 0 auto;
+  flex-wrap: wrap;
+  gap: 0.5rem 0.65rem;
+  width: 100%;
 }
 
 .simple-pull-input {
