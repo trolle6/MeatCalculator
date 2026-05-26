@@ -234,7 +234,7 @@ async function renderHoldOptionsTable() {
     return;
   }
 
-  const sliceSet = !!parseSliceTimeToday(getTargetSliceTimeStr());
+  const sliceSet = !!resolveSliceDateTime(getTargetSliceTimeStr());
   const pitHint = $("pitStartHint");
   if (pitHint) {
     pitHint.textContent = sliceSet
@@ -291,7 +291,11 @@ async function renderHoldOptionsTable() {
 let holdOptionsRenderGen = 0;
 const renderHoldOptionsDebounced = debounce(() => renderHoldOptionsTable(), 200);
 
-function parseSliceTimeToday(timeStr) {
+/**
+ * Next device-local moment at HH:MM: today if that clock is still ahead, otherwise tomorrow
+ * (so a “passed” time rolls forward instead of planning for earlier today).
+ */
+function resolveSliceDateTime(timeStr) {
   if (!timeStr) return null;
   const [hh, mm] = timeStr.split(":").map(Number);
   if (!Number.isFinite(hh) || !Number.isFinite(mm)) return null;
@@ -302,6 +306,51 @@ function parseSliceTimeToday(timeStr) {
     d.setDate(d.getDate() + 1);
   }
   return d;
+}
+
+function isSameLocalCalendarDay(a, b) {
+  return (
+    a.getFullYear() === b.getFullYear() &&
+    a.getMonth() === b.getMonth() &&
+    a.getDate() === b.getDate()
+  );
+}
+
+/** Compact "2h 30m" from a positive minute count. */
+function formatDurationHrsMins(totalMin) {
+  const h = Math.floor(totalMin / 60);
+  const m = totalMin % 60;
+  if (h === 0) return `${m}m`;
+  if (m === 0) return `${h}h`;
+  return `${h}h ${m}m`;
+}
+
+function updateSliceTimeUntilHint() {
+  const el = $("planSliceUntil");
+  if (!el) return;
+  const slice = resolveSliceDateTime(getTargetSliceTimeStr());
+  if (!slice) {
+    el.textContent = "";
+    el.removeAttribute("title");
+    el.classList.remove("plan-slice-until--past");
+    return;
+  }
+  const now = new Date();
+  const diffMin = Math.round((slice.getTime() - now.getTime()) / 60000);
+  el.classList.toggle("plan-slice-until--past", diffMin < 0);
+  if (diffMin < 0) {
+    el.textContent = "Slice time in a moment";
+    el.title = "";
+    return;
+  }
+  if (diffMin === 0) {
+    el.textContent = "Slice time is now";
+    el.title = "";
+    return;
+  }
+  el.textContent = `Slice in ~${formatDurationHrsMins(diffMin)}`;
+  const dayWord = isSameLocalCalendarDay(slice, now) ? "later today" : "tomorrow";
+  el.title = `Slice target ${clockTimeText(slice)} (${dayWord}, device clock).`;
 }
 
 function timeStrTo24hFrom12(hour12, minute, ampm) {
@@ -322,59 +371,68 @@ function parse24hTo12Parts(timeStr) {
   return { hour12: String(hour12), minute: String(mm).padStart(2, "0"), ampm };
 }
 
+/** Parse typed slice time (e.g. 5:30, 17.30, 1730) for 12- or 24-hr mode. */
+function parseSliceTimeText(raw, mode) {
+  const s = String(raw ?? "").trim();
+  if (!s) return null;
+  let hour;
+  let minute;
+  const colon = s.match(/^(\d{1,2})\s*[:.]\s*(\d{1,2})$/);
+  if (colon) {
+    hour = parseInt(colon[1], 10);
+    minute = parseInt(colon[2], 10);
+  } else {
+    const digits = s.replace(/\D/g, "");
+    if (digits.length === 4) {
+      hour = parseInt(digits.slice(0, 2), 10);
+      minute = parseInt(digits.slice(2), 10);
+    } else if (digits.length === 3) {
+      hour = parseInt(digits.slice(0, 1), 10);
+      minute = parseInt(digits.slice(1), 10);
+    } else {
+      return null;
+    }
+  }
+  if (!Number.isFinite(hour) || !Number.isFinite(minute) || minute < 0 || minute > 59) return null;
+  if (mode === "12") {
+    if (hour < 1 || hour > 12) return null;
+    return { hour12: hour, minute };
+  }
+  if (hour < 0 || hour > 23) return null;
+  return { hour24: hour, minute };
+}
+
+function formatSliceTime12Display(hour12, minute) {
+  return `${hour12}:${String(minute).padStart(2, "0")}`;
+}
+
+function formatSliceTime24Display(hour24, minute) {
+  return `${String(hour24).padStart(2, "0")}:${String(minute).padStart(2, "0")}`;
+}
+
 function syncSliceTimeFromInputs() {
   const hidden = $("targetSliceTime");
   if (!hidden) return;
   if (state.clockInputUnit === "12") {
-    const h = $("sliceHour12")?.value;
-    const m = $("sliceMin12")?.value;
-    if (!h || m === "") {
+    const parsed = parseSliceTimeText($("sliceTime12Text")?.value, "12");
+    if (!parsed) {
       hidden.value = "";
       return;
     }
-    hidden.value = timeStrTo24hFrom12(h, m, state.sliceAmPm);
+    hidden.value = timeStrTo24hFrom12(parsed.hour12, parsed.minute, state.sliceAmPm);
     return;
   }
-  const h = $("sliceHour24")?.value;
-  const m = $("sliceMin24")?.value;
-  if (h === "" || m === "") {
+  const parsed = parseSliceTimeText($("sliceTime24Text")?.value, "24");
+  if (!parsed) {
     hidden.value = "";
     return;
   }
-  hidden.value = `${h}:${m}`;
+  hidden.value = formatSliceTime24Display(parsed.hour24, parsed.minute);
 }
 
 function getTargetSliceTimeStr() {
   syncSliceTimeFromInputs();
   return $("targetSliceTime")?.value ?? "";
-}
-
-function fillSliceTimeSelects(hourSel, minSel, { hourMin, hourMax, hourPad = false }) {
-  if (!hourSel || !minSel || hourSel.options.length > 1) return;
-  hourSel.innerHTML = '<option value="">—</option>';
-  for (let h = hourMin; h <= hourMax; h++) {
-    const opt = document.createElement("option");
-    const val = hourPad ? String(h).padStart(2, "0") : String(h);
-    opt.value = val;
-    opt.textContent = val;
-    hourSel.appendChild(opt);
-  }
-  minSel.innerHTML = '<option value="">—</option>';
-  for (let m = 0; m < 60; m++) {
-    const s = String(m).padStart(2, "0");
-    const opt = document.createElement("option");
-    opt.value = s;
-    opt.textContent = s;
-    minSel.appendChild(opt);
-  }
-}
-
-function fillSliceTime12Selects() {
-  fillSliceTimeSelects($("sliceHour12"), $("sliceMin12"), { hourMin: 1, hourMax: 12 });
-}
-
-function fillSliceTime24Selects() {
-  fillSliceTimeSelects($("sliceHour24"), $("sliceMin24"), { hourMin: 0, hourMax: 23, hourPad: true });
 }
 
 function updateSliceAmPmUI() {
@@ -385,21 +443,19 @@ function updateSliceAmPmUI() {
   });
 }
 
-function clearSliceTimeSelects() {
-  ["sliceHour12", "sliceMin12", "sliceHour24", "sliceMin24"].forEach((id) => {
-    const el = $(id);
-    if (el) el.value = "";
-  });
+function clearSliceTimeInputs() {
+  const t12 = $("sliceTime12Text");
+  const t24 = $("sliceTime24Text");
+  if (t12) t12.value = "";
+  if (t24) t24.value = "";
 }
 
 function syncVisibleSliceInputsFromHidden() {
   const v = $("targetSliceTime")?.value;
-  const hour12 = $("sliceHour12");
-  const min12 = $("sliceMin12");
-  const hour24 = $("sliceHour24");
-  const min24 = $("sliceMin24");
+  const t12 = $("sliceTime12Text");
+  const t24 = $("sliceTime24Text");
   if (!v) {
-    clearSliceTimeSelects();
+    clearSliceTimeInputs();
     return;
   }
   const [hh, mm] = v.split(":").map(Number);
@@ -407,18 +463,14 @@ function syncVisibleSliceInputsFromHidden() {
 
   if (state.clockInputUnit === "12") {
     const parts = parse24hTo12Parts(v);
-    if (!parts || !hour12 || !min12) return;
-    hour12.value = parts.hour12;
-    min12.value = parts.minute;
+    if (!parts || !t12) return;
+    t12.value = formatSliceTime12Display(parts.hour12, parts.minute);
     state.sliceAmPm = parts.ampm;
     updateSliceAmPmUI();
     return;
   }
 
-  if (hour24 && min24) {
-    hour24.value = String(hh).padStart(2, "0");
-    min24.value = String(mm).padStart(2, "0");
-  }
+  if (t24) t24.value = formatSliceTime24Display(hh, mm);
 }
 
 function applySliceClockInputUI() {
@@ -433,17 +485,17 @@ function applySliceClockInputUI() {
   const hint = $("planSliceOptionalLead");
   if (hint) {
     hint.innerHTML = is12
-      ? "<strong>12-hr:</strong> hour 1–12 + <strong>AM/PM</strong> — no 24-hr typing here. Table still shows both formats."
-      : "<strong>24-hr:</strong> hour <strong>00–23</strong> (e.g. <strong>13:13</strong> = 1:13 PM) — no AM/PM. Table still shows both formats.";
+      ? "<strong>12-hr:</strong> type <strong>5:30</strong> (hour 1–12) + <strong>AM/PM</strong>. Table still shows both formats."
+      : "<strong>24-hr:</strong> type <strong>17:30</strong> (hour <strong>00–23</strong>). Table still shows both formats.";
   }
   syncVisibleSliceInputsFromHidden();
+  updateSliceTimeUntilHint();
 }
 
 function initSliceTimeInput() {
-  fillSliceTime12Selects();
-  fillSliceTime24Selects();
   const planRefresh = () => {
     syncSliceTimeFromInputs();
+    updateSliceTimeUntilHint();
     renderHoldOptionsDebounced();
     if (!IS_PUBLIC_SIMPLE) updatePlanSummaryDebounced();
     saveCookPrefsDebounced();
@@ -451,10 +503,8 @@ function initSliceTimeInput() {
 
   document.querySelectorAll("[data-clock-input]").forEach((btn) => {
     btn.addEventListener("click", () => {
-      const next = btn.dataset.clockInput;
-      if (next === state.clockInputUnit) return;
       syncSliceTimeFromInputs();
-      state.clockInputUnit = next;
+      state.clockInputUnit = state.clockInputUnit === "12" ? "24" : "12";
       saveUnitPrefs();
       applySliceClockInputUI();
       planRefresh();
@@ -463,17 +513,26 @@ function initSliceTimeInput() {
 
   document.querySelectorAll("[data-slice-ampm]").forEach((btn) => {
     btn.addEventListener("click", () => {
-      state.sliceAmPm = btn.dataset.sliceAmpm;
+      state.sliceAmPm = state.sliceAmPm === "AM" ? "PM" : "AM";
       updateSliceAmPmUI();
       planRefresh();
     });
   });
 
-  ["sliceHour12", "sliceMin12", "sliceHour24", "sliceMin24"].forEach((id) => {
-    $(id)?.addEventListener("change", planRefresh);
+  ["sliceTime12Text", "sliceTime24Text"].forEach((id) => {
+    const el = $(id);
+    if (!el) return;
+    el.addEventListener("input", planRefresh);
+    el.addEventListener("change", planRefresh);
+    el.addEventListener("blur", () => {
+      syncSliceTimeFromInputs();
+      syncVisibleSliceInputsFromHidden();
+      planRefresh();
+    });
   });
 
   applySliceClockInputUI();
+  if (!IS_PUBLIC_SIMPLE) window.setInterval(updateSliceTimeUntilHint, 60_000);
 }
 
 function formatClock24(d) {
@@ -500,7 +559,7 @@ function formatClockTime(d) {
 }
 
 function computePitStartSchedule(holdData) {
-  const slice = parseSliceTimeToday(getTargetSliceTimeStr());
+  const slice = resolveSliceDateTime(getTargetSliceTimeStr());
   if (!slice) return null;
   const smokeH = SMOKE_HOURS_ESTIMATE;
   const cooldown = holdData.cooldownHours ?? 4;
@@ -969,9 +1028,8 @@ function initUnits() {
   });
   document.querySelectorAll("[data-unit-temp]").forEach((btn) => {
     btn.addEventListener("click", () => {
-      const next = btn.dataset.unitTemp;
-      if (next === state.tempUnit) return;
-      state.tempUnit = next;
+      // Any click on °F or °C flips the other way (including re-clicking the active side).
+      state.tempUnit = state.tempUnit === "f" ? "c" : "f";
       saveUnitPrefs();
       applyUnitPrefs();
       void renderHoldOptionsTable();
@@ -1197,11 +1255,18 @@ function updatePullTempReminder() {
 }
 
 function updateLocalTimeHint() {
-  const el = $("localTimeHint");
-  if (!el) return;
   const now = new Date();
   const tz = Intl.DateTimeFormat().resolvedOptions().timeZone || "local";
-  el.textContent = `Your local time now: ${clockTimeText(now)} (${tz}) — from your device, not a server.`;
+  const el = $("localTimeHint");
+  if (el) {
+    el.textContent = `Your local time now: ${clockTimeText(now)} (${tz}) — from your device, not a server.`;
+  }
+  const sliceEl = $("planSliceLocalTime");
+  if (sliceEl) {
+    sliceEl.textContent = `Now · ${clockTimeText(now)}`;
+    sliceEl.title = `Device clock (${tz}) — same time used when you set slice time.`;
+  }
+  updateSliceTimeUntilHint();
 }
 
 function syncSimplePullChrome() {
@@ -3261,6 +3326,7 @@ loadData()
     applyUnitPrefs();
     applySliceClockInputUI();
     restoreCookStateAfterLoad();
+    updateSliceTimeUntilHint();
     if (IS_PUBLIC_SIMPLE) {
       initPublicSimpleMode();
       syncSimplePullFromModel();
