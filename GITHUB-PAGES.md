@@ -1,42 +1,48 @@
-﻿# GitHub Pages deploy
+﻿# GitHub Pages — match localhost:5180
 
-Live URL: **https://trolle6.github.io/SmokeLab/**
+The public site must serve the **built** app from `meat calculator/wwwroot` (same as `dotnet run` on port 5180).
 
-## 1. Enable Actions (required)
+## Settings (do this once)
 
 **Settings → Actions → General**
 
 - Allow all actions
 - Workflow permissions: **Read and write**
 
-Without Actions, the CDN can stay on an old build for days.
+**Settings → Pages → Build and deployment**
 
-## 2. Pages source
+Pick **one** source (both are kept in sync by CI):
 
-**Settings → Pages → Deploy from a branch** (not “GitHub Actions”).
-
-Pick **one**:
-
-| Setting | Branch | Folder |
-|---------|--------|--------|
-| **A** (default) | `gh-pages` | `/ (root)` |
-| **B** (if you use `main`) | `main` | **`/docs`** |
-
-Do **not** use `main` + `/ (root)` — that folder is source code, not the website.
+| Option | Source | Branch | Folder |
+|--------|--------|--------|--------|
+| **A** | Deploy from a branch | `main` | **`/docs`** |
+| **B** | Deploy from a branch | `gh-pages` | `/ (root)` |
+| **C** | **GitHub Actions** | (workflow deploys artifact) | — |
 
 Click **Save** after any change.
 
-## 3. Republish
+## Verify live site
+
+View source on https://trolle6.github.io/SmokeLab/
+
+- `smoke-lab-build` should match `wwwroot/index.html` (e.g. **57**)
+- `brand-home`, `pullTempBadge` present
+- Not stuck on `app.css?v=50`
+
+## Manual publish from your PC
 
 ```powershell
 powershell -ExecutionPolicy Bypass -File scripts/publish-gh-pages.ps1
 ```
 
-Updates `gh-pages`, `docs/` on `main`, then **Settings → Pages → Save** again.
+Then **Settings → Pages → Save** again.
 
-## 4. Verify
+## Local preview
 
-View source on the live site:
+```powershell
+cd "meat calculator"
+dotnet run
+```
 
-- `smoke-lab-build` **56** (not 50)
-- `brand-home`, `pullTempBadge`
+Open http://localhost:5180/ — simple planner (same as github.io).  
+Full app: http://localhost:5180/?full=1

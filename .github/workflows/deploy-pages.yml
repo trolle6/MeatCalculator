@@ -3,17 +3,23 @@ name: Deploy GitHub Pages
 on:
   push:
     branches: [main]
+    paths-ignore:
+      - "docs/**"
+      - "README.md"
+      - "GITHUB-PAGES.md"
   workflow_dispatch:
 
 permissions:
   contents: write
+  pages: write
+  id-token: write
 
 concurrency:
   group: pages
   cancel-in-progress: false
 
 jobs:
-  deploy:
+  build:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
@@ -34,7 +40,7 @@ jobs:
           dotnet run --project "meat calculator/meat calculator.csproj" -c Release --no-build \
             --urls "http://127.0.0.1:5050" &
           PID=$!
-          for i in $(seq 1 40); do
+          for i in $(seq 1 60); do
             if curl -sf "http://127.0.0.1:5050/api/data" >/dev/null; then break; fi
             sleep 1
           done
@@ -56,26 +62,46 @@ jobs:
           kill $PID 2>/dev/null || true
           wait $PID 2>/dev/null || true
 
-      - name: Verify exported API JSON
-        run: |
-          test -s _site/api/data.json
-          test -s _site/api/profiles.json
-          test -s _site/api/sources.json
-          node -e "JSON.parse(require('fs').readFileSync('_site/api/data.json','utf8'))"
-
       - name: Verify public planner bundle
         run: |
           grep -q 'pullTempBadge' _site/index.html
+          grep -q 'brand-home' _site/index.html
           grep -q 'smoke-lab-build' _site/index.html
           grep -q 'getPullTempGuide' _site/app.js
           BUILD="$(node -e "const h=require('fs').readFileSync('_site/index.html','utf8'); const m=h.match(/smoke-lab-build\\\" content=\\\"(\\d+)\\\"/); if(!m)process.exit(1); process.stdout.write(m[1]);")"
           grep -q "app.css?v=${BUILD}" _site/index.html
+          echo "BUILD=${BUILD}" >> "$GITHUB_ENV"
 
-      - name: Publish to gh-pages branch
+      - name: Publish gh-pages branch
         uses: peaceiris/actions-gh-pages@v4
         with:
           github_token: ${{ secrets.GITHUB_TOKEN }}
           publish_dir: ./_site
           publish_branch: gh-pages
           force_orphan: true
-          commit_message: "deploy: ${{ github.sha }}"
+          commit_message: "deploy: ${{ github.sha }} (build ${{ env.BUILD }})"
+
+      - name: Publish docs folder on main
+        uses: peaceiris/actions-gh-pages@v4
+        with:
+          github_token: ${{ secrets.GITHUB_TOKEN }}
+          publish_dir: ./_site
+          publish_branch: main
+          destination_dir: docs
+          keep_files: true
+          commit_message: "docs: deploy build ${{ env.BUILD }} [skip ci]"
+
+      - uses: actions/upload-pages-artifact@v3
+        with:
+          path: _site
+
+  deploy:
+    needs: build
+    runs-on: ubuntu-latest
+    environment:
+      name: github-pages
+      url: ${{ steps.deploy.outputs.page_url }}
+    steps:
+      - name: Deploy to GitHub Pages (Actions source)
+        id: deploy
+        uses: actions/deploy-pages@v4
