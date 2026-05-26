@@ -3347,6 +3347,56 @@ html.site-simple .simple-step-table {
   color: var(--text-muted);
 }
 
+.pull-temp-badge {
+  flex: 1 1 auto;
+  min-width: 5.5rem;
+  max-width: 9rem;
+  padding: 0.35rem 0.55rem;
+  border-radius: 8px;
+  border: 1px solid var(--border);
+  text-align: center;
+  line-height: 1.2;
+}
+
+.pull-temp-badge-label {
+  display: block;
+  font-size: 0.78rem;
+  font-weight: 700;
+  letter-spacing: 0.03em;
+  text-transform: uppercase;
+}
+
+.pull-temp-badge--ok {
+  border-color: rgba(82, 183, 136, 0.55);
+  background: rgba(82, 183, 136, 0.12);
+  color: var(--safe);
+}
+
+.pull-temp-badge--hold {
+  border-color: rgba(245, 200, 66, 0.45);
+  background: rgba(245, 200, 66, 0.1);
+  color: var(--gold);
+}
+
+.pull-temp-badge--warn {
+  border-color: rgba(232, 106, 26, 0.5);
+  background: rgba(232, 106, 26, 0.12);
+  color: var(--ember);
+}
+
+.pull-temp-badge--danger {
+  border-color: rgba(230, 57, 70, 0.55);
+  background: rgba(230, 57, 70, 0.12);
+  color: var(--danger);
+}
+
+.pull-temp-badge-hint {
+  margin: 0.35rem 0 0.2rem;
+  font-size: 0.76rem;
+  line-height: 1.4;
+  color: var(--muted);
+}
+
 html.site-simple .plan-slice-field-prominent {
   margin-bottom: 0;
   padding-bottom: 0;

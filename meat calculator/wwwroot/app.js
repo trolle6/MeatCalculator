@@ -912,6 +912,7 @@ function applyUnitPrefs() {
   syncSimplePullFromModel();
   syncSimplePullChrome();
   updatePullTempReminder();
+  updatePullTempBadge();
 }
 
 function initUnits() {
@@ -1075,6 +1076,76 @@ function initHoldTempSummary() {
   });
 }
 
+function getPullTempGuide(pullC) {
+  const pct = Math.round(estimateRenderedAtPull(pullC));
+  if (pullC < 60) {
+    return {
+      label: "Unsafe",
+      hint: "Below ~140 °F / 60 °C — not safe to eat; keep cooking.",
+      cls: "danger",
+    };
+  }
+  if (pullC < 71) {
+    return {
+      label: "Underdone",
+      hint: `~${pct}% modeled render — still tough; needs more pit time (not a “rare” brisket pull).`,
+      cls: "warn",
+    };
+  }
+  if (pullC < 82) {
+    return {
+      label: "Early pull",
+      hint: `~${pct}% render — edible after a long hot hold; probe should glide, not fight.`,
+      cls: "hold",
+    };
+  }
+  if (pullC < 90) {
+    return {
+      label: "Almost there",
+      hint: `~${pct}% render — plan a long hold (~150 °F / 65 °C box).`,
+      cls: "hold",
+    };
+  }
+  if (pullC < 93.3) {
+    return {
+      label: "Juicy zone",
+      hint: `~${pct}% render — classic ~195 °F pull; hot hold finishes the flat.`,
+      cls: "ok",
+    };
+  }
+  if (pullC < 96) {
+    return {
+      label: "Balanced",
+      hint: `~${pct}% render — tender sooner; slightly less hold time than 195 °F.`,
+      cls: "ok",
+    };
+  }
+  if (pullC < 99) {
+    return {
+      label: "Hot pull",
+      hint: `~${pct}% render — like a “well-done” pull; watch dryness on the flat.`,
+      cls: "hold",
+    };
+  }
+  return {
+    label: "Overdone risk",
+    hint: `~${pct}% render — very tender but flat can dry; probe feel still wins.`,
+    cls: "warn",
+  };
+}
+
+function updatePullTempBadge() {
+  const badge = $("pullTempBadge");
+  const labelEl = $("pullTempBadgeLabel");
+  const hintEl = $("pullTempBadgeHint");
+  if (!badge || !labelEl) return;
+  const { pull } = getPullHoldC();
+  const guide = getPullTempGuide(pull);
+  labelEl.textContent = guide.label;
+  badge.className = `pull-temp-badge pull-temp-badge--${guide.cls}`;
+  if (hintEl) hintEl.textContent = guide.hint;
+}
+
 function updatePullTempReminder() {
   const el = $("pullTempReminder");
   if (!el) return;
@@ -1146,6 +1217,7 @@ function wireSimplePullInput() {
     }
     syncActiveProfileUI();
     renderHoldOptionsDebounced();
+    updatePullTempBadge();
     if (!IS_PUBLIC_SIMPLE) updatePlanSummaryDebounced();
     else renderHoldOptionsTable();
     saveCookPrefsDebounced();
@@ -1162,6 +1234,7 @@ function initPublicSimpleMode() {
   if (tag) tag.textContent = "Pull temp · hold hours · when to slice";
   wireSimplePullInput();
   updatePullTempReminder();
+  updatePullTempBadge();
   updateLocalTimeHint();
   window.setInterval(updateLocalTimeHint, 60_000);
   activatePanel("plan");
