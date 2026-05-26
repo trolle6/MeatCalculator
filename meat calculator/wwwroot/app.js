@@ -965,9 +965,8 @@ function initUnits() {
   });
   document.querySelectorAll("[data-unit-temp]").forEach((btn) => {
     btn.addEventListener("click", () => {
-      const next = btn.dataset.unitTemp;
-      if (next === state.tempUnit) return;
-      state.tempUnit = next;
+      // Any click on °F or °C flips the other way (including re-clicking the active side).
+      state.tempUnit = state.tempUnit === "f" ? "c" : "f";
       saveUnitPrefs();
       applyUnitPrefs();
       void renderHoldOptionsTable();
