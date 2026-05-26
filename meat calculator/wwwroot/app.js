@@ -39,9 +39,16 @@ function getPagesBase() {
 
 const PAGES_BASE = getPagesBase();
 const USE_STATIC_API = location.hostname.endsWith("github.io");
-/** Public GitHub Pages: one-screen Steve flow. Add <code>?full=1</code> for the full planner. */
+
+function isLocalDevHost() {
+  const h = location.hostname;
+  return h === "localhost" || h === "127.0.0.1";
+}
+
+/** Public one-screen planner (github.io or localhost). Add <code>?full=1</code> for tabs, gauge, Learn, etc. */
 const IS_PUBLIC_SIMPLE =
-  location.hostname.endsWith("github.io") && !new URLSearchParams(location.search).has("full");
+  (location.hostname.endsWith("github.io") || isLocalDevHost()) &&
+  !new URLSearchParams(location.search).has("full");
 
 function apiUrl(path) {
   const p = path.startsWith("/") ? path.slice(1) : path;
