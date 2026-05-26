@@ -15,4 +15,6 @@ Thumbs.db
 
 ## Publish / local
 _site/
+_site_publish/
+.gh-pages-deploy/
 export/
