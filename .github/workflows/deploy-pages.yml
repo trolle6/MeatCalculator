@@ -81,15 +81,18 @@ jobs:
           force_orphan: true
           commit_message: "deploy: ${{ github.sha }} (build ${{ env.BUILD }})"
 
-      - name: Publish docs folder on main
-        uses: peaceiris/actions-gh-pages@v4
-        with:
-          github_token: ${{ secrets.GITHUB_TOKEN }}
-          publish_dir: ./_site
-          publish_branch: main
-          destination_dir: docs
-          keep_files: true
-          commit_message: "docs: deploy build ${{ env.BUILD }} [skip ci]"
+      - name: Sync docs folder on main
+        run: |
+          git fetch origin main
+          git checkout main
+          rm -rf docs
+          cp -r _site docs
+          touch docs/.nojekyll
+          git add docs
+          git diff --staged --quiet && exit 0
+          git -c user.name="github-actions[bot]" -c user.email="github-actions[bot]@users.noreply.github.com" \
+            commit -m "docs: deploy build ${{ env.BUILD }} [skip ci]"
+          git push origin main
 
       - uses: actions/upload-pages-artifact@v3
         with:
