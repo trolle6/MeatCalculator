@@ -4036,11 +4036,11 @@ html.site-simple .simple-pull-status-hint:empty {
   min-width: 0;
 }
 
-/* Simple pull: symmetric linked °F / °C boxes (sized for 3 digits). */
+/* Simple pull: symmetric linked °F / °C boxes. */
 html.site-simple .simple-pull-dual {
-  --planner-pull-digits: 3.35;
+  font-size: var(--planner-box-font);
   --planner-box-w: calc(
-    var(--planner-pull-digits) * 1ch + 2 * var(--planner-box-pad-x) + 2 * var(--planner-box-border)
+    3.35em + 2 * var(--planner-box-pad-x) + 2 * var(--planner-box-border)
   );
   display: grid;
   grid-template-columns: repeat(2, var(--planner-box-w));
@@ -4081,11 +4081,7 @@ html.site-simple .simple-pull-field .simple-pull-input {
   max-width: none;
   box-sizing: border-box;
   font-variant-numeric: tabular-nums;
-  letter-spacing: 0;
-  text-align: center;
-  text-align-last: center;
-  padding-inline: var(--planner-box-pad-x);
-  overflow: visible;
+  letter-spacing: 0.03em;
 }
 
 .unit-temp-alt--inline {
@@ -4138,25 +4134,9 @@ html.site-simple .simple-pull-input {
   min-width: var(--planner-box-w);
   max-width: var(--planner-box-w);
   font-size: var(--planner-box-font);
-  padding-block: var(--planner-box-pad-y);
-  padding-inline: var(--planner-box-pad-x);
+  padding: var(--planner-box-pad-y) var(--planner-box-pad-x);
   border-width: var(--planner-box-border);
   line-height: 1.1;
-  text-align: center;
-  text-align-last: center;
-}
-
-html.site-simple .simple-pull-input::-webkit-inner-spin-button,
-html.site-simple .simple-pull-input::-webkit-outer-spin-button {
-  -webkit-appearance: none;
-  margin: 0;
-}
-
-html.site-simple .simple-pull-input::-webkit-credentials-auto-fill-button {
-  visibility: hidden;
-  pointer-events: none;
-  position: absolute;
-  right: 0;
 }
 
 html.site-simple .simple-pull-input.simple-pull-input--ok {
@@ -4501,11 +4481,6 @@ html.site-simple .simple-planner-step--slice .simple-planner-step-lead {
 
   html.site-simple .simple-pull-status-hint {
     font-size: 0.82rem;
-  }
-
-  html.site-simple .simple-pull-dual {
-    --planner-pull-digits: 3.5;
-    --planner-box-pad-x: 1.05rem;
   }
 
   html.site-simple .simple-planner-controls--slice .slice-time-controls-wrap .plan-slice-until {
