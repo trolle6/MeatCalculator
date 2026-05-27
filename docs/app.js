@@ -263,6 +263,16 @@ function holdOptionsFootHtml() {
   return "Tap a row to set your hold — probe and feel still win.";
 }
 
+function holdOptionsTableColgroupHtml() {
+  return `<colgroup>
+    <col class="hold-col-hold" />
+    <col class="hold-col-box" />
+    <col class="hold-col-serve-around" />
+    <col class="hold-col-pit hold-col-schedule" />
+    <col class="hold-col-serve hold-col-schedule" />
+  </colgroup>`;
+}
+
 function holdOptionsTableHeadHtml() {
   return `<tr>
     <th scope="col">Hold</th>
@@ -311,6 +321,7 @@ function ensureHoldOptionsTableShell(body) {
   body.innerHTML = `
     <div class="hold-options-table-wrap">
       <table class="hold-options-table" data-slice-schedule="off">
+        ${holdOptionsTableColgroupHtml()}
         <thead>${holdOptionsTableHeadHtml()}</thead>
         <tbody></tbody>
       </table>

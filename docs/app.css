@@ -3799,13 +3799,51 @@ html.site-simple .hold-options-body {
 }
 
 html.site-simple .hold-options-table-wrap {
-  margin-left: auto;
-  margin-right: auto;
+  width: 100%;
   min-height: 9.5rem;
-  max-width: 38rem;
-  padding-left: 1.15rem;
-  padding-right: 0.35rem;
+  margin: 0;
+  padding: 0 0.35rem;
   box-sizing: border-box;
+}
+
+html.site-simple .hold-options-table {
+  width: 100%;
+  table-layout: fixed;
+  border-collapse: separate;
+  border-spacing: 0;
+}
+
+html.site-simple .hold-options-table .hold-col-hold {
+  width: 22%;
+}
+
+html.site-simple .hold-options-table .hold-col-box {
+  width: 28%;
+}
+
+html.site-simple .hold-options-table .hold-col-serve-around {
+  width: 34%;
+}
+
+html.site-simple .hold-options-table .hold-col-pit {
+  width: 24%;
+}
+
+html.site-simple .hold-options-table .hold-col-serve {
+  width: 24%;
+}
+
+html.site-simple .hold-options-table[data-slice-schedule="on"] .hold-col-hold {
+  width: 17%;
+}
+
+html.site-simple .hold-options-table[data-slice-schedule="on"] .hold-col-box {
+  width: 24%;
+}
+
+html.site-simple .hold-options-table[data-slice-schedule="on"] .hold-col-pit,
+html.site-simple .hold-options-table[data-slice-schedule="on"] .hold-col-serve {
+  width: 22%;
 }
 
 html.site-simple #pitStartHint,
@@ -4164,27 +4202,47 @@ html.site-simple #panel-plan .simple-planner-step--pull {
 }
 
 html.site-simple .hold-options-table {
-  font-size: 0.8rem;
+  font-size: 0.84rem;
 }
 
 html.site-simple .hold-options-table th,
 html.site-simple .hold-options-table td {
-  padding: 0.5rem 0.65rem;
+  padding: 0.55rem 0.85rem;
   vertical-align: middle;
+  line-height: 1.35;
+}
+
+html.site-simple .hold-options-table th {
+  font-size: 0.7rem;
+  letter-spacing: 0.05em;
+  padding-top: 0.45rem;
+  padding-bottom: 0.5rem;
+}
+
+html.site-simple .hold-options-table td {
+  padding-top: 0.62rem;
+  padding-bottom: 0.62rem;
 }
 
 html.site-simple .hold-options-table th:first-child,
 html.site-simple .hold-options-table td:first-child {
-  padding-left: 0.85rem;
+  padding-left: 0.55rem;
 }
 
-html.site-simple .hold-options-table th:not(:first-child),
-html.site-simple .hold-options-table td:not(:first-child) {
-  padding-left: 1rem;
+html.site-simple .hold-options-table th:last-child,
+html.site-simple .hold-options-table td:last-child {
+  padding-right: 0.55rem;
 }
 
 html.site-simple .hold-option-temp {
-  font-size: 0.92rem;
+  font-size: 0.98rem;
+}
+
+html.site-simple .hold-options-table .clock-pair {
+  display: inline-flex;
+  flex-wrap: wrap;
+  gap: 0.15rem 0.45rem;
+  align-items: baseline;
 }
 
 html.site-simple .hold-option-row-active {
