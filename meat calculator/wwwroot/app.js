@@ -243,13 +243,11 @@ async function buildHoldOptionRows(pullC, target) {
 
 async function renderHoldOptionsTable() {
   const body = $("holdOptionsBody");
-  const pullLabel = $("holdOptionsPull");
   if (!body) return;
 
   const gen = ++holdOptionsRenderGen;
   const { pull } = getPullHoldC();
   const target = parseFloat($("targetPercent")?.value) || 100;
-  if (pullLabel) pullLabel.innerHTML = tempHtml(pull);
 
   body.innerHTML = `<p class="placeholder">Working out holds…</p>`;
 

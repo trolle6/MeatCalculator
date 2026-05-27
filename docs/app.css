@@ -3905,7 +3905,10 @@ html.site-simple #panel-plan .simple-planner-step-notes .hint {
 }
 
 html.site-simple #panel-plan .plan-hold-options-lead.simple-planner-step-lead {
-  margin: 0 0 0.38rem;
+  margin: 0 auto 0.55rem;
+  max-width: var(--planner-controls-max, 21.5rem);
+  text-align: center;
+  line-height: 1.4;
 }
 
 html.site-simple .hold-options-foot {
