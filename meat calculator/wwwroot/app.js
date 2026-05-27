@@ -211,33 +211,126 @@ function selectHoldOption(holdC) {
     updatePlanSummaryDebounced();
   } else {
     renderHoldOptionsTable();
+    updateSimpleStepTabSummaries();
   }
   saveCookPrefsDebounced();
+}
+
+function mapPresetToHoldRow(preset, data) {
+  const schedule = computePitStartSchedule(data);
+  const readyIfNow = computeServeIfPulledNow(data);
+  return {
+    preset,
+    data,
+    schedule,
+    readyIfNow,
+    boxLabel: formatTotalBoxHoursRange(data),
+    steadyLabel: formatHoldHoursRange(data),
+    selected: isHoldOptionSelected(preset.holdC),
+  };
 }
 
 async function buildHoldOptionRows(pullC, target) {
   const margin = carryConstants().endMarginC ?? 0.5;
   const presets = HOLD_OPTION_PRESETS.filter((p) => p.holdC < pullC - margin);
+  if (USE_STATIC_API || IS_PUBLIC_SIMPLE) {
+    return presets.map((preset) =>
+      mapPresetToHoldRow(preset, computeHoldPlanClient(pullC, preset.holdC, target))
+    );
+  }
   const plans = await Promise.all(
     presets.map(async (preset) => {
       const data = await fetchHoldPlan(pullC, preset.holdC, target);
       return { preset, data };
     })
   );
-  return plans.map(({ preset, data }) => {
-    const schedule = computePitStartSchedule(data);
-    const readyIfNow = computeServeIfPulledNow(data);
-    const boxLabel = formatTotalBoxHoursRange(data);
-    const steadyLabel = formatHoldHoursRange(data);
-    return {
-      preset,
-      data,
-      schedule,
-      readyIfNow,
-      boxLabel,
-      steadyLabel,
-      selected: isHoldOptionSelected(preset.holdC),
-    };
+  return plans.map(({ preset, data }) => mapPresetToHoldRow(preset, data));
+}
+
+function updatePitStartHint(sliceSet) {
+  const pitHint = $("pitStartHint");
+  if (!pitHint) return;
+  pitHint.textContent = sliceSet
+    ? IS_PUBLIC_SIMPLE
+      ? "Serve time on — pit start and serve times show too."
+      : "Slice time on — pit start and serve times show too."
+    : "Optional. Serve-around times only.";
+}
+
+function holdOptionsFootHtml() {
+  return IS_PUBLIC_SIMPLE
+    ? "Choose a row, then tap <strong>Apply</strong>."
+    : "Choose a row, then tap <strong>Apply</strong> — probe and feel still win.";
+}
+
+function holdOptionsTableHeadHtml() {
+  return `<tr>
+    <th scope="col">Hold</th>
+    <th scope="col">Hot box</th>
+    <th scope="col" class="hold-col-serve-around">Serve around</th>
+    <th scope="col" class="hold-col-pit hold-col-schedule">Put on pit</th>
+    <th scope="col" class="hold-col-serve hold-col-schedule">Serve</th>
+    <th scope="col"></th>
+  </tr>`;
+}
+
+function buildHoldOptionRowHtml(row, sliceSet) {
+  const holdCell = `<span class="hold-option-temp">${tempHtml(row.preset.holdC)}</span><span class="hold-option-tag">${row.preset.tag}</span>`;
+  const boxSub = IS_PUBLIC_SIMPLE ? "after cool-in" : `${row.steadyLabel} steady after cool-in`;
+  const boxCell = `<strong>${row.boxLabel}</strong><span class="hold-option-sub">${boxSub}</span>`;
+
+  let serveAroundCell = `<td class="hold-col-serve-around">—</td>`;
+  let pitCell = `<td class="hold-col-pit hold-col-schedule">—</td>`;
+  let serveCell = `<td class="hold-col-serve hold-col-schedule">—</td>`;
+
+  if (sliceSet && row.schedule) {
+    const totalSub = IS_PUBLIC_SIMPLE
+      ? `≈${row.schedule.totalH.toFixed(0)} hr`
+      : `≈${row.schedule.totalH.toFixed(0)} hr total`;
+    pitCell = `<td class="hold-col-pit hold-col-schedule"><strong>${clockTimeHtml(row.schedule.start)}</strong><span class="hold-option-sub">${totalSub}</span></td>`;
+    serveCell = `<td class="hold-col-serve hold-col-schedule"><strong>${clockTimeHtml(row.schedule.slice)}</strong></td>`;
+  } else if (!sliceSet && row.readyIfNow) {
+    const eatSub = IS_PUBLIC_SIMPLE ? "" : `<span class="hold-option-sub">roughly when to eat</span>`;
+    serveAroundCell = `<td class="hold-col-serve-around"><strong>${clockTimeHtml(row.readyIfNow)}</strong>${eatSub}</td>`;
+  }
+
+  const btnClass = row.selected ? "btn-ghost hold-option-btn hold-option-btn-active" : "btn-ghost hold-option-btn";
+  const btnLabel = row.selected ? "Selected" : "Apply";
+  return `<tr class="hold-option-row${row.selected ? " hold-option-row-active" : ""}" data-hold-c="${row.preset.holdC}">
+    <td>${holdCell}</td>
+    <td>${boxCell}</td>
+    ${serveAroundCell}
+    ${pitCell}
+    ${serveCell}
+    <td class="hold-option-action"><button type="button" class="${btnClass}" data-hold-pick="${row.preset.holdC}">${btnLabel}</button></td>
+  </tr>`;
+}
+
+function ensureHoldOptionsTableShell(body) {
+  let table = body.querySelector(".hold-options-table");
+  if (table) return table;
+
+  body.innerHTML = `
+    <div class="hold-options-table-wrap">
+      <table class="hold-options-table" data-slice-schedule="off">
+        <thead>${holdOptionsTableHeadHtml()}</thead>
+        <tbody></tbody>
+      </table>
+    </div>
+    <p class="hint hold-options-foot">${holdOptionsFootHtml()}</p>
+  `;
+  return body.querySelector(".hold-options-table");
+}
+
+function wireHoldOptionsPickDelegation() {
+  const body = $("holdOptionsBody");
+  if (!body || body.dataset.holdPickDelegated === "1") return;
+  body.dataset.holdPickDelegated = "1";
+  body.addEventListener("click", (e) => {
+    const btn = e.target.closest("[data-hold-pick]");
+    if (!btn) return;
+    const c = parseFloat(btn.dataset.holdPick);
+    if (Number.isFinite(c)) selectHoldOption(c);
   });
 }
 
@@ -248,76 +341,36 @@ async function renderHoldOptionsTable() {
   const gen = ++holdOptionsRenderGen;
   const { pull } = getPullHoldC();
   const target = parseFloat($("targetPercent")?.value) || 100;
+  const hadTable = !!body.querySelector(".hold-options-table");
 
-  body.innerHTML = `<p class="placeholder">Working out holds…</p>`;
+  if (!hadTable) {
+    body.innerHTML = `<p class="placeholder">Working out holds…</p>`;
+  }
 
   const rows = await buildHoldOptionRows(pull, target);
   if (gen !== holdOptionsRenderGen) return;
+
+  const sliceSet = !!resolveSliceDateTime(getTargetSliceTimeStr());
+  updatePitStartHint(sliceSet);
+
   if (!rows.length) {
     body.innerHTML = `<p class="hint">Pull temp has to stay above hold temp — raise the probe reading or pick a lower hold.</p>`;
     return;
   }
 
-  const sliceSet = !!resolveSliceDateTime(getTargetSliceTimeStr());
-  const pitHint = $("pitStartHint");
-  if (pitHint) {
-    pitHint.textContent = sliceSet
-      ? "Slice time on — pit start and serve times show too."
-      : "Optional. Serve-around times only.";
+  const table = ensureHoldOptionsTableShell(body);
+  table.dataset.sliceSchedule = sliceSet ? "on" : "off";
+  const tbody = table.querySelector("tbody");
+  if (tbody) {
+    tbody.innerHTML = rows.map((row) => buildHoldOptionRowHtml(row, sliceSet)).join("");
   }
 
-  const thead = sliceSet
-    ? `<tr><th scope="col">Hold</th><th scope="col">Hot box</th><th scope="col">Put on pit</th><th scope="col">Serve</th><th scope="col"></th></tr>`
-    : `<tr><th scope="col">Hold</th><th scope="col">Hot box</th><th scope="col">Serve around</th><th scope="col"></th></tr>`;
-
-  const tbody = rows
-    .map((row) => {
-      const holdCell = `<span class="hold-option-temp">${tempHtml(row.preset.holdC)}</span><span class="hold-option-tag">${row.preset.tag}</span>`;
-      const boxCell = `<strong>${row.boxLabel}</strong><span class="hold-option-sub">${row.steadyLabel} steady after cool-in</span>`;
-      let timeCells = "";
-      if (sliceSet && row.schedule) {
-        timeCells = `<td><strong>${clockTimeHtml(row.schedule.start)}</strong><span class="hold-option-sub">≈${row.schedule.totalH.toFixed(0)} hr total</span></td>
-          <td><strong>${clockTimeHtml(row.schedule.slice)}</strong></td>`;
-      } else if (row.readyIfNow) {
-        timeCells = `<td><strong>${clockTimeHtml(row.readyIfNow)}</strong><span class="hold-option-sub">roughly when to eat</span></td>`;
-      } else {
-        timeCells = sliceSet ? `<td>—</td><td>—</td>` : `<td>—</td>`;
-      }
-      const btnClass = row.selected ? "btn-ghost hold-option-btn hold-option-btn-active" : "btn-ghost hold-option-btn";
-      const btnLabel = row.selected ? "Selected" : "Apply";
-      return `<tr class="hold-option-row${row.selected ? " hold-option-row-active" : ""}" data-hold-c="${row.preset.holdC}">
-        <td>${holdCell}</td>
-        <td>${boxCell}</td>
-        ${timeCells}
-        <td class="hold-option-action"><button type="button" class="${btnClass}" data-hold-pick="${row.preset.holdC}">${btnLabel}</button></td>
-      </tr>`;
-    })
-    .join("");
-
-  body.innerHTML = `
-    <div class="hold-options-table-wrap">
-      <table class="hold-options-table">
-        <thead>${thead}</thead>
-        <tbody>${tbody}</tbody>
-      </table>
-    </div>
-    <p class="hint hold-options-foot">${
-      IS_PUBLIC_SIMPLE
-        ? "Choose a row, then tap <strong>Apply</strong>."
-        : "Choose a row, then tap <strong>Apply</strong> — probe and feel still win."
-    }</p>
-  `;
-
-  body.querySelectorAll("[data-hold-pick]").forEach((btn) => {
-    btn.addEventListener("click", () => {
-      const c = parseFloat(btn.dataset.holdPick);
-      if (Number.isFinite(c)) selectHoldOption(c);
-    });
-  });
+  if (IS_PUBLIC_SIMPLE) updateSimpleStepTabSummaries();
 }
 
 let holdOptionsRenderGen = 0;
-const renderHoldOptionsDebounced = debounce(() => renderHoldOptionsTable(), 200);
+const HOLD_TABLE_DEBOUNCE_MS = 280;
+const renderHoldOptionsDebounced = debounce(() => renderHoldOptionsTable(), HOLD_TABLE_DEBOUNCE_MS);
 
 /**
  * Next device-local moment at HH:MM: today if that clock is still ahead, otherwise tomorrow
@@ -366,19 +419,20 @@ function updateSliceTimeUntilHint() {
   const now = new Date();
   const diffMin = Math.round((slice.getTime() - now.getTime()) / 60000);
   el.classList.toggle("plan-slice-until--past", diffMin < 0);
+  const serveWord = IS_PUBLIC_SIMPLE ? "Serve" : "Slice";
   if (diffMin < 0) {
-    el.textContent = "Slice time in a moment";
+    el.textContent = `${serveWord} time in a moment`;
     el.title = "";
     return;
   }
   if (diffMin === 0) {
-    el.textContent = "Slice time is now";
+    el.textContent = `${serveWord} time is now`;
     el.title = "";
     return;
   }
-  el.textContent = `Slice in ~${formatDurationHrsMins(diffMin)}`;
+  el.textContent = `${serveWord} in ~${formatDurationHrsMins(diffMin)}`;
   const dayWord = isSameLocalCalendarDay(slice, now) ? "later today" : "tomorrow";
-  el.title = `Slice target ${clockTimeText(slice)} (${dayWord}, device clock).`;
+  el.title = `${serveWord} target ${clockTimeText(slice)} (${dayWord}, device clock).`;
 }
 
 function timeStrTo24hFrom12(hour12, minute, ampm) {
@@ -588,7 +642,9 @@ function initSliceTimeInput() {
   const refreshSlicePlanner = () => {
     syncSliceTimeFromInputs();
     updateSliceTimeUntilHint();
+    updatePitStartHint(!!resolveSliceDateTime(getTargetSliceTimeStr()));
     renderHoldOptionsDebounced();
+    if (IS_PUBLIC_SIMPLE) updateSimpleStepTabSummaries();
     if (!IS_PUBLIC_SIMPLE) updatePlanSummaryDebounced();
     saveCookPrefsDebounced();
   };
@@ -1008,10 +1064,15 @@ function simplePullRenderFields(c) {
 
 function simplePullAfterSuccessfulCommit({ updateAlt = false } = {}) {
   syncActiveProfileUI();
-  renderHoldOptionsDebounced();
   updatePullTempBadge();
-  if (!IS_PUBLIC_SIMPLE) updatePlanSummaryDebounced();
-  else renderHoldOptionsTable();
+  if (!IS_PUBLIC_SIMPLE) {
+    renderHoldOptionsDebounced();
+    updatePlanSummaryDebounced();
+  } else {
+    void renderHoldOptionsTable();
+    updateSimpleStepTabSummaries();
+    maybeAutoAdvanceSimpleStepFromPull();
+  }
   saveCookPrefsDebounced();
   updateSimplePullInputOutline();
   if (updateAlt) updateUnitTempAlt();
@@ -1786,11 +1847,112 @@ function wireSimplePullInput() {
   syncSimplePullChrome();
 }
 
+const SIMPLE_STEP_ADVANCE_KEY = "simple-advanced-slice";
+
+function getSimplePlannerCard() {
+  return document.querySelector(".simple-planner-card");
+}
+
+function getActiveSimplePlannerStep() {
+  const card = getSimplePlannerCard();
+  if (!card) return "pull";
+  if (card.classList.contains("simple-step-active--slice")) return "slice";
+  if (card.classList.contains("simple-step-active--hold")) return "hold";
+  return "pull";
+}
+
+function setSimplePlannerStep(step) {
+  const card = getSimplePlannerCard();
+  if (!card) return;
+  card.classList.remove("simple-step-active--pull", "simple-step-active--slice", "simple-step-active--hold");
+  card.classList.add(`simple-step-active--${step}`);
+  syncSimpleStepPanelsA11y();
+  updateSimpleStepTabSummaries();
+}
+
+function syncSimpleStepPanelsA11y() {
+  const card = getSimplePlannerCard();
+  if (!card || !IS_PUBLIC_SIMPLE) return;
+  const wide = window.matchMedia("(min-width: 900px)").matches;
+  const active = getActiveSimplePlannerStep();
+  ["pull", "slice", "hold"].forEach((step) => {
+    const panel = card.querySelector(`.simple-planner-step--${step}`);
+    const tab = document.querySelector(`[data-simple-step="${step}"]`);
+    if (!panel || !tab) return;
+    const show = wide || active === step;
+    panel.hidden = !show;
+    const selected = active === step;
+    tab.setAttribute("aria-selected", selected ? "true" : "false");
+    tab.tabIndex = selected ? 0 : -1;
+  });
+}
+
+function updateSimpleStepTabSummaries() {
+  if (!IS_PUBLIC_SIMPLE) return;
+  const pullEl = $("simpleTabSummaryPull");
+  const sliceEl = $("simpleTabSummarySlice");
+  const holdEl = $("simpleTabSummaryHold");
+  const pullC = readCommittedPullC();
+  if (pullEl) {
+    const label =
+      state.tempUnit === "f" ? `${Math.round(cToF(pullC))}°F` : `${Math.round(pullC)}°C`;
+    pullEl.textContent = label;
+    pullEl.toggleAttribute("aria-hidden", false);
+  }
+  if (sliceEl) {
+    const str = getTargetSliceTimeStr();
+    let summary = "";
+    if (str) {
+      const d = resolveSliceDateTime(str);
+      summary = d ? formatClock12(d) : str;
+    }
+    sliceEl.textContent = summary;
+    sliceEl.toggleAttribute("aria-hidden", !summary);
+  }
+  if (holdEl) {
+    const { hold } = getPullHoldC();
+    const summary = Number.isFinite(hold) ? `${Math.round(hold)}°C` : "";
+    holdEl.textContent = summary;
+    holdEl.toggleAttribute("aria-hidden", !summary);
+  }
+}
+
+function maybeAutoAdvanceSimpleStepFromPull() {
+  if (!IS_PUBLIC_SIMPLE) return;
+  if (window.matchMedia("(min-width: 900px)").matches) return;
+  try {
+    if (sessionStorage.getItem(SIMPLE_STEP_ADVANCE_KEY)) return;
+    sessionStorage.setItem(SIMPLE_STEP_ADVANCE_KEY, "1");
+  } catch {
+    /* ignore */
+  }
+  setSimplePlannerStep("slice");
+}
+
+function initSimpleStepNav() {
+  if (!IS_PUBLIC_SIMPLE) return;
+  const nav = document.querySelector(".simple-step-nav");
+  const card = getSimplePlannerCard();
+  if (!nav || !card) return;
+
+  nav.querySelectorAll("[data-simple-step]").forEach((btn) => {
+    btn.addEventListener("click", () => {
+      const step = btn.dataset.simpleStep;
+      if (step === "pull" || step === "slice" || step === "hold") setSimplePlannerStep(step);
+    });
+  });
+
+  window.matchMedia("(min-width: 900px)").addEventListener("change", syncSimpleStepPanelsA11y);
+  syncSimpleStepPanelsA11y();
+  updateSimpleStepTabSummaries();
+}
+
 function initPublicSimpleMode() {
   if (!IS_PUBLIC_SIMPLE) return;
   const tag = document.querySelector(".tagline");
-  if (tag) tag.textContent = "Pull temp · hold hours · when to slice";
+  if (tag) tag.textContent = "Pull temp · hold hours · when to serve";
   wireSimplePullInput();
+  initSimpleStepNav();
   updatePullTempReminder();
   updatePullTempBadge();
   updateLocalTimeHint();
@@ -3562,6 +3724,7 @@ function wireShareLinks() {
 }
 
 function initPlan() {
+  wireHoldOptionsPickDelegation();
   $("copyPlan")?.addEventListener("click", async () => {
     const text = state.planPlainText || "";
     if (!text) {

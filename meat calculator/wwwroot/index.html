@@ -8,7 +8,7 @@
   <meta property="og:title" content="Smoke Lab - BBQ — brisket pull &amp; hold planner" />
   <meta property="og:description" content="Plan your pull temp, hot hold, and cook sheet — collagen render model, hold hours, and shareable plan." />
   <meta name="theme-color" content="#12100e" />
-  <meta name="smoke-lab-build" content="111" />
+  <meta name="smoke-lab-build" content="124" />
   <meta property="og:type" content="website" />
   <meta property="og:url" content="https://trolle6.github.io/SmokeLab/" />
   <link rel="canonical" href="https://trolle6.github.io/SmokeLab/" />
@@ -22,7 +22,7 @@
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
   <link href="https://fonts.googleapis.com/css2?family=DM+Sans:ital,opsz,wght@0,9..40,400;0,9..40,600;0,9..40,700;1,9..40,400&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet" />
-  <link rel="stylesheet" href="app.css?v=111" />
+  <link rel="stylesheet" href="app.css?v=124" />
   <script>
     (function () {
       var q = location.search || "";
@@ -321,8 +321,22 @@
         <p class="simple-hero-lead">Set pull temp, slice time, then choose a hold.</p>
       </header>
 
-      <article class="card plan-hold-options-card planner-tool-ray simple-planner-card">
-        <section class="simple-planner-step simple-planner-step--pull">
+      <article class="card plan-hold-options-card planner-tool-ray simple-planner-card simple-step-active--pull">
+        <div class="simple-step-nav" role="tablist" aria-label="Planner steps">
+          <button type="button" class="simple-step-nav-btn" role="tab" id="simple-tab-pull" aria-controls="simple-panel-pull" aria-selected="true" data-simple-step="pull">
+            <span class="simple-step-nav-label">Pull</span>
+            <span class="simple-step-nav-summary" id="simpleTabSummaryPull" aria-hidden="true"></span>
+          </button>
+          <button type="button" class="simple-step-nav-btn" role="tab" id="simple-tab-slice" aria-controls="simple-panel-slice" aria-selected="false" tabindex="-1" data-simple-step="slice">
+            <span class="simple-step-nav-label">Serve</span>
+            <span class="simple-step-nav-summary" id="simpleTabSummarySlice" aria-hidden="true"></span>
+          </button>
+          <button type="button" class="simple-step-nav-btn" role="tab" id="simple-tab-hold" aria-controls="simple-panel-hold" aria-selected="false" tabindex="-1" data-simple-step="hold">
+            <span class="simple-step-nav-label">Hold</span>
+            <span class="simple-step-nav-summary" id="simpleTabSummaryHold" aria-hidden="true"></span>
+          </button>
+        </div>
+        <section class="simple-planner-step simple-planner-step--pull" id="simple-panel-pull" role="tabpanel" aria-labelledby="simple-tab-pull">
           <div class="simple-planner-step-head">
             <span class="simple-step-label">1</span>
             <span class="simple-planner-step-title">Pull temp</span>
@@ -334,7 +348,6 @@
                   <label for="simplePullF" class="simple-pull-field-label">°F</label>
                   <input type="text" id="simplePullF" class="simple-pull-input" maxlength="3" value="195" inputmode="numeric" autocomplete="off" spellcheck="false" aria-label="Pull temperature in Fahrenheit" />
                 </div>
-                <span class="simple-pull-dual-link" aria-hidden="true">=</span>
                 <div class="simple-pull-field">
                   <label for="simplePullC" class="simple-pull-field-label">°C</label>
                   <input type="text" id="simplePullC" class="simple-pull-input" maxlength="3" value="91" inputmode="numeric" autocomplete="off" spellcheck="false" aria-label="Pull temperature in Celsius (whole degrees)" />
@@ -352,10 +365,13 @@
           <p class="hint" id="localTimeHint">Local time loads in your browser — no account or API needed.</p>
         </section>
 
-        <section class="simple-planner-step simple-planner-step--slice" aria-labelledby="sliceTimeLabel">
+        <section class="simple-planner-step simple-planner-step--slice" id="simple-panel-slice" role="tabpanel" aria-labelledby="simple-tab-slice" hidden>
+          <p class="simple-slice-optional-marker" id="sliceOptionalMarker">
+            <span class="optional-tag">Optional</span>
+          </p>
           <div class="simple-planner-step-head">
             <span class="simple-step-label">2</span>
-            <h3 class="simple-planner-step-title" id="sliceTimeLabel">When to slice <span class="optional-tag">Optional</span></h3>
+            <h3 class="simple-planner-step-title" id="sliceTimeLabel">When to serve</h3>
           </div>
           <p class="simple-planner-step-lead">Optional. Skip this to see serve-around times only.</p>
           <div class="simple-planner-controls simple-planner-controls--slice">
@@ -369,12 +385,12 @@
                 <div class="slice-time-input-cluster">
                   <div id="sliceTime12Wrap" class="slice-time-12-wrap">
                     <div class="slice-time-12-fields">
-                      <input type="text" id="sliceTime12Text" class="slice-time-text" inputmode="numeric" autocomplete="off" spellcheck="false" placeholder="5:30" aria-label="Slice time, 12-hour (type hour and minute)" />
+                      <input type="text" id="sliceTime12Text" class="slice-time-text" inputmode="numeric" autocomplete="off" spellcheck="false" placeholder="5:30" aria-label="Serve time, 12-hour (type hour and minute)" />
                     </div>
                   </div>
                   <div id="sliceTime24Wrap" class="slice-time-24-wrap hidden">
                     <div class="slice-time-24-fields">
-                      <input type="text" id="sliceTime24Text" class="slice-time-text" inputmode="numeric" autocomplete="off" spellcheck="false" placeholder="17:30" aria-label="Slice time, 24-hour (type hour and minute)" />
+                      <input type="text" id="sliceTime24Text" class="slice-time-text" inputmode="numeric" autocomplete="off" spellcheck="false" placeholder="17:30" aria-label="Serve time, 24-hour (type hour and minute)" />
                     </div>
                   </div>
                 </div>
@@ -397,14 +413,14 @@
           <p class="hint simple-planner-step-foot simple-planner-step-foot--status" id="pitStartHint" aria-live="polite"></p>
         </section>
 
-        <section class="simple-planner-step simple-planner-step--hold">
+        <section class="simple-planner-step simple-planner-step--hold" id="simple-panel-hold" role="tabpanel" aria-labelledby="simple-tab-hold" hidden>
           <div class="simple-planner-step-head">
             <span class="simple-step-label">3</span>
             <h3 class="plan-hold-options-title plan-hold-options-title-full simple-planner-step-title">Hold options</h3>
             <h3 class="plan-hold-options-title-simple simple-planner-step-title">Choose your hold</h3>
           </div>
           <p class="plan-hold-options-lead simple-planner-step-lead">Estimated hold time in the hot box · cool-in included.</p>
-          <div id="holdOptionsBody" class="hold-options-body" aria-live="polite">
+          <div id="holdOptionsBody" class="hold-options-body" aria-live="off">
             <p class="placeholder">Loading holds…</p>
           </div>
         </section>
@@ -714,6 +730,6 @@
   </footer>
 
   <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
-  <script src="app.js?v=102"></script>
+  <script src="app.js?v=124"></script>
 </body>
 </html>
