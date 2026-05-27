@@ -251,12 +251,12 @@ async function renderHoldOptionsTable() {
   const target = parseFloat($("targetPercent")?.value) || 100;
   if (pullLabel) pullLabel.innerHTML = tempHtml(pull);
 
-  body.innerHTML = `<p class="placeholder">Calculating hold options…</p>`;
+  body.innerHTML = `<p class="placeholder">Working out holds…</p>`;
 
   const rows = await buildHoldOptionRows(pull, target);
   if (gen !== holdOptionsRenderGen) return;
   if (!rows.length) {
-    body.innerHTML = `<p class="hint">Hold options need pull hotter than hold — raise probe temp or lower hold.</p>`;
+    body.innerHTML = `<p class="hint">Pull temp has to stay above hold temp — raise the probe reading or pick a lower hold.</p>`;
     return;
   }
 
@@ -264,13 +264,13 @@ async function renderHoldOptionsTable() {
   const pitHint = $("pitStartHint");
   if (pitHint) {
     pitHint.textContent = sliceSet
-      ? "Slice time set — pit & serve columns on."
-      : "Optional. Ready-after-pull only.";
+      ? "Slice time on — pit start and serve times show too."
+      : "Optional. Serve-around times only.";
   }
 
   const thead = sliceSet
     ? `<tr><th scope="col">Hold</th><th scope="col">Hot box</th><th scope="col">Put on pit</th><th scope="col">Serve</th><th scope="col"></th></tr>`
-    : `<tr><th scope="col">Hold</th><th scope="col">Hot box</th><th scope="col">Ready about</th><th scope="col"></th></tr>`;
+    : `<tr><th scope="col">Hold</th><th scope="col">Hot box</th><th scope="col">Serve around</th><th scope="col"></th></tr>`;
 
   const tbody = rows
     .map((row) => {
@@ -281,7 +281,7 @@ async function renderHoldOptionsTable() {
         timeCells = `<td><strong>${clockTimeHtml(row.schedule.start)}</strong><span class="hold-option-sub">≈${row.schedule.totalH.toFixed(0)} hr total</span></td>
           <td><strong>${clockTimeHtml(row.schedule.slice)}</strong></td>`;
       } else if (row.readyIfNow) {
-        timeCells = `<td><strong>${clockTimeHtml(row.readyIfNow)}</strong><span class="hold-option-sub">after pull into box</span></td>`;
+        timeCells = `<td><strong>${clockTimeHtml(row.readyIfNow)}</strong><span class="hold-option-sub">roughly when to eat</span></td>`;
       } else {
         timeCells = sliceSet ? `<td>—</td><td>—</td>` : `<td>—</td>`;
       }
@@ -305,8 +305,8 @@ async function renderHoldOptionsTable() {
     </div>
     <p class="hint hold-options-foot">${
       IS_PUBLIC_SIMPLE
-        ? "Pick a row, then <strong>Apply</strong>."
-        : "Pick a row, then <strong>Apply</strong> — probe + feel still win."
+        ? "Choose a row, then tap <strong>Apply</strong>."
+        : "Choose a row, then tap <strong>Apply</strong> — probe and feel still win."
     }</p>
   `;
 

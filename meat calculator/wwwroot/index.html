@@ -330,7 +330,7 @@
     <section id="panel-plan" class="panel">
       <header class="guide-hero plan-hero plan-hero-full">
         <h2>Cook plan</h2>
-        <p class="guide-sub">Pick a hold schedule for your pull temp, then use the sheet below.</p>
+        <p class="guide-sub">Choose a hold for your pull temp, then use the sheet below.</p>
         <div class="plan-toolbar">
           <button type="button" class="btn-ghost" id="copyPlan">Copy plan</button>
         </div>
@@ -377,7 +377,7 @@
             <span class="simple-step-label">2</span>
             <h3 class="simple-planner-step-title" id="sliceTimeLabel">When to slice <span class="optional-tag">Optional</span></h3>
           </div>
-          <p class="simple-planner-step-lead">Optional. Leave blank for ready-after estimates only.</p>
+          <p class="simple-planner-step-lead">Optional. Skip this to see serve-around times only.</p>
           <div class="simple-planner-controls simple-planner-controls--slice">
             <div class="slice-time-controls-wrap">
               <div
@@ -421,11 +421,11 @@
           <div class="simple-planner-step-head">
             <span class="simple-step-label">3</span>
             <h3 class="plan-hold-options-title plan-hold-options-title-full simple-planner-step-title">Hold options</h3>
-            <h3 class="plan-hold-options-title-simple simple-planner-step-title">Pick a hold temperature</h3>
+            <h3 class="plan-hold-options-title-simple simple-planner-step-title">Choose your hold</h3>
           </div>
-          <p class="plan-hold-options-lead simple-planner-step-lead">At pull <span id="holdOptionsPull" class="simple-planner-pull-inline">—</span> · estimated hold time including cool-in.</p>
+          <p class="plan-hold-options-lead simple-planner-step-lead">At your pull temp <span id="holdOptionsPull" class="simple-planner-pull-inline">—</span> · hot-box time, cool-in included.</p>
           <div id="holdOptionsBody" class="hold-options-body" aria-live="polite">
-            <p class="placeholder">Loading hold options…</p>
+            <p class="placeholder">Loading holds…</p>
           </div>
         </section>
       </article>
@@ -735,6 +735,6 @@
   </footer>
 
   <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
-  <script src="app.js?v=101"></script>
+  <script src="app.js?v=102"></script>
 </body>
 </html>
