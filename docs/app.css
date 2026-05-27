@@ -3571,28 +3571,12 @@ html.site-simple .tagline {
 }
 
 html.site-simple .brand-home {
-  cursor: pointer;
+  cursor: default;
 }
 
 html.site-simple .brand-home h1,
 html.site-simple .brand-home .tagline {
-  text-decoration: underline;
-  text-decoration-thickness: 1px;
-  text-underline-offset: 0.2em;
-  text-decoration-color: rgba(255, 255, 255, 0.14);
-  transition: color 0.15s ease, text-decoration-color 0.15s ease;
-}
-
-html.site-simple .brand-home:hover h1,
-html.site-simple .brand-home:focus-visible h1 {
-  color: var(--gold);
-  text-decoration-color: rgba(232, 106, 26, 0.75);
-}
-
-html.site-simple .brand-home:hover .tagline,
-html.site-simple .brand-home:focus-visible .tagline {
-  text-decoration-color: rgba(232, 106, 26, 0.55);
-  color: var(--smoke);
+  text-decoration: none;
 }
 
 html.site-simple .brand h1 {
