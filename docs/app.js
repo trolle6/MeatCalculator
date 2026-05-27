@@ -204,6 +204,7 @@ function isHoldOptionSelected(holdC) {
 }
 
 function selectHoldOption(holdC) {
+  if (isHoldOptionSelected(holdC)) return;
   setTempInputFromC($("holdTemp"), holdC);
   syncActiveProfileUI();
   if (!IS_PUBLIC_SIMPLE) {
@@ -258,9 +259,8 @@ function updatePitStartHint(sliceSet) {
 }
 
 function holdOptionsFootHtml() {
-  return IS_PUBLIC_SIMPLE
-    ? "Choose a row, then tap <strong>Apply</strong>."
-    : "Choose a row, then tap <strong>Apply</strong> — probe and feel still win.";
+  if (IS_PUBLIC_SIMPLE) return "";
+  return "Tap a row to set your hold — probe and feel still win.";
 }
 
 function holdOptionsTableHeadHtml() {
@@ -270,7 +270,6 @@ function holdOptionsTableHeadHtml() {
     <th scope="col" class="hold-col-serve-around">Serve around</th>
     <th scope="col" class="hold-col-pit hold-col-schedule">Put on pit</th>
     <th scope="col" class="hold-col-serve hold-col-schedule">Serve</th>
-    <th scope="col"></th>
   </tr>`;
 }
 
@@ -294,15 +293,13 @@ function buildHoldOptionRowHtml(row, sliceSet) {
     serveAroundCell = `<td class="hold-col-serve-around"><strong>${clockTimeHtml(row.readyIfNow)}</strong>${eatSub}</td>`;
   }
 
-  const btnClass = row.selected ? "btn-ghost hold-option-btn hold-option-btn-active" : "btn-ghost hold-option-btn";
-  const btnLabel = row.selected ? "Selected" : "Apply";
-  return `<tr class="hold-option-row${row.selected ? " hold-option-row-active" : ""}" data-hold-c="${row.preset.holdC}">
+  const selected = row.selected;
+  return `<tr class="hold-option-row${selected ? " hold-option-row-active" : ""}" data-hold-c="${row.preset.holdC}" role="button" tabindex="0" aria-pressed="${selected ? "true" : "false"}" aria-label="Hold ${row.preset.tag}">
     <td>${holdCell}</td>
     <td>${boxCell}</td>
     ${serveAroundCell}
     ${pitCell}
     ${serveCell}
-    <td class="hold-option-action"><button type="button" class="${btnClass}" data-hold-pick="${row.preset.holdC}">${btnLabel}</button></td>
   </tr>`;
 }
 
@@ -310,6 +307,7 @@ function ensureHoldOptionsTableShell(body) {
   let table = body.querySelector(".hold-options-table");
   if (table) return table;
 
+  const footHtml = holdOptionsFootHtml();
   body.innerHTML = `
     <div class="hold-options-table-wrap">
       <table class="hold-options-table" data-slice-schedule="off">
@@ -317,9 +315,15 @@ function ensureHoldOptionsTableShell(body) {
         <tbody></tbody>
       </table>
     </div>
-    <p class="hint hold-options-foot">${holdOptionsFootHtml()}</p>
+    ${footHtml ? `<p class="hint hold-options-foot">${footHtml}</p>` : ""}
   `;
   return body.querySelector(".hold-options-table");
+}
+
+function pickHoldOptionFromRow(row) {
+  if (!row) return;
+  const c = parseFloat(row.dataset.holdC);
+  if (Number.isFinite(c)) selectHoldOption(c);
 }
 
 function wireHoldOptionsPickDelegation() {
@@ -327,10 +331,14 @@ function wireHoldOptionsPickDelegation() {
   if (!body || body.dataset.holdPickDelegated === "1") return;
   body.dataset.holdPickDelegated = "1";
   body.addEventListener("click", (e) => {
-    const btn = e.target.closest("[data-hold-pick]");
-    if (!btn) return;
-    const c = parseFloat(btn.dataset.holdPick);
-    if (Number.isFinite(c)) selectHoldOption(c);
+    pickHoldOptionFromRow(e.target.closest(".hold-option-row"));
+  });
+  body.addEventListener("keydown", (e) => {
+    if (e.key !== "Enter" && e.key !== " ") return;
+    const row = e.target.closest(".hold-option-row");
+    if (!row || !body.contains(row)) return;
+    e.preventDefault();
+    pickHoldOptionFromRow(row);
   });
 }
 

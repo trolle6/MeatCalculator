@@ -1540,6 +1540,20 @@ html.site-simple .slice-time-controls .unit-toggle-inline-temp {
   color: var(--text-muted);
 }
 
+.hold-option-row {
+  cursor: pointer;
+  transition: background 0.12s ease;
+}
+
+.hold-option-row:hover:not(.hold-option-row-active) {
+  background: rgba(255, 255, 255, 0.03);
+}
+
+.hold-option-row:focus-visible {
+  outline: 2px solid rgba(232, 106, 26, 0.55);
+  outline-offset: -2px;
+}
+
 .hold-option-row-active {
   background: rgba(232, 93, 4, 0.1);
 }
@@ -3785,9 +3799,13 @@ html.site-simple .hold-options-body {
 }
 
 html.site-simple .hold-options-table-wrap {
-  margin-left: 0;
-  margin-right: 0;
+  margin-left: auto;
+  margin-right: auto;
   min-height: 9.5rem;
+  max-width: 38rem;
+  padding-left: 1.15rem;
+  padding-right: 0.35rem;
+  box-sizing: border-box;
 }
 
 html.site-simple #pitStartHint,
@@ -4151,8 +4169,18 @@ html.site-simple .hold-options-table {
 
 html.site-simple .hold-options-table th,
 html.site-simple .hold-options-table td {
-  padding: 0.4rem 0.45rem;
+  padding: 0.5rem 0.65rem;
   vertical-align: middle;
+}
+
+html.site-simple .hold-options-table th:first-child,
+html.site-simple .hold-options-table td:first-child {
+  padding-left: 0.85rem;
+}
+
+html.site-simple .hold-options-table th:not(:first-child),
+html.site-simple .hold-options-table td:not(:first-child) {
+  padding-left: 1rem;
 }
 
 html.site-simple .hold-option-temp {
@@ -4162,21 +4190,6 @@ html.site-simple .hold-option-temp {
 html.site-simple .hold-option-row-active {
   background: rgba(232, 93, 4, 0.14);
   box-shadow: inset 3px 0 0 0 rgba(232, 106, 26, 0.75);
-}
-
-html.site-simple .hold-option-btn {
-  font-size: 0.68rem;
-  font-weight: 500;
-  padding: 0.22rem 0.42rem;
-  opacity: 0.92;
-  border-color: rgba(255, 255, 255, 0.12);
-  color: var(--smoke);
-}
-
-html.site-simple .hold-option-btn.hold-option-btn-active {
-  border-color: rgba(232, 106, 26, 0.45);
-  color: var(--ember);
-  opacity: 1;
 }
 
 html.site-simple .hold-option-tag {
@@ -4200,8 +4213,7 @@ html.site-simple .hold-option-sub {
 }
 
 html.site-simple .hold-options-foot {
-  margin-top: 0.35rem;
-  font-size: 0.7rem;
+  display: none !important;
 }
 
 /* Mobile step tabs (simple site) */
@@ -4423,11 +4435,6 @@ html.site-simple .simple-planner-step--slice .simple-planner-step-lead {
   html.site-simple .hold-option-sub {
     font-size: 0.76rem;
     margin-top: 0.15rem;
-  }
-
-  html.site-simple .hold-option-btn {
-    font-size: 0.8rem;
-    padding: 0.38rem 0.65rem;
   }
 
   html.site-simple .hold-options-table-wrap {
