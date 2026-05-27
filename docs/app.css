@@ -183,6 +183,7 @@ html.site-simple .header-advanced-title {
 
 .unit-toggle {
   display: inline-flex;
+  align-items: stretch;
   border: 1px solid var(--border);
   border-radius: 8px;
   overflow: hidden;
@@ -193,11 +194,18 @@ html.site-simple .header-advanced-title {
   font-family: var(--font);
   font-size: 0.78rem;
   font-weight: 600;
-  padding: 0.35rem 0.65rem;
+  padding: 0.38rem 0.55rem;
   border: none;
   background: transparent;
   color: var(--muted);
   cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex: 1 1 0;
+  min-width: 2.65rem;
+  line-height: 1;
+  text-align: center;
 }
 
 .unit-btn:hover {
@@ -684,17 +692,23 @@ html.site-simple .simple-planner-controls--slice .slice-ampm-toggle {
 html.site-simple .simple-planner-controls--slice .slice-ampm-toggle .unit-btn {
   flex: 1 1 0;
   min-width: 2.5rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
   font-size: 0.82rem;
   font-weight: 700;
-  padding: 0.35rem 0.45rem;
+  padding: 0.42rem 0.5rem;
+  line-height: 1;
+  text-align: center;
 }
 
 html.site-simple .simple-planner-controls--slice .slice-clock-toggle {
-  width: var(--planner-toggle-w);
-  min-width: var(--planner-toggle-w);
+  width: 6.6rem;
+  min-width: 6.6rem;
   margin: 0;
   align-self: stretch;
   display: flex;
+  align-items: stretch;
   border: var(--planner-box-border) solid var(--border);
   border-radius: var(--radius);
   background: var(--surface);
@@ -704,12 +718,15 @@ html.site-simple .simple-planner-controls--slice .slice-clock-toggle {
 html.site-simple .simple-planner-controls--slice .slice-clock-toggle .unit-btn {
   flex: 1 1 0;
   min-width: 0;
-  min-height: 100%;
-  font-family: var(--mono);
-  font-size: 0.95rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-family: var(--font);
+  font-size: 0.84rem;
   font-weight: 700;
-  padding: var(--planner-box-pad-y) 0.35rem;
-  line-height: 1.15;
+  padding: 0.42rem 0.32rem;
+  line-height: 1;
+  letter-spacing: 0.01em;
   text-align: center;
   white-space: nowrap;
 }
@@ -3920,7 +3937,13 @@ html.site-simple .simple-pull-status-hint:empty {
 
 .unit-toggle-inline-temp .unit-btn {
   font-size: 0.72rem;
-  padding: 0.28rem 0.48rem;
+  padding: 0.32rem 0.5rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  line-height: 1;
+  flex: 1 1 0;
+  min-width: 0;
 }
 
 /* Simple pull: symmetric linked °F / °C boxes. */
