@@ -648,12 +648,24 @@ html.site-simple .simple-planner-controls--slice .slice-time-controls-wrap .plan
 
 html.site-simple .simple-planner-controls--slice .slice-time-controls {
   display: grid;
-  grid-template-columns: 1fr auto;
+  grid-template-columns: 1fr var(--slice-ampm-slot-w, 5.9rem) 6.6rem;
   align-items: stretch;
   justify-content: center;
-  gap: 0.55rem;
+  column-gap: 0.5rem;
   width: 100%;
   max-width: 100%;
+}
+
+html.site-simple .simple-planner-controls--slice .slice-time-controls--24 .slice-time-ampm-slot .slice-ampm-toggle {
+  visibility: hidden;
+  pointer-events: none;
+}
+
+html.site-simple .simple-planner-controls--slice .slice-time-ampm-slot {
+  display: flex;
+  align-items: stretch;
+  justify-content: center;
+  min-width: 0;
 }
 
 html.site-simple .simple-planner-controls--slice .slice-time-input-cluster {
@@ -666,7 +678,7 @@ html.site-simple .simple-planner-controls--slice .slice-time-input-cluster {
 html.site-simple .simple-planner-controls--slice .slice-time-12-fields,
 html.site-simple .simple-planner-controls--slice .slice-time-24-fields {
   align-items: stretch;
-  gap: 0.45rem;
+  gap: 0;
 }
 
 html.site-simple .simple-planner-controls--slice .slice-time-text {
@@ -679,9 +691,11 @@ html.site-simple .simple-planner-controls--slice .slice-time-text {
   box-sizing: border-box;
 }
 
-html.site-simple .simple-planner-controls--slice .slice-ampm-toggle {
+html.site-simple .simple-planner-controls--slice .slice-time-ampm-slot .slice-ampm-toggle {
   display: flex;
   align-self: stretch;
+  width: 100%;
+  max-width: var(--slice-ampm-slot-w, 5.9rem);
   min-height: 100%;
   border: var(--planner-box-border) solid var(--border);
   border-radius: var(--radius);
@@ -689,15 +703,15 @@ html.site-simple .simple-planner-controls--slice .slice-ampm-toggle {
   box-sizing: border-box;
 }
 
-html.site-simple .simple-planner-controls--slice .slice-ampm-toggle .unit-btn {
+html.site-simple .simple-planner-controls--slice .slice-time-ampm-slot .slice-ampm-toggle .unit-btn {
   flex: 1 1 0;
-  min-width: 2.5rem;
+  min-width: 0;
   display: flex;
   align-items: center;
   justify-content: center;
   font-size: 0.82rem;
   font-weight: 700;
-  padding: 0.42rem 0.5rem;
+  padding: 0.42rem 0.35rem;
   line-height: 1;
   text-align: center;
 }
@@ -798,7 +812,7 @@ html.site-simple .slice-time-controls .unit-toggle-inline-temp {
 
 .optional-tag {
   font-size: 0.72rem;
-  font-weight: 600;
+  font-weight: 500;
   letter-spacing: 0.02em;
   text-transform: uppercase;
   color: var(--muted);
@@ -824,6 +838,34 @@ html.site-simple .slice-time-controls .unit-toggle-inline-temp {
   background: var(--surface-2);
   border-left: 3px solid var(--safe);
   border-radius: 0 var(--radius) var(--radius) 0;
+}
+
+.pull-temp-why {
+  display: inline-block;
+  margin: 0.15rem 0 0 0.25rem;
+  vertical-align: baseline;
+}
+
+.pull-temp-why-sum {
+  cursor: pointer;
+  font-weight: 600;
+  color: var(--text-muted);
+  font-size: 0.72rem;
+  list-style: none;
+}
+
+.pull-temp-why-sum::-webkit-details-marker {
+  display: none;
+}
+
+.pull-temp-why-body {
+  margin: 0.35rem 0 0;
+  padding: 0;
+  font-size: 0.72rem;
+  line-height: 1.4;
+  color: var(--muted);
+  font-weight: 400;
+  max-width: 28rem;
 }
 
 .pull-temp-reminder strong {
@@ -3685,6 +3727,7 @@ html.site-simple .simple-planner-card {
   );
   --planner-toggle-w: 7.35rem;
   --planner-controls-max: 21.5rem;
+  --slice-ampm-slot-w: 5.9rem;
 }
 
 html.site-simple .simple-planner-step {
@@ -3866,8 +3909,8 @@ html.site-simple #panel-plan .plan-hold-options-lead.simple-planner-step-lead {
 }
 
 html.site-simple .hold-options-foot {
-  margin-top: 0.45rem;
-  font-size: 0.74rem;
+  margin-top: 0.35rem;
+  font-size: 0.68rem;
 }
 
 html.site-simple .header-actions .unit-bar {
@@ -3963,8 +4006,8 @@ html.site-simple .simple-pull-field {
   align-items: center;
   justify-self: center;
   gap: 0.22rem;
-  width: var(--planner-box-w);
-  min-width: var(--planner-box-w);
+  width: calc(var(--planner-box-w) + 0.7rem);
+  min-width: calc(var(--planner-box-w) + 0.7rem);
 }
 
 html.site-simple .simple-pull-field-label {
@@ -4156,14 +4199,49 @@ html.site-simple .hold-option-temp {
   font-size: 0.92rem;
 }
 
-html.site-simple .hold-option-btn {
-  font-size: 0.72rem;
-  padding: 0.28rem 0.5rem;
+html.site-simple .hold-option-row-active {
+  background: rgba(232, 93, 4, 0.14);
+  box-shadow: inset 3px 0 0 0 rgba(232, 106, 26, 0.75);
 }
 
-html.site-simple .plan-slice-local-time.simple-planner-meta {
+html.site-simple .hold-option-btn {
+  font-size: 0.68rem;
+  font-weight: 500;
+  padding: 0.22rem 0.42rem;
+  opacity: 0.92;
+  border-color: rgba(255, 255, 255, 0.12);
+  color: var(--smoke);
+}
+
+html.site-simple .hold-option-btn.hold-option-btn-active {
+  border-color: rgba(232, 106, 26, 0.45);
+  color: var(--ember);
+  opacity: 1;
+}
+
+html.site-simple .simple-device-clock {
+  display: block;
+  margin: 0.25rem auto 0.15rem;
+  max-width: 22rem;
+  font-family: var(--mono);
+  font-size: 0.64rem;
+  font-weight: 500;
+  line-height: 1.35;
   text-align: center;
-  white-space: normal;
+  color: var(--muted);
+  opacity: 0.72;
+}
+
+html.site-simple .simple-device-clock:empty {
+  display: none;
+}
+
+html:not(.site-simple) .simple-device-clock {
+  display: none !important;
+}
+
+html.site-simple .simple-planner-step-title {
+  font-weight: 600;
 }
 
 html.site-simple .plan-slice-field-prominent {

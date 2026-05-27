@@ -264,8 +264,8 @@ async function renderHoldOptionsTable() {
   const pitHint = $("pitStartHint");
   if (pitHint) {
     pitHint.textContent = sliceSet
-      ? "Slice time set — table shows put-on-pit and serve."
-      : "No slice time — table shows ready-after-pull only.";
+      ? "Slice time set — pit & serve columns on."
+      : "Optional. Ready-after-pull only.";
   }
 
   const thead = sliceSet
@@ -286,7 +286,7 @@ async function renderHoldOptionsTable() {
         timeCells = sliceSet ? `<td>—</td><td>—</td>` : `<td>—</td>`;
       }
       const btnClass = row.selected ? "btn-ghost hold-option-btn hold-option-btn-active" : "btn-ghost hold-option-btn";
-      const btnLabel = row.selected ? "Selected" : "Use this";
+      const btnLabel = row.selected ? "Selected" : "Apply";
       return `<tr class="hold-option-row${row.selected ? " hold-option-row-active" : ""}" data-hold-c="${row.preset.holdC}">
         <td>${holdCell}</td>
         <td>${boxCell}</td>
@@ -305,8 +305,8 @@ async function renderHoldOptionsTable() {
     </div>
     <p class="hint hold-options-foot">${
       IS_PUBLIC_SIMPLE
-        ? "Tap <strong>Use this</strong> to apply that hold."
-        : "Tap <strong>Use this</strong> to load that hold into your cook sheet. Probe + feel always win."
+        ? "Pick a row, then <strong>Apply</strong>."
+        : "Pick a row, then <strong>Apply</strong> — probe + feel still win."
     }</p>
   `;
 
@@ -436,6 +436,60 @@ function formatSliceTime12Display(hour12, minute) {
   return `${hour12}:${String(minute).padStart(2, "0")}`;
 }
 
+/**
+ * While typing in the 12-hr slice box, insert ":" like a clock field (digits-only
+ * entry). Matches parseSliceTimeText: 3 digits → H:MM, 4 → HH:MM; 10–12 stay
+ * two-digit hour until a third digit (use "12:30" or "1230" for twelve-thirty).
+ */
+function formatSliceTime12TypingDisplay(raw) {
+  const s = String(raw ?? "");
+  const sepAt = s.search(/[:.]/);
+  if (sepAt !== -1) {
+    const h = s.slice(0, sepAt).replace(/\D/g, "").slice(0, 2);
+    const m = s.slice(sepAt + 1).replace(/\D/g, "").slice(0, 2);
+    if (!h) return "";
+    return m.length ? `${h}:${m}` : `${h}:`;
+  }
+  const digits = s.replace(/\D/g, "").slice(0, 4);
+  const n = digits.length;
+  if (n === 0) return "";
+  if (n === 1) return digits;
+  if (n === 2) {
+    const nn = parseInt(digits, 10);
+    const a = parseInt(digits[0], 10);
+    const b = parseInt(digits[1], 10);
+    if (nn >= 10 && nn <= 12) return digits;
+    if (a >= 1 && a <= 9 && b <= 5) return `${a}:${b}`;
+    return digits;
+  }
+  if (n === 3) return `${digits[0]}:${digits.slice(1)}`;
+  return `${digits.slice(0, 2)}:${digits.slice(2, 4)}`;
+}
+
+function applySliceTime12AutoFormat(el) {
+  if (!el || state.clockInputUnit !== "12") return;
+  const oldVal = el.value;
+  const newVal = formatSliceTime12TypingDisplay(oldVal);
+  if (newVal === oldVal) return;
+  const start = el.selectionStart ?? oldVal.length;
+  const before = oldVal.slice(0, start);
+  const digitCursor = before.replace(/\D/g, "").length;
+  el.value = newVal;
+  let newPos = 0;
+  if (digitCursor > 0) {
+    let d = 0;
+    for (let i = 0; i < newVal.length; i++) {
+      if (/\d/.test(newVal[i])) d++;
+      if (d >= digitCursor) {
+        newPos = i + 1;
+        break;
+      }
+    }
+    if (d < digitCursor) newPos = newVal.length;
+  }
+  el.setSelectionRange(newPos, newPos);
+}
+
 function formatSliceTime24Display(hour24, minute) {
   return `${String(hour24).padStart(2, "0")}:${String(minute).padStart(2, "0")}`;
 }
@@ -512,11 +566,21 @@ function applySliceClockInputUI() {
     btn.classList.toggle("active", on);
     btn.setAttribute("aria-pressed", on);
   });
+  const row = $("sliceTimeControlsRow");
+  if (row) {
+    row.classList.toggle("slice-time-controls--12", is12);
+    row.classList.toggle("slice-time-controls--24", !is12);
+  }
+  const ampm = document.querySelector(".slice-time-ampm-slot .slice-ampm-toggle");
+  if (ampm) {
+    if (is12) ampm.removeAttribute("aria-hidden");
+    else ampm.setAttribute("aria-hidden", "true");
+  }
   const hint = $("planSliceOptionalLead");
   if (hint) {
     hint.innerHTML = is12
-      ? "<strong>12-hr:</strong> type <strong>5:30</strong> + AM/PM."
-      : "<strong>24-hr:</strong> type <strong>17:30</strong> (00–23).";
+      ? "<strong>12-hr:</strong> time on the left · <strong>AM/PM</strong> in the middle."
+      : "<strong>24-hr:</strong> type <strong>17:30</strong> (00–23) in the left box.";
   }
   syncVisibleSliceInputsFromHidden();
   updateSliceTimeUntilHint();
@@ -552,7 +616,10 @@ function initSliceTimeInput() {
   ["sliceTime12Text", "sliceTime24Text"].forEach((id) => {
     const el = $(id);
     if (!el) return;
-    el.addEventListener("input", planRefresh);
+    el.addEventListener("input", () => {
+      if (id === "sliceTime12Text") applySliceTime12AutoFormat(el);
+      planRefresh();
+    });
     el.addEventListener("change", planRefresh);
     el.addEventListener("blur", () => {
       syncSliceTimeFromInputs();
@@ -1419,12 +1486,14 @@ function updatePullTempReminder() {
     return;
   }
   el.hidden = false;
+  const whyF =
+    "Center internal, not a corner reading. Many cooks aim ~195–203 °F before a long hot hold — probe feel still wins.";
+  const whyC =
+    "Center internal, not a corner reading. Many cooks aim ~90.5–95 °C before a long hot hold — probe feel still wins.";
   if (state.tempUnit === "f") {
-    el.innerHTML =
-      "Normally recommended <strong>center internal</strong> temp when you pull brisket: about <strong>195–203 °F</strong> — hot enough to eat safely, with many long hot holds starting around <strong>195 °F</strong>. Probe feel still beats the number.";
+    el.innerHTML = `Typical brisket pull: <strong>195–203 °F</strong> <details class="pull-temp-why"><summary class="pull-temp-why-sum">Why?</summary><p class="pull-temp-why-body">${whyF}</p></details>`;
   } else {
-    el.innerHTML =
-      "Normally recommended <strong>center internal</strong> temp when you pull brisket: about <strong>90.5–95 °C</strong> — hot enough to eat safely, with many long hot holds starting around <strong>90.5 °C</strong>. Probe feel still beats the number.";
+    el.innerHTML = `Typical brisket pull: <strong>90.5–95 °C</strong> <details class="pull-temp-why"><summary class="pull-temp-why-sum">Why?</summary><p class="pull-temp-why-body">${whyC}</p></details>`;
   }
 }
 
@@ -1432,13 +1501,27 @@ function updateLocalTimeHint() {
   const now = new Date();
   const tz = Intl.DateTimeFormat().resolvedOptions().timeZone || "local";
   const el = $("localTimeHint");
-  if (el) {
+  if (el && !IS_PUBLIC_SIMPLE) {
     el.textContent = `Your local time now: ${clockTimeText(now)} (${tz}) — from your device, not a server.`;
+  } else if (el && IS_PUBLIC_SIMPLE) {
+    el.textContent = "";
   }
   const sliceEl = $("planSliceLocalTime");
-  if (sliceEl) {
+  if (sliceEl && !IS_PUBLIC_SIMPLE) {
     sliceEl.textContent = `Now · ${clockTimeText(now)}`;
     sliceEl.title = `Device clock (${tz}) — same time used when you set slice time.`;
+  } else if (sliceEl && IS_PUBLIC_SIMPLE) {
+    sliceEl.textContent = "";
+  }
+  const deviceClock = $("planDeviceClock");
+  if (deviceClock) {
+    if (IS_PUBLIC_SIMPLE) {
+      deviceClock.textContent = `${clockTimeText(now)} · ${tz}`;
+      deviceClock.hidden = false;
+    } else {
+      deviceClock.textContent = "";
+      deviceClock.hidden = true;
+    }
   }
   updateSliceTimeUntilHint();
 }

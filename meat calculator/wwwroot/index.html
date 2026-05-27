@@ -8,7 +8,7 @@
   <meta property="og:title" content="Smoke Lab - BBQ — brisket pull &amp; hold planner" />
   <meta property="og:description" content="Plan your pull temp, hot hold, and cook sheet — collagen render model, hold hours, and shareable plan." />
   <meta name="theme-color" content="#12100e" />
-  <meta name="smoke-lab-build" content="100" />
+  <meta name="smoke-lab-build" content="105" />
   <meta property="og:type" content="website" />
   <meta property="og:url" content="https://trolle6.github.io/SmokeLab/" />
   <link rel="canonical" href="https://trolle6.github.io/SmokeLab/" />
@@ -22,7 +22,7 @@
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
   <link href="https://fonts.googleapis.com/css2?family=DM+Sans:ital,opsz,wght@0,9..40,400;0,9..40,600;0,9..40,700;1,9..40,400&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet" />
-  <link rel="stylesheet" href="app.css?v=100" />
+  <link rel="stylesheet" href="app.css?v=105" />
   <script>
     (function () {
       var q = location.search || "";
@@ -338,7 +338,7 @@
 
       <header class="simple-hero">
         <h2>Plan your cook</h2>
-        <p class="simple-hero-lead">Pull temp → slice time (optional) → hold setting.</p>
+        <p class="simple-hero-lead">Set pull temp, slice time, then choose a hold.</p>
       </header>
 
       <article class="card plan-hold-options-card planner-tool-ray simple-planner-card">
@@ -368,7 +368,7 @@
               <p class="simple-pull-status-hint" id="pullTempBadgeHint"></p>
             </div>
           </div>
-          <p class="hint pull-temp-reminder" id="pullTempReminder" aria-live="polite" hidden></p>
+          <div class="hint pull-temp-reminder" id="pullTempReminder" aria-live="polite" hidden></div>
           <p class="hint" id="localTimeHint">Local time loads in your browser — no account or API needed.</p>
         </section>
 
@@ -377,37 +377,43 @@
             <span class="simple-step-label">2</span>
             <h3 class="simple-planner-step-title" id="sliceTimeLabel">When to slice <span class="optional-tag">Optional</span></h3>
           </div>
-          <p class="simple-planner-step-lead">Skip for hold hours only — add a time to show put-on-pit and serve in the table.</p>
-          <p class="simple-planner-meta plan-slice-local-time" id="planSliceLocalTime"></p>
+          <p class="simple-planner-step-lead">Optional. Leave blank for ready-after estimates only.</p>
           <div class="simple-planner-controls simple-planner-controls--slice">
             <div class="slice-time-controls-wrap">
-              <div class="slice-time-controls" aria-labelledby="sliceTimeLabel" aria-describedby="planSliceOptionalLead pitStartHint">
-              <div class="slice-time-input-cluster">
-                <div id="sliceTime12Wrap" class="slice-time-12-wrap">
-                  <div class="slice-time-12-fields">
-                    <input type="text" id="sliceTime12Text" class="slice-time-text" inputmode="numeric" autocomplete="off" spellcheck="false" placeholder="5:30" aria-label="Slice time, 12-hour (type hour and minute)" />
-                    <div class="unit-toggle unit-toggle-inline-temp slice-ampm-toggle" role="group" aria-label="AM or PM">
-                      <button type="button" class="unit-btn" data-slice-ampm="AM">AM</button>
-                      <button type="button" class="unit-btn active" data-slice-ampm="PM">PM</button>
+              <div
+                class="slice-time-controls"
+                id="sliceTimeControlsRow"
+                aria-labelledby="sliceTimeLabel"
+                aria-describedby="planSliceOptionalLead pitStartHint"
+              >
+                <div class="slice-time-input-cluster">
+                  <div id="sliceTime12Wrap" class="slice-time-12-wrap">
+                    <div class="slice-time-12-fields">
+                      <input type="text" id="sliceTime12Text" class="slice-time-text" inputmode="numeric" autocomplete="off" spellcheck="false" placeholder="5:30" aria-label="Slice time, 12-hour (type hour and minute)" />
+                    </div>
+                  </div>
+                  <div id="sliceTime24Wrap" class="slice-time-24-wrap hidden">
+                    <div class="slice-time-24-fields">
+                      <input type="text" id="sliceTime24Text" class="slice-time-text" inputmode="numeric" autocomplete="off" spellcheck="false" placeholder="17:30" aria-label="Slice time, 24-hour (type hour and minute)" />
                     </div>
                   </div>
                 </div>
-                <div id="sliceTime24Wrap" class="slice-time-24-wrap hidden">
-                  <div class="slice-time-24-fields">
-                    <input type="text" id="sliceTime24Text" class="slice-time-text" inputmode="numeric" autocomplete="off" spellcheck="false" placeholder="17:30" aria-label="Slice time, 24-hour (type hour and minute)" />
+                <div class="slice-time-ampm-slot">
+                  <div class="unit-toggle unit-toggle-inline-temp slice-ampm-toggle" role="group" aria-label="AM or PM">
+                    <button type="button" class="unit-btn" data-slice-ampm="AM">AM</button>
+                    <button type="button" class="unit-btn active" data-slice-ampm="PM">PM</button>
                   </div>
                 </div>
+                <div class="unit-toggle unit-toggle-inline-temp slice-clock-toggle" role="group" aria-label="Time input format">
+                  <button type="button" class="unit-btn active" data-clock-input="12">12-hr</button>
+                  <button type="button" class="unit-btn" data-clock-input="24">24-hr</button>
+                </div>
+                <input type="hidden" id="targetSliceTime" value="" />
               </div>
-              <div class="unit-toggle unit-toggle-inline-temp slice-clock-toggle" role="group" aria-label="Time input format">
-                <button type="button" class="unit-btn active" data-clock-input="12">12-hr</button>
-                <button type="button" class="unit-btn" data-clock-input="24">24-hr</button>
-              </div>
-              <input type="hidden" id="targetSliceTime" value="" />
-            </div>
               <p class="plan-slice-until simple-planner-meta" id="planSliceUntil"></p>
             </div>
           </div>
-          <p class="hint simple-planner-step-foot" id="planSliceOptionalLead">Type 5:30 or 17:30 — leave blank to skip.</p>
+          <p class="hint simple-planner-step-foot" id="planSliceOptionalLead">5:30 or 17:30 — optional.</p>
           <p class="hint simple-planner-step-foot simple-planner-step-foot--status" id="pitStartHint" aria-live="polite"></p>
         </section>
 
@@ -417,7 +423,7 @@
             <h3 class="plan-hold-options-title plan-hold-options-title-full simple-planner-step-title">Hold options</h3>
             <h3 class="plan-hold-options-title-simple simple-planner-step-title">Pick a hold temperature</h3>
           </div>
-          <p class="plan-hold-options-lead simple-planner-step-lead">At pull <span id="holdOptionsPull" class="simple-planner-pull-inline">—</span> · modeled hot-box hours (cool-in + steady).</p>
+          <p class="plan-hold-options-lead simple-planner-step-lead">At pull <span id="holdOptionsPull" class="simple-planner-pull-inline">—</span> · estimated hold time including cool-in.</p>
           <div id="holdOptionsBody" class="hold-options-body" aria-live="polite">
             <p class="placeholder">Loading hold options…</p>
           </div>
@@ -428,6 +434,7 @@
         <p class="placeholder">Loading your plan…</p>
       </div>
 
+      <p class="simple-device-clock" id="planDeviceClock" aria-live="polite"></p>
       <p class="simple-footnote">
         Planning model only — probe and feel win. Inspired by
         <a href="https://www.youtube.com/@SmokeTrailsBBQ" rel="noopener noreferrer" target="_blank">Smoke Trails BBQ</a>
@@ -728,6 +735,6 @@
   </footer>
 
   <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
-  <script src="app.js?v=96"></script>
+  <script src="app.js?v=99"></script>
 </body>
 </html>
