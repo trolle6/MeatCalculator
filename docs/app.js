@@ -949,6 +949,11 @@ function simplePullFields() {
   return { f: $("simplePullF"), c: $("simplePullC") };
 }
 
+/** Whole °C only in the simple planner °C pull box (no .5 / .0). */
+function formatSimplePullCDisplay(c) {
+  return String(Math.round(c));
+}
+
 let simplePullEditUnit = "f";
 let simplePullSyncLock = false;
 
@@ -1004,7 +1009,7 @@ function syncSimplePullDualFrom(unit) {
         return;
       }
       const n = parseFloat(f.value);
-      if (Number.isFinite(n)) c.value = Number(fToC(n)).toFixed(1);
+      if (Number.isFinite(n)) c.value = formatSimplePullCDisplay(fToC(n));
     } else {
       const trimmed = String(c.value).trim();
       if (!trimmed || trimmed === ".") {
@@ -1536,16 +1541,12 @@ function syncSimplePullChrome() {
   unitEl.textContent = state.tempUnit === "f" ? "°F" : "°C";
 }
 
-/** Keep simple pull field to allowed length (195 / 90.5). */
+/** Keep simple pull field to allowed length (195 °F / whole °C). */
 function clampSimplePullInputField(input, unit = state.tempUnit) {
   if (!input) return;
-  const maxLen = unit === "f" ? 3 : 4;
+  const maxLen = 3;
   let v = String(input.value).replace(/[^\d.]/g, "");
-  const dot = v.indexOf(".");
-  if (unit === "f") v = v.replace(/\./g, "");
-  else if (dot !== -1) {
-    v = v.slice(0, dot + 1) + v.slice(dot + 1).replace(/\./g, "");
-  }
+  v = v.replace(/\./g, "");
   if (v.length > maxLen) v = v.slice(0, maxLen);
   if (v !== input.value) input.value = v;
 }
@@ -1566,7 +1567,7 @@ function parseSimplePullDisplay(n, unit) {
     const display = Math.round(n);
     return { ok: true, display, c: fToC(display) };
   }
-  const display = Math.round(n * 2) / 2;
+  const display = Math.round(n);
   return { ok: true, display, c: display };
 }
 
@@ -1639,7 +1640,7 @@ function syncSimplePullFromModel() {
   if (f && c) {
     writeSimplePullCommittedC(pull);
     f.value = String(Math.round(cToF(pull)));
-    c.value = Number(pull).toFixed(1);
+    c.value = formatSimplePullCDisplay(pull);
     updateSimplePullInputOutline();
     return;
   }
@@ -1648,7 +1649,7 @@ function syncSimplePullFromModel() {
   input.dataset.c = cStr;
   if (pullHidden) pullHidden.dataset.c = cStr;
   if (state.tempUnit === "f") input.value = String(Math.round(cToF(pull)));
-  else input.value = Number(pull).toFixed(1);
+  else input.value = formatSimplePullCDisplay(pull);
   updateUnitTempAlt();
   updateSimplePullInputOutline();
 }
@@ -1677,7 +1678,7 @@ function commitSimplePullInput(sourceEl) {
     }
     writeSimplePullCommittedC(parsed.c);
     f.value = String(Math.round(cToF(parsed.c)));
-    c.value = Number(parsed.c).toFixed(1);
+    c.value = formatSimplePullCDisplay(parsed.c);
     syncActiveProfileUI();
     renderHoldOptionsDebounced();
     updatePullTempBadge();
@@ -1707,7 +1708,7 @@ function commitSimplePullInput(sourceEl) {
     return;
   }
   if (state.tempUnit === "f") input.value = String(parsed.display);
-  else input.value = Number(parsed.display).toFixed(1);
+  else input.value = formatSimplePullCDisplay(parsed.display);
   writeSimplePullCommittedC(parsed.c);
   syncActiveProfileUI();
   renderHoldOptionsDebounced();
