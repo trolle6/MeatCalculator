@@ -264,8 +264,8 @@ async function renderHoldOptionsTable() {
   const pitHint = $("pitStartHint");
   if (pitHint) {
     pitHint.textContent = sliceSet
-      ? "Optional time set — serve is your goal; put-on-pit varies by hold (≈11 hr smoke + box in the model)."
-      : "Optional — left blank. Table shows “Ready about” after pull; no put-on-pit or serve columns.";
+      ? "Slice time set — table shows put-on-pit and serve."
+      : "No slice time — table shows ready-after-pull only.";
   }
 
   const thead = sliceSet
@@ -303,7 +303,11 @@ async function renderHoldOptionsTable() {
         <tbody>${tbody}</tbody>
       </table>
     </div>
-    <p class="hint hold-options-foot">Tap <strong>Use this</strong> to load that hold into your cook sheet. Probe + feel always win.</p>
+    <p class="hint hold-options-foot">${
+      IS_PUBLIC_SIMPLE
+        ? "Tap <strong>Use this</strong> to apply that hold."
+        : "Tap <strong>Use this</strong> to load that hold into your cook sheet. Probe + feel always win."
+    }</p>
   `;
 
   body.querySelectorAll("[data-hold-pick]").forEach((btn) => {
@@ -511,8 +515,8 @@ function applySliceClockInputUI() {
   const hint = $("planSliceOptionalLead");
   if (hint) {
     hint.innerHTML = is12
-      ? "<strong>12-hr:</strong> type <strong>5:30</strong> (hour 1–12) + <strong>AM/PM</strong>. Table still shows both formats."
-      : "<strong>24-hr:</strong> type <strong>17:30</strong> (hour <strong>00–23</strong>). Table still shows both formats.";
+      ? "<strong>12-hr:</strong> type <strong>5:30</strong> + AM/PM."
+      : "<strong>24-hr:</strong> type <strong>17:30</strong> (00–23).";
   }
   syncVisibleSliceInputsFromHidden();
   updateSliceTimeUntilHint();
@@ -641,7 +645,10 @@ function collectCookState() {
     temp: state.tempUnit,
     clock: state.clockInputUnit,
     sliceAmPm: state.sliceAmPm,
-    pull: IS_PUBLIC_SIMPLE && $("simplePull") ? readCommittedPullC(90.5) : tempInputValueC($("pullTemp")),
+    pull:
+      hasSimplePullDual() || (IS_PUBLIC_SIMPLE && $("simplePull"))
+        ? readCommittedPullC(90.5)
+        : tempInputValueC($("pullTemp")),
     hold: tempInputValueC($("holdTemp")),
     probe: getSliderTempC(),
     kg: readWeightKg(),
@@ -867,19 +874,48 @@ function configureWeightInput({ kg: kgOverride } = {}) {
   }
 }
 
+function hasSimplePullDual() {
+  return IS_PUBLIC_SIMPLE && !!($("simplePullF") && $("simplePullC"));
+}
+
+function simplePullFields() {
+  return { f: $("simplePullF"), c: $("simplePullC") };
+}
+
+let simplePullEditUnit = "f";
+let simplePullSyncLock = false;
+
 /** Last committed pull °C (simple planner uses dataset — not the visible box while out of range). */
 function readCommittedPullC(defaultC = 90.5) {
   const pullHidden = $("pullTemp");
-  const simple = $("simplePull");
+  const { f, c } = simplePullFields();
   const fromHidden = parseFloat(pullHidden?.dataset.c);
   if (Number.isFinite(fromHidden)) return fromHidden;
+  const fromDual = parseFloat(f?.dataset.c);
+  if (Number.isFinite(fromDual)) return fromDual;
+  const fromDualC = parseFloat(c?.dataset.c);
+  if (Number.isFinite(fromDualC)) return fromDualC;
+  const simple = $("simplePull");
   const fromSimple = parseFloat(simple?.dataset.c);
   if (Number.isFinite(fromSimple)) return fromSimple;
   return defaultC;
 }
 
-/** Live #simplePull box → °C for badge, outline, and °F/°C hint (includes out-of-range typing). */
+/** Live pull box(es) → °C for badge and outline (includes out-of-range typing). */
 function readSimplePullDisplayC(defaultC = 90.5) {
+  const { f, c } = simplePullFields();
+  if (f && c) {
+    const focused = document.activeElement;
+    let unit = simplePullEditUnit;
+    if (focused === f) unit = "f";
+    else if (focused === c) unit = "c";
+    const input = unit === "c" ? c : f;
+    const trimmed = String(input.value).trim();
+    if (!trimmed || trimmed === ".") return readCommittedPullC(defaultC);
+    const n = parseFloat(input.value);
+    if (!Number.isFinite(n)) return readCommittedPullC(defaultC);
+    return unit === "f" ? fToC(n) : n;
+  }
   const input = $("simplePull");
   if (!input || !IS_PUBLIC_SIMPLE) return readCommittedPullC(defaultC);
   const trimmed = String(input.value).trim();
@@ -889,10 +925,40 @@ function readSimplePullDisplayC(defaultC = 90.5) {
   return state.tempUnit === "f" ? fToC(n) : n;
 }
 
+function syncSimplePullDualFrom(unit) {
+  const { f, c } = simplePullFields();
+  if (!f || !c || simplePullSyncLock) return;
+  simplePullSyncLock = true;
+  try {
+    if (unit === "f") {
+      const trimmed = String(f.value).trim();
+      if (!trimmed || trimmed === ".") {
+        c.value = "";
+        return;
+      }
+      const n = parseFloat(f.value);
+      if (Number.isFinite(n)) c.value = Number(fToC(n)).toFixed(1);
+    } else {
+      const trimmed = String(c.value).trim();
+      if (!trimmed || trimmed === ".") {
+        f.value = "";
+        return;
+      }
+      const n = parseFloat(c.value);
+      if (Number.isFinite(n)) f.value = String(Math.round(cToF(n)));
+    }
+  } finally {
+    simplePullSyncLock = false;
+  }
+}
+
 /** Read °C from a temp field. Uses stored dataset.c unless the user is actively typing. */
 function tempInputValueC(inputEl, defaultC = 90.5) {
   if (!inputEl) return defaultC;
-  if (inputEl.id === "simplePull" && IS_PUBLIC_SIMPLE) {
+  if (
+    IS_PUBLIC_SIMPLE &&
+    (inputEl.id === "simplePull" || inputEl.id === "simplePullF" || inputEl.id === "simplePullC")
+  ) {
     return readCommittedPullC(defaultC);
   }
   const stored = parseFloat(inputEl.dataset.c);
@@ -1015,7 +1081,7 @@ async function refreshAllForUnits({ weight = false, temp = false } = {}) {
 }
 
 function getReferencePullTempC() {
-  if (IS_PUBLIC_SIMPLE && $("simplePull")) return readSimplePullDisplayC(90.5);
+  if (hasSimplePullDual() || (IS_PUBLIC_SIMPLE && $("simplePull"))) return readSimplePullDisplayC(90.5);
   const pullEl = $("pullTemp");
   if (pullEl) return tempInputValueC(pullEl, getSliderTempC());
   return getSliderTempC();
@@ -1024,6 +1090,7 @@ function getReferencePullTempC() {
 function updateUnitTempAlt() {
   const c = getReferencePullTempC();
   if (!Number.isFinite(c)) return;
+  if (hasSimplePullDual()) return;
   const input = $("simplePull");
   document.querySelectorAll(".unit-temp-alt").forEach((el) => {
     if (el.classList.contains("unit-temp-alt--inline") && IS_PUBLIC_SIMPLE && input) {
@@ -1099,15 +1166,19 @@ function initUnits() {
       const next = btn.dataset.unitTemp;
       if (next !== "f" && next !== "c") return;
       if (next === state.tempUnit) return;
-      const input = $("simplePull");
-      if (input && IS_PUBLIC_SIMPLE) {
-        const c = readSimplePullDisplayC(90.5);
+      if (hasSimplePullDual()) {
         state.tempUnit = next;
-        if (Number.isFinite(c)) {
-          input.value = next === "f" ? String(Math.round(cToF(c))) : Number(c).toFixed(1);
-        }
       } else {
-        state.tempUnit = next;
+        const input = $("simplePull");
+        if (input && IS_PUBLIC_SIMPLE) {
+          const c = readSimplePullDisplayC(90.5);
+          state.tempUnit = next;
+          if (Number.isFinite(c)) {
+            input.value = next === "f" ? String(Math.round(cToF(c))) : Number(c).toFixed(1);
+          }
+        } else {
+          state.tempUnit = next;
+        }
       }
       saveUnitPrefs();
       applyUnitPrefs();
@@ -1309,23 +1380,42 @@ function getPullTempGuide(pullC) {
   };
 }
 
+/** One short line under the badge in simple planner (less copy than full guide). */
+function getPullTempGuideSimple(pullC) {
+  const guide = getPullTempGuide(pullC);
+  const pct = Math.round(estimateRenderedAtPull(pullC));
+  if (pullC < 60) return { ...guide, hint: "Below safe temp — keep cooking." };
+  if (pullC < 71) return { ...guide, hint: `~${pct}% render · still tough` };
+  if (pullC < 90) return { ...guide, hint: `~${pct}% render · long hold likely` };
+  if (pullC < 99) return { ...guide, hint: `~${pct}% render at pull` };
+  return { ...guide, hint: `~${pct}% render · flat may dry` };
+}
+
 function updatePullTempBadge() {
   const badge = $("pullTempBadge");
   const labelEl = $("pullTempBadgeLabel");
   const hintEl = $("pullTempBadgeHint");
   if (!badge || !labelEl) return;
   const pull =
-    IS_PUBLIC_SIMPLE && $("simplePull") ? readSimplePullDisplayC(90.5) : getPullHoldC().pull;
-  const guide = getPullTempGuide(pull);
+    hasSimplePullDual() || (IS_PUBLIC_SIMPLE && $("simplePull"))
+      ? readSimplePullDisplayC(90.5)
+      : getPullHoldC().pull;
+  const guide = IS_PUBLIC_SIMPLE ? getPullTempGuideSimple(pull) : getPullTempGuide(pull);
   labelEl.textContent = guide.label;
   badge.className = `pull-temp-badge pull-temp-badge--${guide.cls}`;
-  if (hintEl) hintEl.textContent = guide.hint;
+  if (hintEl) hintEl.textContent = guide.hint || "";
   updateSimplePullInputOutline();
 }
 
 function updatePullTempReminder() {
   const el = $("pullTempReminder");
   if (!el) return;
+  if (IS_PUBLIC_SIMPLE) {
+    el.hidden = true;
+    el.textContent = "";
+    return;
+  }
+  el.hidden = false;
   if (state.tempUnit === "f") {
     el.innerHTML =
       "Normally recommended <strong>center internal</strong> temp when you pull brisket: about <strong>195–203 °F</strong> — hot enough to eat safely, with many long hot holds starting around <strong>195 °F</strong>. Probe feel still beats the number.";
@@ -1351,26 +1441,26 @@ function updateLocalTimeHint() {
 }
 
 function syncSimplePullChrome() {
+  const { f, c } = simplePullFields();
+  if (f && c) return;
   const unitEl = $("simplePullUnit");
   const input = $("simplePull");
   if (!unitEl || !input) return;
   input.maxLength = 4;
-  if (state.tempUnit === "f") {
-    unitEl.textContent = "°F";
-  } else {
-    unitEl.textContent = "°C";
-  }
+  unitEl.textContent = state.tempUnit === "f" ? "°F" : "°C";
 }
 
-/** Keep simple pull field to at most 4 characters (e.g. 195, 90.5). */
-function clampSimplePullInputField(input) {
-  if (!input || input.maxLength < 1) return;
+/** Keep simple pull field to allowed length (195 / 90.5). */
+function clampSimplePullInputField(input, unit = state.tempUnit) {
+  if (!input) return;
+  const maxLen = unit === "f" ? 3 : 4;
   let v = String(input.value).replace(/[^\d.]/g, "");
   const dot = v.indexOf(".");
-  if (dot !== -1) {
+  if (unit === "f") v = v.replace(/\./g, "");
+  else if (dot !== -1) {
     v = v.slice(0, dot + 1) + v.slice(dot + 1).replace(/\./g, "");
   }
-  if (v.length > input.maxLength) v = v.slice(0, input.maxLength);
+  if (v.length > maxLen) v = v.slice(0, maxLen);
   if (v !== input.value) input.value = v;
 }
 
@@ -1394,10 +1484,13 @@ function parseSimplePullDisplay(n, unit) {
   return { ok: true, display, c: display };
 }
 
-function setSimplePullRangeError(typed) {
+function setSimplePullRangeError(typed, unit) {
   const el = $("pullTempReminder");
+  const u = unit || simplePullEditUnit;
   if (el) {
-    el.innerHTML = `That pull temp is outside the planner range (<strong>${simplePullRangeLabel(state.tempUnit)}</strong>). You entered <strong>${typed}</strong> — try the <strong>195 °F / 90.5 °C</strong> band, or switch °F/°C if you meant the other scale.`;
+    el.innerHTML = IS_PUBLIC_SIMPLE
+      ? `Outside <strong>165–210 °F</strong> / <strong>74–99 °C</strong> — you entered <strong>${typed}</strong>.`
+      : `Outside planner range (<strong>${simplePullRangeLabel("f")}</strong> or <strong>${simplePullRangeLabel("c")}</strong>). You entered <strong>${typed}</strong> — try the <strong>195 / 90.5</strong> band.`;
   }
   updateSimplePullInputOutline();
 }
@@ -1407,48 +1500,111 @@ function clearSimplePullRangeError() {
   updateSimplePullInputOutline();
 }
 
-/** Green / red border on #simplePull — matches pull guide (Juicy zone, unsafe, etc.). */
-function updateSimplePullInputOutline() {
-  const input = $("simplePull");
-  if (!input || !IS_PUBLIC_SIMPLE) return;
+function applySimplePullOutlineClass(input, unit) {
+  if (!input) return;
   input.classList.remove("simple-pull-input--invalid", "simple-pull-input--ok");
-
   const trimmed = String(input.value).trim();
   if (!trimmed || trimmed === ".") return;
-
-  const parsed = parseSimplePullDisplay(parseFloat(input.value), state.tempUnit);
+  const parsed = parseSimplePullDisplay(parseFloat(input.value), unit);
   if (!parsed?.ok) {
     input.classList.add("simple-pull-input--invalid");
     return;
   }
   const guide = getPullTempGuide(parsed.c);
-  if (guide.cls === "ok") {
-    input.classList.add("simple-pull-input--ok");
-  } else if (guide.cls === "danger" || guide.cls === "warn") {
-    input.classList.add("simple-pull-input--invalid");
+  if (guide.cls === "ok") input.classList.add("simple-pull-input--ok");
+  else if (guide.cls === "danger" || guide.cls === "warn") input.classList.add("simple-pull-input--invalid");
+}
+
+/** Green / red border on pull fields — matches pull guide (Juicy zone, unsafe, etc.). */
+function updateSimplePullInputOutline() {
+  if (!IS_PUBLIC_SIMPLE) return;
+  const { f, c } = simplePullFields();
+  if (f && c) {
+    applySimplePullOutlineClass(f, "f");
+    applySimplePullOutlineClass(c, "c");
+    return;
+  }
+  const input = $("simplePull");
+  if (!input) return;
+  applySimplePullOutlineClass(input, state.tempUnit);
+}
+
+function writeSimplePullCommittedC(c) {
+  const pullHidden = $("pullTemp");
+  const cStr = String(c);
+  if (pullHidden) pullHidden.dataset.c = cStr;
+  const { f, c: cEl } = simplePullFields();
+  if (f) f.dataset.c = cStr;
+  if (cEl) cEl.dataset.c = cStr;
+  const legacy = $("simplePull");
+  if (legacy) legacy.dataset.c = cStr;
+  const slider = $("tempSlider");
+  if (slider) {
+    slider.value = c.toFixed(1);
+    slider.dataset.c = cStr;
   }
 }
 
 function syncSimplePullFromModel() {
-  const input = $("simplePull");
   const pullHidden = $("pullTemp");
-  if (!input) return;
+  const { f, c } = simplePullFields();
   const pull = readCommittedPullC(90.5);
-  input.dataset.c = String(pull);
-  if (pullHidden) pullHidden.dataset.c = String(pull);
-  if (state.tempUnit === "f") {
-    input.value = String(Math.round(cToF(pull)));
-  } else {
-    input.value = Number(pull).toFixed(1);
+  const cStr = String(pull);
+  if (f && c) {
+    writeSimplePullCommittedC(pull);
+    f.value = String(Math.round(cToF(pull)));
+    c.value = Number(pull).toFixed(1);
+    updateSimplePullInputOutline();
+    return;
   }
+  const input = $("simplePull");
+  if (!input) return;
+  input.dataset.c = cStr;
+  if (pullHidden) pullHidden.dataset.c = cStr;
+  if (state.tempUnit === "f") input.value = String(Math.round(cToF(pull)));
+  else input.value = Number(pull).toFixed(1);
   updateUnitTempAlt();
   updateSimplePullInputOutline();
 }
 
-function commitSimplePullInput() {
+function commitSimplePullInput(sourceEl) {
+  const { f, c } = simplePullFields();
+  if (f && c) {
+    const focused = sourceEl || document.activeElement;
+    const unit = focused === c ? "c" : focused === f ? "f" : simplePullEditUnit;
+    const input = unit === "c" ? c : f;
+    clampSimplePullInputField(input, unit);
+    clearSimplePullRangeError();
+    const trimmed = String(input.value).trim();
+    if (trimmed === "" || trimmed === ".") {
+      syncSimplePullFromModel();
+      return;
+    }
+    const parsed = parseSimplePullDisplay(parseFloat(input.value), unit);
+    if (!parsed) {
+      syncSimplePullFromModel();
+      return;
+    }
+    if (!parsed.ok) {
+      setSimplePullRangeError(trimmed, unit);
+      return;
+    }
+    writeSimplePullCommittedC(parsed.c);
+    f.value = String(Math.round(cToF(parsed.c)));
+    c.value = Number(parsed.c).toFixed(1);
+    syncActiveProfileUI();
+    renderHoldOptionsDebounced();
+    updatePullTempBadge();
+    if (!IS_PUBLIC_SIMPLE) updatePlanSummaryDebounced();
+    else renderHoldOptionsTable();
+    saveCookPrefsDebounced();
+    updateSimplePullInputOutline();
+    return;
+  }
+
   const input = $("simplePull");
   if (!input) return;
-  clampSimplePullInputField(input);
+  clampSimplePullInputField(input, state.tempUnit);
   clearSimplePullRangeError();
   const trimmed = String(input.value).trim();
   if (trimmed === "" || trimmed === ".") {
@@ -1461,21 +1617,12 @@ function commitSimplePullInput() {
     return;
   }
   if (!parsed.ok) {
-    setSimplePullRangeError(trimmed);
-    /* Keep what they typed — do not rewrite the box or poison the model. */
+    setSimplePullRangeError(trimmed, state.tempUnit);
     return;
   }
   if (state.tempUnit === "f") input.value = String(parsed.display);
   else input.value = Number(parsed.display).toFixed(1);
-  const c = parsed.c;
-  const pullHidden = $("pullTemp");
-  if (pullHidden) pullHidden.dataset.c = String(c);
-  input.dataset.c = String(c);
-  const slider = $("tempSlider");
-  if (slider) {
-    slider.value = c.toFixed(1);
-    slider.dataset.c = String(c);
-  }
+  writeSimplePullCommittedC(parsed.c);
   syncActiveProfileUI();
   renderHoldOptionsDebounced();
   updatePullTempBadge();
@@ -1486,16 +1633,59 @@ function commitSimplePullInput() {
   updateSimplePullInputOutline();
 }
 
+function wireSimplePullDualInput() {
+  const { f, c } = simplePullFields();
+  if (!f || !c) return false;
+
+  const onInput = (unit) => () => {
+    simplePullEditUnit = unit;
+    const input = unit === "c" ? c : f;
+    clampSimplePullInputField(input, unit);
+    clearSimplePullRangeError();
+    syncSimplePullDualFrom(unit);
+    updatePullTempBadge();
+    updateSimplePullInputOutline();
+  };
+
+  const onFocus = (unit) => () => {
+    simplePullEditUnit = unit;
+  };
+
+  const onBlur = (unit) => () => {
+    simplePullEditUnit = unit;
+    commitSimplePullInput(unit === "c" ? c : f);
+  };
+
+  const onEnter = (el) => (e) => {
+    if (e.key === "Enter") {
+      e.preventDefault();
+      el.blur();
+    }
+  };
+
+  f.addEventListener("input", onInput("f"));
+  c.addEventListener("input", onInput("c"));
+  f.addEventListener("focus", onFocus("f"));
+  c.addEventListener("focus", onFocus("c"));
+  f.addEventListener("blur", onBlur("f"));
+  c.addEventListener("blur", onBlur("c"));
+  f.addEventListener("keydown", onEnter(f));
+  c.addEventListener("keydown", onEnter(c));
+  syncSimplePullFromModel();
+  return true;
+}
+
 function wireSimplePullInput() {
+  if (wireSimplePullDualInput()) return;
   const input = $("simplePull");
   if (!input) return;
   input.addEventListener("input", () => {
-    clampSimplePullInputField(input);
+    clampSimplePullInputField(input, state.tempUnit);
     clearSimplePullRangeError();
     updatePullTempBadge();
     updateUnitTempAlt();
   });
-  input.addEventListener("blur", commitSimplePullInput);
+  input.addEventListener("blur", () => commitSimplePullInput(input));
   input.addEventListener("keydown", (e) => {
     if (e.key === "Enter") {
       e.preventDefault();
@@ -2064,7 +2254,10 @@ async function updateRendering() {
 function getPullHoldC() {
   const pullEl = $("pullTemp");
   const holdEl = $("holdTemp");
-  const pull = IS_PUBLIC_SIMPLE && $("simplePull") ? readCommittedPullC(90.5) : tempInputValueC(pullEl, 90.5);
+  const pull =
+    hasSimplePullDual() || (IS_PUBLIC_SIMPLE && $("simplePull"))
+      ? readCommittedPullC(90.5)
+      : tempInputValueC(pullEl, 90.5);
   const hold = tempInputValueC(holdEl, 65.5);
   return { pull, hold };
 }

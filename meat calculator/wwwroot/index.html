@@ -8,7 +8,7 @@
   <meta property="og:title" content="Smoke Lab - BBQ — brisket pull &amp; hold planner" />
   <meta property="og:description" content="Plan your pull temp, hot hold, and cook sheet — collagen render model, hold hours, and shareable plan." />
   <meta name="theme-color" content="#12100e" />
-  <meta name="smoke-lab-build" content="89" />
+  <meta name="smoke-lab-build" content="94" />
   <meta property="og:type" content="website" />
   <meta property="og:url" content="https://trolle6.github.io/SmokeLab/" />
   <link rel="canonical" href="https://trolle6.github.io/SmokeLab/" />
@@ -22,7 +22,7 @@
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
   <link href="https://fonts.googleapis.com/css2?family=DM+Sans:ital,opsz,wght@0,9..40,400;0,9..40,600;0,9..40,700;1,9..40,400&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet" />
-  <link rel="stylesheet" href="app.css?v=89" />
+  <link rel="stylesheet" href="app.css?v=97" />
   <script>
     (function () {
       var q = location.search || "";
@@ -30,6 +30,18 @@
       var local = h === "localhost" || h === "127.0.0.1";
       if ((h.endsWith("github.io") || local) && q.indexOf("full=1") === -1) {
         document.documentElement.classList.add("site-simple");
+        function wireSimpleBrandToFull() {
+          var brand = document.querySelector(".brand-home");
+          if (!brand) return;
+          brand.href = "./?full=1";
+          brand.setAttribute("aria-label", "Open full Smoke Lab planner");
+          brand.setAttribute("title", "Open full planner — tabs, gauge, weight, learn");
+        }
+        if (document.readyState === "loading") {
+          document.addEventListener("DOMContentLoaded", wireSimpleBrandToFull);
+        } else {
+          wireSimpleBrandToFull();
+        }
       }
     })();
   </script>
@@ -325,92 +337,91 @@
       </header>
 
       <header class="simple-hero">
-        <h2>Pull · hold · slice</h2>
-        <p class="simple-hero-lead">Enter pull temp, when you want to slice, then pick a hold setting.</p>
+        <h2>Plan your cook</h2>
+        <p class="simple-hero-lead">Pull temp → slice time (optional) → hold setting.</p>
       </header>
 
-      <article class="card plan-hold-options-card planner-tool-ray">
-        <div class="simple-step">
-          <span class="simple-step-label">1</span>
-          <div class="simple-step-body">
-            <label for="simplePull">Pull temperature</label>
-            <div class="simple-pull-layout">
-              <div class="simple-pull-row">
-                <input type="text" id="simplePull" class="simple-pull-input" maxlength="4" value="195" inputmode="decimal" autocomplete="off" spellcheck="false" aria-describedby="pullTempBadgeHint pullTempReminder localTimeHint" />
-                <span class="simple-pull-unit" id="simplePullUnit">°F</span>
-                <div class="simple-pull-unit-switch" aria-label="Temperature units">
-                  <div class="unit-toggle unit-toggle-inline-temp" role="group" aria-label="Temperature">
-                    <button type="button" class="unit-btn active" data-unit-temp="f">°F</button>
-                    <button type="button" class="unit-btn" data-unit-temp="c">°C</button>
-                  </div>
-                  <p class="unit-temp-alt unit-temp-alt--inline" aria-live="polite" title="Current pull temp in the other unit"></p>
-                </div>
-              </div>
-              <div class="simple-pull-badge-row">
-                <div class="pull-temp-badge pull-temp-badge--ok" id="pullTempBadge" aria-live="polite" title="Modeled brisket pull guide">
-                  <span class="pull-temp-badge-label" id="pullTempBadgeLabel">Juicy zone</span>
-                </div>
-              </div>
-            </div>
-            <p class="hint pull-temp-badge-hint" id="pullTempBadgeHint">~40% collagen at pull — long hot hold is normal.</p>
-            <p class="hint pull-temp-reminder" id="pullTempReminder" aria-live="polite"></p>
-            <p class="hint" id="localTimeHint">Local time loads in your browser — no account or API needed.</p>
+      <article class="card plan-hold-options-card planner-tool-ray simple-planner-card">
+        <section class="simple-planner-step simple-planner-step--pull">
+          <div class="simple-planner-step-head">
+            <span class="simple-step-label">1</span>
+            <span class="simple-planner-step-title">Pull temp</span>
           </div>
-        </div>
-
-        <div class="simple-step">
-          <span class="simple-step-label">2</span>
-          <div class="simple-step-body plan-slice-field plan-slice-field-prominent">
-            <div class="plan-slice-heading-row">
-              <label id="sliceTimeLabel" class="slice-time-label">
-                When do you want to slice?
-                <span class="optional-tag">Optional</span>
-              </label>
-              <p class="plan-slice-local-time" id="planSliceLocalTime"></p>
+          <div class="simple-pull-layout">
+            <div class="simple-planner-controls simple-planner-controls--pull">
+              <div class="simple-pull-dual" role="group" aria-label="Pull temperature in Fahrenheit and Celsius" aria-describedby="pullTempBadgeHint">
+                <div class="simple-pull-field">
+                  <label for="simplePullF" class="simple-pull-field-label">°F</label>
+                  <input type="text" id="simplePullF" class="simple-pull-input" maxlength="3" value="195" inputmode="numeric" autocomplete="off" spellcheck="false" aria-label="Pull temperature in Fahrenheit" />
+                </div>
+                <span class="simple-pull-dual-link" aria-hidden="true">=</span>
+                <div class="simple-pull-field">
+                  <label for="simplePullC" class="simple-pull-field-label">°C</label>
+                  <input type="text" id="simplePullC" class="simple-pull-input" maxlength="4" value="90.5" inputmode="decimal" autocomplete="off" spellcheck="false" aria-label="Pull temperature in Celsius" />
+                </div>
+              </div>
             </div>
-            <p class="hint plan-slice-optional-lead">You can skip this — step 3 still works with hold hours only. Add a time if you want put-on-pit and serve times in the table.</p>
+            <div class="simple-pull-status" aria-live="polite">
+              <div class="pull-temp-badge pull-temp-badge--ok" id="pullTempBadge" title="Modeled brisket pull guide">
+                <span class="pull-temp-badge-label" id="pullTempBadgeLabel">Juicy zone</span>
+              </div>
+              <p class="simple-pull-status-hint" id="pullTempBadgeHint"></p>
+            </div>
+          </div>
+          <p class="hint pull-temp-reminder" id="pullTempReminder" aria-live="polite" hidden></p>
+          <p class="hint" id="localTimeHint">Local time loads in your browser — no account or API needed.</p>
+        </section>
+
+        <section class="simple-planner-step simple-planner-step--slice" aria-labelledby="sliceTimeLabel">
+          <div class="simple-planner-step-head">
+            <span class="simple-step-label">2</span>
+            <h3 class="simple-planner-step-title" id="sliceTimeLabel">When to slice <span class="optional-tag">Optional</span></h3>
+          </div>
+          <p class="simple-planner-step-lead">Skip for hold hours only — add a time to show put-on-pit and serve in the table.</p>
+          <p class="simple-planner-meta plan-slice-local-time" id="planSliceLocalTime"></p>
+          <div class="simple-planner-controls simple-planner-controls--slice">
             <div class="slice-time-controls-wrap">
-              <div class="slice-time-controls" aria-labelledby="sliceTimeLabel" aria-describedby="pitStartHint planSliceOptionalLead">
-                <div class="slice-time-input-cluster">
-                  <div id="sliceTime12Wrap" class="slice-time-12-wrap">
-                    <div class="slice-time-12-fields">
-                      <input type="text" id="sliceTime12Text" class="slice-time-text" inputmode="numeric" autocomplete="off" spellcheck="false" placeholder="5:30" aria-label="Slice time, 12-hour (type hour and minute)" />
-                      <div class="unit-toggle unit-toggle-inline-temp slice-ampm-toggle" role="group" aria-label="AM or PM">
-                        <button type="button" class="unit-btn" data-slice-ampm="AM">AM</button>
-                        <button type="button" class="unit-btn active" data-slice-ampm="PM">PM</button>
-                      </div>
-                    </div>
-                  </div>
-                  <div id="sliceTime24Wrap" class="slice-time-24-wrap hidden">
-                    <div class="slice-time-24-fields">
-                      <input type="text" id="sliceTime24Text" class="slice-time-text" inputmode="numeric" autocomplete="off" spellcheck="false" placeholder="17:30" aria-label="Slice time, 24-hour (type hour and minute)" />
+              <div class="slice-time-controls" aria-labelledby="sliceTimeLabel" aria-describedby="planSliceOptionalLead pitStartHint">
+              <div class="slice-time-input-cluster">
+                <div id="sliceTime12Wrap" class="slice-time-12-wrap">
+                  <div class="slice-time-12-fields">
+                    <input type="text" id="sliceTime12Text" class="slice-time-text" inputmode="numeric" autocomplete="off" spellcheck="false" placeholder="5:30" aria-label="Slice time, 12-hour (type hour and minute)" />
+                    <div class="unit-toggle unit-toggle-inline-temp slice-ampm-toggle" role="group" aria-label="AM or PM">
+                      <button type="button" class="unit-btn" data-slice-ampm="AM">AM</button>
+                      <button type="button" class="unit-btn active" data-slice-ampm="PM">PM</button>
                     </div>
                   </div>
                 </div>
-                <div class="unit-toggle unit-toggle-inline-temp slice-clock-toggle" role="group" aria-label="Time input format">
-                  <button type="button" class="unit-btn active" data-clock-input="12">12-hr</button>
-                  <button type="button" class="unit-btn" data-clock-input="24">24-hr</button>
+                <div id="sliceTime24Wrap" class="slice-time-24-wrap hidden">
+                  <div class="slice-time-24-fields">
+                    <input type="text" id="sliceTime24Text" class="slice-time-text" inputmode="numeric" autocomplete="off" spellcheck="false" placeholder="17:30" aria-label="Slice time, 24-hour (type hour and minute)" />
+                  </div>
                 </div>
-                <input type="hidden" id="targetSliceTime" value="" />
               </div>
-              <p class="plan-slice-until" id="planSliceUntil"></p>
+              <div class="unit-toggle unit-toggle-inline-temp slice-clock-toggle" role="group" aria-label="Time input format">
+                <button type="button" class="unit-btn active" data-clock-input="12">12-hr</button>
+                <button type="button" class="unit-btn" data-clock-input="24">24-hr</button>
+              </div>
+              <input type="hidden" id="targetSliceTime" value="" />
             </div>
-            <p class="hint plan-slice-clock-hint" id="planSliceOptionalLead">Type a time like 5:30 or 17:30 — leave blank to skip.</p>
-            <p class="hint plan-slice-hint" id="pitStartHint">Leave blank for “Ready about” only — no pit schedule needed.</p>
+              <p class="plan-slice-until simple-planner-meta" id="planSliceUntil"></p>
+            </div>
           </div>
-        </div>
+          <p class="hint simple-planner-step-foot" id="planSliceOptionalLead">Type 5:30 or 17:30 — leave blank to skip.</p>
+          <p class="hint simple-planner-step-foot simple-planner-step-foot--status" id="pitStartHint" aria-live="polite"></p>
+        </section>
 
-        <div class="simple-step simple-step-table">
-          <span class="simple-step-label">3</span>
-          <div class="simple-step-body">
-            <h3 class="plan-hold-options-title plan-hold-options-title-full">Hold options for <span id="holdOptionsPull">—</span></h3>
-            <h3 class="plan-hold-options-title-simple">Pick a hold temperature</h3>
-            <p class="plan-hold-options-lead">Hours are modeled time in the hot box (cool-in + steady at hold).</p>
-            <div id="holdOptionsBody" class="hold-options-body" aria-live="polite">
-              <p class="placeholder">Loading hold options…</p>
-            </div>
+        <section class="simple-planner-step simple-planner-step--hold">
+          <div class="simple-planner-step-head">
+            <span class="simple-step-label">3</span>
+            <h3 class="plan-hold-options-title plan-hold-options-title-full simple-planner-step-title">Hold options</h3>
+            <h3 class="plan-hold-options-title-simple simple-planner-step-title">Pick a hold temperature</h3>
           </div>
-        </div>
+          <p class="plan-hold-options-lead simple-planner-step-lead">At pull <span id="holdOptionsPull" class="simple-planner-pull-inline">—</span> · modeled hot-box hours (cool-in + steady).</p>
+          <div id="holdOptionsBody" class="hold-options-body" aria-live="polite">
+            <p class="placeholder">Loading hold options…</p>
+          </div>
+        </section>
       </article>
 
       <div id="planSheet" class="plan-sheet plan-sheet-full">
@@ -717,6 +728,6 @@
   </footer>
 
   <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
-  <script src="app.js?v=91"></script>
+  <script src="app.js?v=95"></script>
 </body>
 </html>
