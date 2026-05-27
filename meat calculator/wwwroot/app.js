@@ -1163,9 +1163,12 @@ function initUnits() {
   });
   document.querySelectorAll("[data-unit-temp]").forEach((btn) => {
     btn.addEventListener("click", () => {
-      const next = btn.dataset.unitTemp;
+      let next = btn.dataset.unitTemp;
       if (next !== "f" && next !== "c") return;
-      if (next === state.tempUnit) return;
+      /* Re-click active segment flips (same idea as AM/PM and 12-hr / 24-hr). */
+      if (next === state.tempUnit) {
+        next = next === "f" ? "c" : "f";
+      }
       if (hasSimplePullDual()) {
         state.tempUnit = next;
       } else {
