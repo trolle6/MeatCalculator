@@ -266,20 +266,20 @@ function holdOptionsFootHtml() {
 function holdOptionsTableColgroupHtml() {
   return `<colgroup>
     <col class="hold-col-hold" />
-    <col class="hold-col-box" />
-    <col class="hold-col-serve-around" />
     <col class="hold-col-pit hold-col-schedule" />
+    <col class="hold-col-box" />
     <col class="hold-col-serve hold-col-schedule" />
+    <col class="hold-col-serve-around" />
   </colgroup>`;
 }
 
 function holdOptionsTableHeadHtml() {
   return `<tr>
     <th scope="col">Hold</th>
-    <th scope="col">Hot box</th>
-    <th scope="col" class="hold-col-serve-around">Serve around</th>
     <th scope="col" class="hold-col-pit hold-col-schedule">Put on pit</th>
+    <th scope="col" class="hold-col-box">Hot box</th>
     <th scope="col" class="hold-col-serve hold-col-schedule">Serve</th>
+    <th scope="col" class="hold-col-serve-around">Serve around</th>
   </tr>`;
 }
 
@@ -306,10 +306,10 @@ function buildHoldOptionRowHtml(row, sliceSet) {
   const selected = row.selected;
   return `<tr class="hold-option-row${selected ? " hold-option-row-active" : ""}" data-hold-c="${row.preset.holdC}" role="button" tabindex="0" aria-pressed="${selected ? "true" : "false"}" aria-label="Hold ${row.preset.tag}">
     <td>${holdCell}</td>
-    <td>${boxCell}</td>
-    ${serveAroundCell}
     ${pitCell}
+    <td class="hold-col-box">${boxCell}</td>
     ${serveCell}
+    ${serveAroundCell}
   </tr>`;
 }
 
