@@ -1,15 +1,15 @@
-﻿# GitHub Pages — match localhost:5180
+# GitHub Pages ? match local `dotnet run`
 
-The public site must serve the **built** app from `meat calculator/wwwroot` (same as `dotnet run` on port 5180).
+The public site must serve the **built** app from `meat calculator/wwwroot` (same as `dotnet run` on the dev URL in `launchSettings.json`, currently **5247**).
 
 ## Settings (do this once)
 
-**Settings → Actions → General**
+**Settings ? Actions ? General**
 
 - Allow all actions
 - Workflow permissions: **Read and write**
 
-**Settings → Pages → Build and deployment**
+**Settings ? Pages ? Build and deployment**
 
 Pick **one** source (both are kept in sync by CI):
 
@@ -17,7 +17,7 @@ Pick **one** source (both are kept in sync by CI):
 |--------|--------|--------|--------|
 | **A** | Deploy from a branch | `main` | **`/docs`** |
 | **B** | Deploy from a branch | `gh-pages` | `/ (root)` |
-| **C** | **GitHub Actions** | (workflow deploys artifact) | — |
+| **C** | **GitHub Actions** | (workflow deploys artifact) | ? |
 
 Click **Save** after any change.
 
@@ -35,7 +35,7 @@ View source on https://trolle6.github.io/SmokeLab/
 powershell -ExecutionPolicy Bypass -File scripts/publish-gh-pages.ps1
 ```
 
-Then **Settings → Pages → Save** again.
+Then **Settings ? Pages ? Save** again.
 
 ## Local preview
 
@@ -44,5 +44,6 @@ cd "meat calculator"
 dotnet run
 ```
 
-Open http://localhost:5180/ — simple planner (same as github.io).  
-Full app: http://localhost:5180/?full=1
+Open http://localhost:5247/ (or http://localhost:5180/) - simple planner (same as github.io).  
+Full app: http://localhost:5247/?full=1 (or http://localhost:5180/?full=1)
+

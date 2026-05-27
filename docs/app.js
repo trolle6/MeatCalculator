@@ -39,10 +39,10 @@ syncFooterVersionFromBuildMeta();
  * ---------------------------------------------------------------------------
  *  ENV & HTTP          getPagesBase, USE_STATIC_API, IS_PUBLIC_SIMPLE, apiGet/Post
  *  Hold planner rows   buildHoldOptionRows, renderHoldOptionsTable, selectHoldOption
- *  Slice wall-clock    resolveSliceDateTime, parseSliceTimeText, syncSliceTimeFromInputs,
- *                      initSliceTimeInput, computePitStartSchedule, updateSliceTimeUntilHint
+ *  Slice wall-clock    resolveSliceDateTime, parseSliceTimeText, initSliceTimeInput
  *  Cook prefs & URL    loadUnitPrefs, collectCookState, restoreCookStateAfterLoad
- *  Units & temps       initUnits, applyUnitPrefs, refreshAllForUnits, tempHtml, simple pull
+ *  Units & temps       initUnits, applyUnitPrefs, refreshAllForUnits, tempHtml
+ *  Simple pull °F/°C   simplePull* helpers, wireSimplePullInput, commitSimplePullInput
  *  Probe / hold / plan updateHold, updatePlanSummary, renderPlan…, gauge
  *  Learn / reference   loadScience, loadGuide, loadSources, initRest
  * ---------------------------------------------------------------------------
@@ -587,7 +587,7 @@ function applySliceClockInputUI() {
 }
 
 function initSliceTimeInput() {
-  const planRefresh = () => {
+  const refreshSlicePlanner = () => {
     syncSliceTimeFromInputs();
     updateSliceTimeUntilHint();
     renderHoldOptionsDebounced();
@@ -601,7 +601,7 @@ function initSliceTimeInput() {
       state.clockInputUnit = state.clockInputUnit === "12" ? "24" : "12";
       saveUnitPrefs();
       applySliceClockInputUI();
-      planRefresh();
+      refreshSlicePlanner();
     });
   });
 
@@ -609,7 +609,7 @@ function initSliceTimeInput() {
     btn.addEventListener("click", () => {
       state.sliceAmPm = state.sliceAmPm === "AM" ? "PM" : "AM";
       updateSliceAmPmUI();
-      planRefresh();
+      refreshSlicePlanner();
     });
   });
 
@@ -618,13 +618,13 @@ function initSliceTimeInput() {
     if (!el) return;
     el.addEventListener("input", () => {
       if (id === "sliceTime12Text") applySliceTime12AutoFormat(el);
-      planRefresh();
+      refreshSlicePlanner();
     });
-    el.addEventListener("change", planRefresh);
+    el.addEventListener("change", refreshSlicePlanner);
     el.addEventListener("blur", () => {
       syncSliceTimeFromInputs();
       syncVisibleSliceInputsFromHidden();
-      planRefresh();
+      refreshSlicePlanner();
     });
   });
 
@@ -941,6 +941,17 @@ function configureWeightInput({ kg: kgOverride } = {}) {
   }
 }
 
+/* ----- Simple planner pull temp (dual °F / °C) ----- */
+
+const SIMPLE_PULL_DEFAULT_C = 90.5;
+const SIMPLE_PULL_RANGE = Object.freeze({
+  f: { min: 165, max: 210 },
+  c: { min: 74, max: 99 },
+});
+
+let simplePullEditUnit = "f";
+let simplePullSyncLock = false;
+
 function hasSimplePullDual() {
   return IS_PUBLIC_SIMPLE && !!($("simplePullF") && $("simplePullC"));
 }
@@ -954,23 +965,58 @@ function formatSimplePullCDisplay(c) {
   return String(Math.round(c));
 }
 
-let simplePullEditUnit = "f";
-let simplePullSyncLock = false;
-
-/** Last committed pull °C (simple planner uses dataset — not the visible box while out of range). */
-function readCommittedPullC(defaultC = 90.5) {
-  const pullHidden = $("pullTemp");
+function simplePullDatasetCValues() {
   const { f, c } = simplePullFields();
-  const fromHidden = parseFloat(pullHidden?.dataset.c);
-  if (Number.isFinite(fromHidden)) return fromHidden;
-  const fromDual = parseFloat(f?.dataset.c);
-  if (Number.isFinite(fromDual)) return fromDual;
-  const fromDualC = parseFloat(c?.dataset.c);
-  if (Number.isFinite(fromDualC)) return fromDualC;
-  const simple = $("simplePull");
-  const fromSimple = parseFloat(simple?.dataset.c);
-  if (Number.isFinite(fromSimple)) return fromSimple;
+  return [$("pullTemp")?.dataset.c, f?.dataset.c, c?.dataset.c, $("simplePull")?.dataset.c];
+}
+
+/** Last committed pull °C (dataset on hidden / dual / legacy — not invalid typed display). */
+function readCommittedPullC(defaultC = SIMPLE_PULL_DEFAULT_C) {
+  for (const raw of simplePullDatasetCValues()) {
+    const v = parseFloat(raw);
+    if (Number.isFinite(v)) return v;
+  }
   return defaultC;
+}
+
+function simplePullActiveUnit(sourceEl) {
+  const { f, c } = simplePullFields();
+  if (f && c) {
+    if (sourceEl === c) return "c";
+    if (sourceEl === f) return "f";
+    return simplePullEditUnit;
+  }
+  return state.tempUnit;
+}
+
+function simplePullInputForUnit(unit) {
+  const { f, c } = simplePullFields();
+  if (f && c) return unit === "c" ? c : f;
+  return $("simplePull");
+}
+
+function simplePullRenderFields(c) {
+  const { f, c: cEl } = simplePullFields();
+  if (f && cEl) {
+    f.value = String(Math.round(cToF(c)));
+    cEl.value = formatSimplePullCDisplay(c);
+    return;
+  }
+  const input = $("simplePull");
+  if (!input) return;
+  if (state.tempUnit === "f") input.value = String(Math.round(cToF(c)));
+  else input.value = formatSimplePullCDisplay(c);
+}
+
+function simplePullAfterSuccessfulCommit({ updateAlt = false } = {}) {
+  syncActiveProfileUI();
+  renderHoldOptionsDebounced();
+  updatePullTempBadge();
+  if (!IS_PUBLIC_SIMPLE) updatePlanSummaryDebounced();
+  else renderHoldOptionsTable();
+  saveCookPrefsDebounced();
+  updateSimplePullInputOutline();
+  if (updateAlt) updateUnitTempAlt();
 }
 
 /** Live pull box(es) → °C for badge and outline (includes out-of-range typing). */
@@ -1551,8 +1597,6 @@ function clampSimplePullInputField(input, unit = state.tempUnit) {
   if (v !== input.value) input.value = v;
 }
 
-const SIMPLE_PULL_RANGE = { f: { min: 165, max: 210 }, c: { min: 74, max: 99 } };
-
 function simplePullRangeLabel(unit) {
   const r = SIMPLE_PULL_RANGE[unit];
   return unit === "f" ? `${r.min}–${r.max} °F` : `${r.min}–${r.max} °C`;
@@ -1634,90 +1678,51 @@ function writeSimplePullCommittedC(c) {
 
 function syncSimplePullFromModel() {
   const pullHidden = $("pullTemp");
-  const { f, c } = simplePullFields();
-  const pull = readCommittedPullC(90.5);
+  const pull = readCommittedPullC();
   const cStr = String(pull);
-  if (f && c) {
-    writeSimplePullCommittedC(pull);
-    f.value = String(Math.round(cToF(pull)));
-    c.value = formatSimplePullCDisplay(pull);
-    updateSimplePullInputOutline();
-    return;
+  writeSimplePullCommittedC(pull);
+  simplePullRenderFields(pull);
+  if (!hasSimplePullDual()) {
+    const input = $("simplePull");
+    if (input) input.dataset.c = cStr;
+    if (pullHidden) pullHidden.dataset.c = cStr;
+    updateUnitTempAlt();
   }
-  const input = $("simplePull");
-  if (!input) return;
-  input.dataset.c = cStr;
-  if (pullHidden) pullHidden.dataset.c = cStr;
-  if (state.tempUnit === "f") input.value = String(Math.round(cToF(pull)));
-  else input.value = formatSimplePullCDisplay(pull);
-  updateUnitTempAlt();
   updateSimplePullInputOutline();
 }
 
 function commitSimplePullInput(sourceEl) {
-  const { f, c } = simplePullFields();
-  if (f && c) {
-    const focused = sourceEl || document.activeElement;
-    const unit = focused === c ? "c" : focused === f ? "f" : simplePullEditUnit;
-    const input = unit === "c" ? c : f;
-    clampSimplePullInputField(input, unit);
-    clearSimplePullRangeError();
-    const trimmed = String(input.value).trim();
-    if (trimmed === "" || trimmed === ".") {
-      syncSimplePullFromModel();
-      return;
-    }
-    const parsed = parseSimplePullDisplay(parseFloat(input.value), unit);
-    if (!parsed) {
-      syncSimplePullFromModel();
-      return;
-    }
-    if (!parsed.ok) {
-      setSimplePullRangeError(trimmed, unit);
-      return;
-    }
-    writeSimplePullCommittedC(parsed.c);
-    f.value = String(Math.round(cToF(parsed.c)));
-    c.value = formatSimplePullCDisplay(parsed.c);
-    syncActiveProfileUI();
-    renderHoldOptionsDebounced();
-    updatePullTempBadge();
-    if (!IS_PUBLIC_SIMPLE) updatePlanSummaryDebounced();
-    else renderHoldOptionsTable();
-    saveCookPrefsDebounced();
-    updateSimplePullInputOutline();
-    return;
-  }
-
-  const input = $("simplePull");
+  const unit = simplePullActiveUnit(sourceEl || document.activeElement);
+  const input = simplePullInputForUnit(unit);
   if (!input) return;
-  clampSimplePullInputField(input, state.tempUnit);
+
+  clampSimplePullInputField(input, unit);
   clearSimplePullRangeError();
   const trimmed = String(input.value).trim();
   if (trimmed === "" || trimmed === ".") {
     syncSimplePullFromModel();
     return;
   }
-  const parsed = parseSimplePullDisplay(parseFloat(input.value), state.tempUnit);
+
+  const parsed = parseSimplePullDisplay(parseFloat(input.value), unit);
   if (!parsed) {
     syncSimplePullFromModel();
     return;
   }
   if (!parsed.ok) {
-    setSimplePullRangeError(trimmed, state.tempUnit);
+    setSimplePullRangeError(trimmed, unit);
     return;
   }
-  if (state.tempUnit === "f") input.value = String(parsed.display);
-  else input.value = formatSimplePullCDisplay(parsed.display);
+
   writeSimplePullCommittedC(parsed.c);
-  syncActiveProfileUI();
-  renderHoldOptionsDebounced();
-  updatePullTempBadge();
-  if (!IS_PUBLIC_SIMPLE) updatePlanSummaryDebounced();
-  else renderHoldOptionsTable();
-  saveCookPrefsDebounced();
-  updateUnitTempAlt();
-  updateSimplePullInputOutline();
+  if (hasSimplePullDual()) {
+    simplePullRenderFields(parsed.c);
+  } else if (state.tempUnit === "f") {
+    input.value = String(parsed.display);
+  } else {
+    input.value = formatSimplePullCDisplay(parsed.display);
+  }
+  simplePullAfterSuccessfulCommit({ updateAlt: !hasSimplePullDual() });
 }
 
 function wireSimplePullDualInput() {
