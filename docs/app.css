@@ -3870,6 +3870,53 @@ html.site-simple .hold-options-table td.hold-col-serve {
   text-align: right;
 }
 
+@media (max-width: 700px) {
+  html.site-simple .hold-options-table-wrap {
+    padding: 0 0.2rem;
+    overflow-x: hidden;
+  }
+
+  html.site-simple .hold-options-table {
+    table-layout: auto;
+    width: 100%;
+  }
+
+  html.site-simple .hold-options-table colgroup {
+    display: none;
+  }
+
+  html.site-simple .hold-options-table thead {
+    display: table-header-group;
+  }
+
+  html.site-simple .hold-options-table tr {
+    display: table-row;
+    margin: 0;
+    padding: 0;
+    border: 0;
+  }
+
+  html.site-simple .hold-options-table th,
+  html.site-simple .hold-options-table td {
+    display: table-cell;
+    padding: 0.62rem 0.45rem;
+    border-bottom: 1px solid var(--border);
+    vertical-align: middle;
+  }
+
+  html.site-simple .hold-options-table th {
+    font-size: 0.68rem;
+  }
+
+  html.site-simple .hold-option-temp {
+    font-size: 0.96rem;
+  }
+
+  html.site-simple .hold-option-sub {
+    margin-top: 0.12rem;
+  }
+}
+
 html.site-simple #pitStartHint,
 html.site-simple .simple-planner-controls--slice .plan-slice-until {
   min-height: 2.6em;
