@@ -3936,6 +3936,13 @@ html.site-simple .hold-options-table td.hold-col-serve {
     letter-spacing: 0.04em;
   }
 
+  html.site-simple .hold-options-table th.hold-col-serve-around {
+    font-size: 0.58rem;
+    letter-spacing: 0.02em;
+    line-height: 1.25;
+    hyphens: auto;
+  }
+
   html.site-simple .hold-options-table td strong {
     font-family: var(--mono);
     font-variant-numeric: tabular-nums;

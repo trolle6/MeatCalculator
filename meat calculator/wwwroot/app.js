@@ -255,7 +255,7 @@ function updatePitStartHint(sliceSet) {
     ? IS_PUBLIC_SIMPLE
       ? "Serve time on — pit start and serve times show too."
       : "Slice time on — pit start and serve times show too."
-    : "Optional. Serve-around times only.";
+    : "Optional. Estimated serve times only.";
 }
 
 function holdOptionsFootHtml() {
@@ -279,13 +279,13 @@ function holdOptionsTableHeadHtml() {
     <th scope="col" class="hold-col-pit hold-col-schedule">Put on pit</th>
     <th scope="col" class="hold-col-box">Hot box</th>
     <th scope="col" class="hold-col-serve hold-col-schedule">Serve</th>
-    <th scope="col" class="hold-col-serve-around">Serve around</th>
+    <th scope="col" class="hold-col-serve-around">Estimated serve time</th>
   </tr>`;
 }
 
 function buildHoldOptionRowHtml(row, sliceSet) {
   const holdCell = `<span class="hold-option-temp">${tempHtml(row.preset.holdC)}</span><span class="hold-option-tag">${row.preset.tag}</span>`;
-  const boxSub = IS_PUBLIC_SIMPLE ? "after cool-in" : `${row.steadyLabel} steady after cool-in`;
+  const boxSub = IS_PUBLIC_SIMPLE ? "incl. rest before hold" : `${row.steadyLabel} steady after rest before hold`;
   const boxCell = `<strong>${row.boxLabel}</strong><span class="hold-option-sub">${boxSub}</span>`;
 
   let serveAroundCell = `<td class="hold-col-serve-around">—</td>`;
