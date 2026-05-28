@@ -4131,6 +4131,15 @@ html.site-simple .simple-pull-field .simple-pull-input {
   letter-spacing: 0.03em;
 }
 
+@media (max-width: 700px) {
+  html.site-simple .simple-pull-dual {
+    --planner-box-w: calc(
+      3.05em + 2 * var(--planner-box-pad-x) + 2 * var(--planner-box-border)
+    );
+    column-gap: 0.7rem;
+  }
+}
+
 .unit-temp-alt--inline {
   font-size: 0.64rem;
   max-width: 6.5rem;
