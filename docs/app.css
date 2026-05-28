@@ -3881,23 +3881,32 @@ html.site-simple .hold-options-table td.hold-col-serve {
     width: 100%;
   }
 
-  /* Balance visible hold sheet columns so Hot box sits on card center (under step badge). */
+  /* Hold column reads wide (temps + tags); nudge Hot box right so it lines up under step badge. */
   html.site-simple .hold-options-table[data-slice-schedule="off"] td:first-child {
-    width: 30%;
+    width: 26%;
+    padding-right: 0.25rem;
   }
 
   html.site-simple .hold-options-table[data-slice-schedule="off"] .hold-col-box {
-    width: 40%;
+    width: 48%;
   }
 
   html.site-simple .hold-options-table[data-slice-schedule="off"] .hold-col-serve-around {
-    width: 30%;
+    width: 26%;
+    padding-left: 0.2rem;
   }
 
   html.site-simple .hold-options-table th.hold-col-box,
   html.site-simple .hold-options-table td.hold-col-box {
-    padding-left: 0.55rem;
+    padding-left: 0.35rem;
     padding-right: 0.35rem;
+    text-align: center;
+  }
+
+  html.site-simple .hold-options-table th.hold-col-box {
+    letter-spacing: 0.06em;
+    padding-left: 0.5rem;
+    padding-right: 0.2rem;
   }
 
   html.site-simple .hold-options-table td.hold-col-box strong,
