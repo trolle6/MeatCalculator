@@ -3877,8 +3877,35 @@ html.site-simple .hold-options-table td.hold-col-serve {
   }
 
   html.site-simple .hold-options-table {
-    table-layout: auto;
+    table-layout: fixed;
     width: 100%;
+  }
+
+  /* Balance visible hold sheet columns so Hot box sits on card center (under step badge). */
+  html.site-simple .hold-options-table[data-slice-schedule="off"] td:first-child {
+    width: 30%;
+  }
+
+  html.site-simple .hold-options-table[data-slice-schedule="off"] .hold-col-box {
+    width: 40%;
+  }
+
+  html.site-simple .hold-options-table[data-slice-schedule="off"] .hold-col-serve-around {
+    width: 30%;
+  }
+
+  html.site-simple .hold-options-table th.hold-col-box,
+  html.site-simple .hold-options-table td.hold-col-box {
+    padding-left: 0.55rem;
+    padding-right: 0.35rem;
+  }
+
+  html.site-simple .hold-options-table td.hold-col-box strong,
+  html.site-simple .hold-options-table td.hold-col-box .hold-option-sub {
+    display: block;
+    text-align: center;
+    margin-left: auto;
+    margin-right: auto;
   }
 
   html.site-simple .hold-options-table colgroup {
