@@ -3901,19 +3901,55 @@ html.site-simple .hold-options-table td.hold-col-serve {
     display: table-cell;
     padding: 0.62rem 0.45rem;
     border-bottom: 1px solid var(--border);
-    vertical-align: middle;
+    vertical-align: top;
   }
 
   html.site-simple .hold-options-table th {
     font-size: 0.68rem;
+    letter-spacing: 0.04em;
+  }
+
+  html.site-simple .hold-options-table td strong {
+    font-family: var(--mono);
+    font-variant-numeric: tabular-nums;
+    letter-spacing: 0.01em;
   }
 
   html.site-simple .hold-option-temp {
-    font-size: 0.96rem;
+    font-size: 0.95rem;
+    line-height: 1.12;
+  }
+
+  html.site-simple .hold-option-temp .temp-pair {
+    display: inline-flex;
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 0.06rem;
+    white-space: nowrap;
+  }
+
+  html.site-simple .hold-option-temp .temp-pair-val,
+  html.site-simple .hold-option-temp .temp-pair-alt {
+    font-family: var(--mono);
+    font-variant-numeric: tabular-nums;
+  }
+
+  html.site-simple .hold-option-temp .temp-pair-alt {
+    font-size: 0.9em;
+  }
+
+  html.site-simple .hold-option-temp .temp-pair-alt::before {
+    display: none;
+  }
+
+  html.site-simple .hold-option-tag {
+    margin-top: 0.2rem;
+    line-height: 1.28;
   }
 
   html.site-simple .hold-option-sub {
     margin-top: 0.12rem;
+    line-height: 1.25;
   }
 }
 
