@@ -11,13 +11,15 @@ The public site must serve the **built** app from `meat calculator/wwwroot` (sam
 
 **Settings ? Pages ? Build and deployment**
 
-Pick **one** source (both are kept in sync by CI):
+Pick **one** source (CI keeps `main` → `/docs` in sync for option A):
 
 | Option | Source | Branch | Folder |
 |--------|--------|--------|--------|
 | **A** | Deploy from a branch | `main` | **`/docs`** |
-| **B** | Deploy from a branch | `gh-pages` | `/ (root)` |
-| **C** | **GitHub Actions** | (workflow deploys artifact) | ? |
+| **B** | Deploy from a branch | `gh-pages` | `/ (root)` (manual script only — workflow does **not** push here) |
+| **C** | **GitHub Actions** (recommended) | workflow `Deploy GitHub Pages` | artifact from `_site` |
+
+Use **C** or **A**, not both C and B. If you see a red **pages build and deployment** on `gh-pages` while **Deploy GitHub Pages** is green, switch Pages source to **GitHub Actions** (or `main` / `/docs`) and Save.
 
 Click **Save** after any change.
 

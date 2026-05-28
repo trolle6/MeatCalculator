@@ -72,14 +72,8 @@ jobs:
           grep -q "app.css?v=${BUILD}" _site/index.html
           echo "BUILD=${BUILD}" >> "$GITHUB_ENV"
 
-      - name: Publish gh-pages branch
-        uses: peaceiris/actions-gh-pages@v4
-        with:
-          github_token: ${{ secrets.GITHUB_TOKEN }}
-          publish_dir: ./_site
-          publish_branch: gh-pages
-          force_orphan: true
-          commit_message: "deploy: ${{ github.sha }} (build ${{ env.BUILD }})"
+      # Site is published via actions/deploy-pages only (GitHub Actions source).
+      # Do not also push gh-pages — that triggers a second Pages deployment that fails.
 
       - name: Sync docs folder on main
         run: |
