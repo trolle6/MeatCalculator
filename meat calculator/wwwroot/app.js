@@ -71,10 +71,12 @@ function isLocalDevHost() {
   return h === "localhost" || h === "127.0.0.1";
 }
 
-/** Public one-screen planner (github.io or localhost). Add <code>?full=1</code> for tabs, gauge, Learn, etc. */
+/** Public one-screen planner (github.io or localhost). Add <code>?full=1</code> or <code>?lab=1</code> for full app. */
+const IS_RESEARCH_LAB = new URLSearchParams(location.search).has("lab");
 const IS_PUBLIC_SIMPLE =
   (location.hostname.endsWith("github.io") || isLocalDevHost()) &&
-  !new URLSearchParams(location.search).has("full");
+  !new URLSearchParams(location.search).has("full") &&
+  !IS_RESEARCH_LAB;
 
 function apiUrl(path) {
   const p = path.startsWith("/") ? path.slice(1) : path;
@@ -1981,6 +1983,62 @@ function initPublicSimpleMode() {
 
 function shouldLoadHeavyPanels() {
   return !IS_PUBLIC_SIMPLE;
+}
+
+const RESEARCH_PROTEINS = [
+  { id: "brisket", label: "Brisket", ready: true },
+  { id: "beef", label: "Beef cuts", ready: false },
+  { id: "pork", label: "Pork", ready: false },
+  { id: "chicken", label: "Chicken", ready: false },
+  { id: "turkey", label: "Turkey", ready: false },
+  { id: "fish", label: "Fish", ready: false },
+  { id: "game", label: "Game birds", ready: false },
+];
+
+function initResearchLab() {
+  if (!IS_RESEARCH_LAB) return;
+  const header = document.querySelector(".site-header");
+  if (!header || document.getElementById("researchProteinBar")) return;
+
+  const bar = document.createElement("div");
+  bar.id = "researchProteinBar";
+  bar.className = "research-protein-bar";
+  bar.setAttribute("role", "region");
+  bar.setAttribute("aria-label", "Protein research (estimation models)");
+
+  const title = document.createElement("p");
+  title.className = "research-protein-title";
+  title.textContent = "Research lab — pick a protein (brisket model live; others planned)";
+
+  const chips = document.createElement("div");
+  chips.className = "research-protein-chips";
+  chips.setAttribute("role", "list");
+
+  RESEARCH_PROTEINS.forEach((p) => {
+    const btn = document.createElement("button");
+    btn.type = "button";
+    btn.className = "research-protein-chip" + (p.ready ? " is-active" : " is-soon");
+    btn.dataset.protein = p.id;
+    btn.setAttribute("role", "listitem");
+    btn.textContent = p.label + (p.ready ? "" : " · soon");
+    btn.disabled = !p.ready;
+    if (!p.ready) {
+      btn.title = "Collagen / hold model for " + p.label + " is not built yet.";
+    }
+    chips.appendChild(btn);
+  });
+
+  const note = document.createElement("p");
+  note.className = "research-protein-note";
+  note.textContent =
+    "Charts, render tables, timeline, and rest cooling use the brisket collagen model today. More meats = new curves and hold math, not just labels.";
+
+  bar.append(title, chips, note);
+  header.insertAdjacentElement("afterend", bar);
+
+  document.title = "Smoke Lab — research (private lab)";
+  const tagline = document.querySelector(".tagline");
+  if (tagline) tagline.textContent = "Full dashboard · estimation models · not the public planner";
 }
 
 function activatePanel(panelId) {
@@ -3929,6 +3987,7 @@ function startSmokeLabApp() {
       initHoldTempSummary();
       if (shouldLoadHeavyPanels()) initExpandSections();
       wireGlobalNav();
+      initResearchLab();
       syncHoldTempSummary();
       wireShareLinks();
       $("openSources")?.addEventListener("click", openSourcesPanel);

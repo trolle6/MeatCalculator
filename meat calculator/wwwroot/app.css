@@ -4818,3 +4818,56 @@ html.site-simple .planner-tool-ray > * {
 html:not(.site-simple) .simple-footnote {
   display: block;
 }
+
+/* Research lab (?lab=1) — full app + protein picker scaffold */
+html.site-research .research-protein-bar {
+  margin: 0 auto 0.65rem;
+  max-width: min(1100px, 100%);
+  padding: 0.65rem 0.85rem;
+  border: 1px solid rgba(232, 106, 26, 0.35);
+  border-radius: var(--radius);
+  background: rgba(232, 93, 4, 0.08);
+}
+
+html.site-research .research-protein-title {
+  margin: 0 0 0.45rem;
+  font-size: 0.82rem;
+  font-weight: 600;
+  color: var(--smoke);
+}
+
+html.site-research .research-protein-chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.35rem 0.45rem;
+}
+
+html.site-research .research-protein-chip {
+  font-family: var(--font);
+  font-size: 0.78rem;
+  font-weight: 600;
+  padding: 0.32rem 0.55rem;
+  border-radius: 999px;
+  border: 1px solid var(--border);
+  background: var(--surface);
+  color: var(--text-muted);
+  cursor: default;
+}
+
+html.site-research .research-protein-chip.is-active {
+  border-color: rgba(232, 106, 26, 0.65);
+  background: rgba(232, 93, 4, 0.18);
+  color: var(--text);
+  cursor: default;
+}
+
+html.site-research .research-protein-chip.is-soon {
+  opacity: 0.72;
+}
+
+html.site-research .research-protein-note {
+  margin: 0.5rem 0 0;
+  font-size: 0.72rem;
+  line-height: 1.4;
+  color: var(--muted);
+}

@@ -47,5 +47,6 @@ dotnet run
 ```
 
 Open http://localhost:5247/ (or http://localhost:5180/) - simple planner (same as github.io).  
-Full app: http://localhost:5247/?full=1 (or http://localhost:5180/?full=1)
+Full app: http://localhost:5247/?full=1 (or http://localhost:5180/?full=1)  
+Research lab (gated): https://trolle6.github.io/SmokeLab/research/ — see [RESEARCH-LAB.md](RESEARCH-LAB.md)
 

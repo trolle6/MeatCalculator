@@ -1,0 +1,29 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Smoke Lab — research access</title>
+  <meta name="robots" content="noindex, nofollow" />
+  <meta name="theme-color" content="#12100e" />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;600;700&family=JetBrains+Mono:wght@500&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="gate.css?v=1" />
+</head>
+<body>
+  <main class="gate-card">
+    <h1>Research lab</h1>
+    <p class="gate-lead">Full charts, tables, and Learn panels. Not linked from the public brisket planner.</p>
+    <p class="gate-note">On a public GitHub repo this is <strong>not</strong> true security — only a private URL + passphrase. For real privacy, use a <a href="https://github.com/trolle6/SmokeLab/settings/pages">private repo</a> or run locally with <code>dotnet run</code>.</p>
+    <form id="gateForm" class="gate-form">
+      <label for="gatePass">Passphrase</label>
+      <input type="password" id="gatePass" autocomplete="current-password" spellcheck="false" required />
+      <button type="submit" class="gate-btn">Enter lab</button>
+    </form>
+    <p class="gate-err" id="gateErr" hidden>Wrong passphrase.</p>
+    <p class="gate-hint">Change the passphrase hash in <code>research/index.html</code> before sharing this link.</p>
+  </main>
+  <script src="gate.js?v=1"></script>
+</body>
+</html>
