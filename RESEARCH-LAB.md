@@ -5,10 +5,10 @@
 | What | URL |
 |------|-----|
 | Public brisket planner | https://trolle6.github.io/SmokeLab/ |
-| Full app (no gate, anyone with link) | https://trolle6.github.io/SmokeLab/?full=1 |
-| **Research lab (passphrase)** | https://trolle6.github.io/SmokeLab/research/ |
+| **Research lab** | https://trolle6.github.io/SmokeLab/research/ or `?lab=1` |
+| Legacy full dashboard | https://trolle6.github.io/SmokeLab/?full=1 |
 
-Default passphrase: **`smokelab`** (change before you rely on it).
+On the public site, a small **Research lab** link sits at the very bottom of the footer (no passphrase).
 
 ## What you get in the lab
 
@@ -18,30 +18,14 @@ Default passphrase: **`smokelab`** (change before you rely on it).
 
 ## Privacy (read this)
 
-GitHub Pages on a **public** repo is never truly private:
-
-- `noindex` + no links from the public site only hide it from casual visitors
-- The passphrase is checked in the browser; the full app files are still downloadable
-- For real privacy: **private repository** + GitHub Pages visibility, or run locally:
+This is **unlisted**, not locked down: anyone who scrolls to the footer or guesses `/research/` can open it. For real privacy use a private repo or run locally:
 
 ```powershell
 cd "meat calculator"
 dotnet run
 ```
 
-Open http://localhost:5247/?lab=1 (skip gate on localhost if you set session once, or use `?full=1`).
-
-## Change your passphrase
-
-1. Pick a new secret phrase.
-2. Hash it:
-
-```powershell
-node -e "const c=require('crypto'); console.log(c.createHash('sha256').update('YOUR PHRASE HERE').digest('hex'));"
-```
-
-3. Paste the hex into `meat calculator/wwwroot/research/gate.js` as `GATE_HASH`.
-4. Commit and push (wwwroot change triggers deploy).
+Open http://localhost:5247/?lab=1
 
 ## Adding more meats later
 
