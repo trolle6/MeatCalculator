@@ -5032,6 +5032,19 @@ html.site-research .research-thermo-temp {
   color: var(--smoke);
 }
 
+html.site-research .research-thermo-meta {
+  font-size: 0.58rem;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  color: var(--muted);
+  line-height: 1;
+}
+
+html.site-research .research-thermo-btn--group.is-active .research-thermo-meta {
+  color: var(--ember);
+}
+
 html.site-research .research-food-model-note {
   margin: 0.35rem 0 0;
   font-size: 0.7rem;
