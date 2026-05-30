@@ -3535,6 +3535,35 @@ html.site-simple .footer-simple-credit {
   display: block !important;
 }
 
+.footer-research-entry {
+  display: none;
+  margin: 0.35rem 0 0;
+  padding-top: 0.35rem;
+  text-align: center;
+}
+
+html.site-simple .footer-research-entry {
+  display: block;
+}
+
+html.site-research .footer-research-entry {
+  display: none !important;
+}
+
+html.site-simple .footer-research-link {
+  font-size: 0.62rem;
+  font-weight: 500;
+  letter-spacing: 0.02em;
+  color: var(--muted);
+  opacity: 0.42;
+  text-decoration: none;
+}
+
+html.site-simple .footer-research-link:hover {
+  opacity: 0.72;
+  color: var(--smoke);
+}
+
 html.site-simple .site-footer {
   padding: 0.6rem 1rem 0.85rem;
 }
