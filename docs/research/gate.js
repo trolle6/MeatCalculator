@@ -1,6 +1,6 @@
 (function () {
   const STORAGE_KEY = "smoke-lab-research-ok";
-  const TARGET = "../index.html?full=1&lab=1";
+  const TARGET = "../index.html?lab=1";
 
   /** SHA-256 hex of your passphrase. Default passphrase: smokelab */
   const GATE_HASH = "12b933406720fe7450e5bd038340ffc7bc37d754321f64f8551a63c8025dae1f";
