@@ -1999,38 +1999,42 @@ function shouldLoadHeavyPanels() {
   return !IS_PUBLIC_SIMPLE;
 }
 
-/** Research lab foods — reference targets; only brisket uses the collagen hold model today. */
+/** Research lab — well-done internal targets (°C). Brisket alone uses the collagen hold model. */
 const RESEARCH_FOOD_GROUPS = [
   {
     id: "smoke",
     label: "Smoke & hold",
     foods: [
       { id: "brisket", label: "Brisket", pullC: 90.5, holdC: 65.5, ready: true, doneLabel: "Pull temp" },
-      { id: "beef-chuck", label: "Beef chuck", pullC: 88, holdC: 65.5, ready: false, doneLabel: "Pull temp" },
-      { id: "beef-shortrib", label: "Short rib", pullC: 88.5, holdC: 65.5, ready: false, doneLabel: "Pull temp" },
-      { id: "pork-shoulder", label: "Pork shoulder", pullC: 88, holdC: 65.5, ready: false, doneLabel: "Pull temp" },
-      { id: "pork-ribs", label: "Pork ribs", pullC: 90, holdC: 65.5, ready: false, doneLabel: "Pull temp" },
     ],
+  },
+  {
+    id: "red-meat",
+    label: "Red meat",
+    foods: [
+      { id: "beef", label: "Beef", pullC: 77, holdC: 65.5, ready: false, doneLabel: "Well done" },
+      { id: "veal", label: "Veal", pullC: 74, holdC: 65.5, ready: false, doneLabel: "Well done" },
+      { id: "lamb", label: "Lamb", pullC: 77, holdC: 65.5, ready: false, doneLabel: "Well done" },
+      { id: "burger", label: "Burger", pullC: 71, holdC: 65.5, ready: false, doneLabel: "Well done" },
+    ],
+  },
+  {
+    id: "pork",
+    label: "Pork",
+    foods: [{ id: "pork", label: "Pork", pullC: 77, holdC: 65.5, ready: false, doneLabel: "Well done" }],
   },
   {
     id: "poultry",
     label: "Poultry",
     foods: [
-      { id: "chicken-breast", label: "Chicken breast", pullC: 74, holdC: 60, ready: false, doneLabel: "Done temp" },
-      { id: "chicken-thigh", label: "Chicken thigh", pullC: 77, holdC: 60, ready: false, doneLabel: "Done temp" },
-      { id: "turkey-breast", label: "Turkey breast", pullC: 74, holdC: 60, ready: false, doneLabel: "Done temp" },
-      { id: "duck-breast", label: "Duck breast", pullC: 57.5, holdC: 55, ready: false, doneLabel: "Target temp" },
+      { id: "chicken", label: "Chicken", pullC: 74, holdC: 60, ready: false, doneLabel: "Well done" },
+      { id: "turkey", label: "Turkey", pullC: 74, holdC: 60, ready: false, doneLabel: "Well done" },
     ],
   },
   {
     id: "fish",
-    label: "Fish & seafood",
-    foods: [
-      { id: "salmon", label: "Salmon", pullC: 52, holdC: 50, ready: false, doneLabel: "Target temp" },
-      { id: "cod", label: "Cod", pullC: 54, holdC: 50, ready: false, doneLabel: "Target temp" },
-      { id: "tuna", label: "Tuna steak", pullC: 50, holdC: 48, ready: false, doneLabel: "Target temp" },
-      { id: "shrimp", label: "Shrimp", pullC: 54, holdC: 50, ready: false, doneLabel: "Target temp" },
-    ],
+    label: "Fish",
+    foods: [{ id: "fish", label: "Fish", pullC: 63, holdC: 55, ready: false, doneLabel: "Well done" }],
   },
 ];
 
@@ -2146,7 +2150,7 @@ function applyResearchFood(foodId) {
   if (note) {
     note.textContent = food.ready
       ? `${food.label}: hold table uses the brisket collagen model at these estimated temps.`
-      : `${food.label}: reference pull/hold targets — hold times still use the brisket model until this food is built.`;
+      : `${food.label}: well done ≈ ${food.pullC} °C — hold times still use the brisket model until this food is built.`;
   }
 }
 
