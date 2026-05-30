@@ -20,6 +20,8 @@ const state = {
   sliceAmPm: "PM",
   researchGroupId: "smoke",
   researchFoodId: "brisket",
+  researchProbe: "backup",
+  researchProbeTemps: { backup: 90.5, meater: 90.5 },
 };
 
 const $ = (id) => document.getElementById(id);
@@ -1809,6 +1811,7 @@ function commitSimplePullInput(sourceEl) {
   }
 
   writeSimplePullCommittedC(parsed.c);
+  syncResearchProbeFromPullInput();
   if (hasSimplePullDual()) {
     simplePullRenderFields(parsed.c);
   } else if (state.tempUnit === "f") {
@@ -1831,6 +1834,13 @@ function wireSimplePullDualInput() {
     syncSimplePullDualFrom(unit);
     updatePullTempBadge();
     updateSimplePullInputOutline();
+    if (IS_RESEARCH_LAB) {
+      const live = parseSimplePullDisplay(parseFloat(input.value), unit);
+      if (live?.ok) {
+        writeResearchProbeTemp(state.researchProbe, live.c);
+        renderResearchProbeThermos();
+      }
+    }
   };
 
   const onFocus = (unit) => () => {
@@ -2050,6 +2060,27 @@ function getActiveResearchFood() {
   return getResearchFoodById(state.researchFoodId)?.food ?? null;
 }
 
+function getAllResearchFoods() {
+  return RESEARCH_FOOD_GROUPS.flatMap((g) => g.foods.map((f) => ({ ...f, groupId: g.id })));
+}
+
+function readResearchProbeTemps() {
+  return {
+    backup: state.researchProbeTemps?.backup ?? readCommittedPullC(90.5),
+    meater: state.researchProbeTemps?.meater ?? readCommittedPullC(90.5),
+  };
+}
+
+function writeResearchProbeTemp(probe, c) {
+  if (!state.researchProbeTemps) state.researchProbeTemps = { backup: 90.5, meater: 90.5 };
+  state.researchProbeTemps[probe] = c;
+}
+
+function getActiveResearchProbeTemp() {
+  const t = readResearchProbeTemps();
+  return t[state.researchProbe] ?? t.backup;
+}
+
 function formatResearchThermoTemp(c) {
   if (state.tempUnit === "f") return `${Math.round(cToF(c))}°`;
   return `${Number(c).toFixed(c % 1 === 0 ? 0 : 1)}°`;
@@ -2062,66 +2093,77 @@ function researchThermoFillPct(pullC) {
   return Math.max(12, Math.min(92, pct));
 }
 
-function buildResearchThermoBtn({ kind, label, pullC, active, reference, dataset }) {
+function buildResearchFoodBtn(food) {
   const btn = document.createElement("button");
   btn.type = "button";
   btn.className =
-    `research-thermo-btn research-thermo-btn--${kind}` +
-    (active ? " is-active" : "") +
-    (reference ? " is-reference" : "");
+    "research-thermo-btn research-thermo-btn--food" +
+    (food.id === state.researchFoodId ? " is-active" : "") +
+    (!food.ready ? " is-reference" : "");
   btn.setAttribute("role", "tab");
-  btn.setAttribute("aria-selected", active ? "true" : "false");
-  Object.entries(dataset).forEach(([k, v]) => {
-    btn.dataset[k] = v;
-  });
-  const fill = pullC != null ? researchThermoFillPct(pullC) : 55;
-  const tempHtml =
-    pullC != null ? `<span class="research-thermo-temp">${formatResearchThermoTemp(pullC)}</span>` : "";
-  btn.innerHTML = `<span class="research-thermo-tube" aria-hidden="true"><span class="research-thermo-fill" style="height:${fill}%"></span></span><span class="research-thermo-name">${label}</span>${tempHtml}`;
+  btn.setAttribute("aria-selected", food.id === state.researchFoodId ? "true" : "false");
+  btn.dataset.researchFood = food.id;
+  const fill = researchThermoFillPct(food.pullC);
+  btn.innerHTML = `<span class="research-thermo-tube" aria-hidden="true"><span class="research-thermo-fill" style="height:${fill}%"></span></span><span class="research-thermo-name">${food.label}</span><span class="research-thermo-temp">${formatResearchThermoTemp(food.pullC)}</span>`;
+  btn.addEventListener("click", () => applyResearchFood(food.id));
   return btn;
 }
 
-function renderResearchThermoPicker() {
-  const groupsEl = $("researchThermoGroups");
-  const foodsEl = $("researchThermoFoods");
-  if (!groupsEl || !foodsEl) return;
-
-  groupsEl.replaceChildren();
-  foodsEl.replaceChildren();
-
-  RESEARCH_FOOD_GROUPS.forEach((g) => {
-    const btn = buildResearchThermoBtn({
-      kind: "group",
-      label: g.label,
-      pullC: g.foods[0]?.pullC,
-      active: g.id === state.researchGroupId,
-      reference: false,
-      dataset: { researchGroup: g.id },
-    });
-    btn.addEventListener("click", () => selectResearchGroup(g.id));
-    groupsEl.appendChild(btn);
-  });
-
-  const group = RESEARCH_FOOD_GROUPS.find((g) => g.id === state.researchGroupId) ?? RESEARCH_FOOD_GROUPS[0];
-  group.foods.forEach((f) => {
-    const btn = buildResearchThermoBtn({
-      kind: "food",
-      label: f.label,
-      pullC: f.pullC,
-      active: f.id === state.researchFoodId,
-      reference: !f.ready,
-      dataset: { researchFood: f.id },
-    });
-    btn.addEventListener("click", () => applyResearchFood(f.id));
-    foodsEl.appendChild(btn);
+function renderResearchProbeThermos() {
+  if (!IS_RESEARCH_LAB) return;
+  const temps = readResearchProbeTemps();
+  const probes = [
+    { id: "backup", tempEl: $("researchProbeBackupTemp"), fillEl: $("researchProbeBackupFill"), btn: $("researchProbeBackup") },
+    { id: "meater", tempEl: $("researchProbeMeaterTemp"), fillEl: $("researchProbeMeaterFill"), btn: $("researchProbeMeater") },
+  ];
+  probes.forEach(({ id, tempEl, fillEl, btn }) => {
+    const c = temps[id];
+    if (tempEl) {
+      const unit = state.tempUnit === "f" ? "°F" : "°C";
+      tempEl.textContent =
+        state.tempUnit === "f"
+          ? `${Math.round(cToF(c))}${unit}`
+          : `${Number(c).toFixed(c % 1 === 0 ? 0 : 1)}${unit}`;
+    }
+    if (fillEl) fillEl.style.height = `${researchThermoFillPct(c)}%`;
+    if (btn) {
+      const active = state.researchProbe === id;
+      btn.classList.toggle("is-active", active);
+      btn.setAttribute("aria-pressed", active ? "true" : "false");
+    }
   });
 }
 
-function selectResearchGroup(groupId) {
-  const group = RESEARCH_FOOD_GROUPS.find((g) => g.id === groupId);
-  if (!group?.foods.length) return;
-  state.researchGroupId = groupId;
-  applyResearchFood(group.foods[0].id);
+function wireResearchProbeThermos() {
+  if (!IS_RESEARCH_LAB) return;
+  const pair = $("researchProbePair");
+  if (!pair || pair.dataset.wired === "1") return;
+  pair.dataset.wired = "1";
+  pair.querySelectorAll("[data-probe]").forEach((btn) => {
+    btn.addEventListener("click", () => selectResearchProbe(btn.dataset.probe));
+  });
+}
+
+function selectResearchProbe(probe) {
+  if (probe !== "backup" && probe !== "meater") return;
+  const temps = readResearchProbeTemps();
+  state.researchProbe = probe;
+  const c = temps[probe];
+  writeSimplePullCommittedC(c);
+  const pullHidden = $("pullTemp");
+  if (pullHidden) setTempInputFromC(pullHidden, c);
+  syncSimplePullFromModel();
+  updatePullTempBadge();
+  updateSimpleStepTabSummaries();
+  renderResearchProbeThermos();
+}
+
+function renderResearchThermoPicker() {
+  const foodsEl = $("researchThermoFoods");
+  if (!foodsEl) return;
+  foodsEl.replaceChildren();
+  getAllResearchFoods().forEach((f) => foodsEl.appendChild(buildResearchFoodBtn(f)));
+  renderResearchProbeThermos();
 }
 
 function applyResearchFood(foodId) {
@@ -2131,7 +2173,9 @@ function applyResearchFood(foodId) {
   state.researchGroupId = group.id;
   state.researchFoodId = food.id;
 
-  writeSimplePullCommittedC(food.pullC);
+  writeResearchProbeTemp("backup", food.pullC);
+  writeResearchProbeTemp("meater", food.pullC);
+  writeSimplePullCommittedC(getActiveResearchProbeTemp());
   const pullHidden = $("pullTemp");
   if (pullHidden) setTempInputFromC(pullHidden, food.pullC);
   setTempInputFromC($("holdTemp"), food.holdC);
@@ -2164,10 +2208,11 @@ function initResearchLab() {
   const tagline = document.querySelector(".tagline");
   if (tagline) tagline.textContent = "Pick a food · estimate pull, hold & serve";
   const heroLead = document.querySelector(".simple-hero-lead");
-  if (heroLead) heroLead.textContent = "Thermometer picks set starting temps — then use Pull, Serve, Hold.";
+  if (heroLead) heroLead.textContent = "Backup & Meater probes — pick food, then tune Pull, Serve, Hold.";
   const heroTitle = document.querySelector(".simple-hero h2");
   if (heroTitle) heroTitle.textContent = "Research planner";
 
+  wireResearchProbeThermos();
   if (!getResearchFoodById(state.researchFoodId)) {
     state.researchGroupId = RESEARCH_FOOD_GROUPS[0].id;
     state.researchFoodId = RESEARCH_FOOD_GROUPS[0].foods[0].id;
@@ -2717,12 +2762,20 @@ async function updateRendering() {
 function getPullHoldC() {
   const pullEl = $("pullTemp");
   const holdEl = $("holdTemp");
-  const pull =
-    hasSimplePullDual() || (IS_PUBLIC_SIMPLE && $("simplePull"))
+  const pull = IS_RESEARCH_LAB
+    ? getActiveResearchProbeTemp()
+    : hasSimplePullDual() || (IS_PUBLIC_SIMPLE && $("simplePull"))
       ? readCommittedPullC(90.5)
       : tempInputValueC(pullEl, 90.5);
   const hold = tempInputValueC(holdEl, 65.5);
   return { pull, hold };
+}
+
+function syncResearchProbeFromPullInput() {
+  if (!IS_RESEARCH_LAB) return;
+  const c = readCommittedPullC(90.5);
+  writeResearchProbeTemp(state.researchProbe, c);
+  renderResearchProbeThermos();
 }
 
 async function updateHold() {
