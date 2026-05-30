@@ -12,8 +12,9 @@ Default passphrase: **`smokelab`** (change before you rely on it).
 
 ## What you get in the lab
 
-- Probe gauge, Hold tab, Plan sheet, **Learn** (weight, rest cooling, charts, render tables, timeline, sources)
-- Protein chips for brisket + future meats (only **brisket** math is implemented today)
+- Same **public-style** planner UI (Pull / Serve / Hold tabs) — not the old full dashboard
+- **Two thermometer rows**: category (Smoke & hold · Poultry · Fish) then food type with estimated target temps
+- Tapping a food sets pull/hold starting points; **brisket** uses the real hold model, others are reference until built
 
 ## Privacy (read this)
 

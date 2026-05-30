@@ -18,6 +18,8 @@ const state = {
   tempUnit: "f",
   clockInputUnit: "12",
   sliceAmPm: "PM",
+  researchGroupId: "smoke",
+  researchFoodId: "brisket",
 };
 
 const $ = (id) => document.getElementById(id);
@@ -71,12 +73,11 @@ function isLocalDevHost() {
   return h === "localhost" || h === "127.0.0.1";
 }
 
-/** Public one-screen planner (github.io or localhost). Add <code>?full=1</code> or <code>?lab=1</code> for full app. */
+/** Public one-screen planner (github.io or localhost). <code>?full=1</code> = legacy full app; <code>?lab=1</code> = research simple UI. */
 const IS_RESEARCH_LAB = new URLSearchParams(location.search).has("lab");
 const IS_PUBLIC_SIMPLE =
   (location.hostname.endsWith("github.io") || isLocalDevHost()) &&
-  !new URLSearchParams(location.search).has("full") &&
-  !IS_RESEARCH_LAB;
+  new URLSearchParams(location.search).get("full") !== "1";
 
 function apiUrl(path) {
   const p = path.startsWith("/") ? path.slice(1) : path;
@@ -1343,6 +1344,7 @@ function applyUnitPrefs() {
   updatePullTempReminder();
   updatePullTempBadge();
   updateUnitTempAlt();
+  if (IS_RESEARCH_LAB) renderResearchThermoPicker();
 }
 
 function initUnits() {
@@ -1601,6 +1603,18 @@ function updatePullTempBadge() {
     hasSimplePullDual() || (IS_PUBLIC_SIMPLE && $("simplePull"))
       ? readSimplePullDisplayC(90.5)
       : getPullHoldC().pull;
+  if (IS_RESEARCH_LAB) {
+    const food = getActiveResearchFood();
+    if (food && !food.ready) {
+      labelEl.textContent = "Reference estimate";
+      badge.className = "pull-temp-badge pull-temp-badge--hold";
+      if (hintEl) {
+        hintEl.textContent = `${food.label} target — brisket tenderness zones do not apply.`;
+      }
+      updateSimplePullInputOutline();
+      return;
+    }
+  }
   const guide = IS_PUBLIC_SIMPLE ? getPullTempGuideSimple(pull) : getPullTempGuide(pull);
   labelEl.textContent = guide.label;
   badge.className = `pull-temp-badge pull-temp-badge--${guide.cls}`;
@@ -1985,60 +1999,176 @@ function shouldLoadHeavyPanels() {
   return !IS_PUBLIC_SIMPLE;
 }
 
-const RESEARCH_PROTEINS = [
-  { id: "brisket", label: "Brisket", ready: true },
-  { id: "beef", label: "Beef cuts", ready: false },
-  { id: "pork", label: "Pork", ready: false },
-  { id: "chicken", label: "Chicken", ready: false },
-  { id: "turkey", label: "Turkey", ready: false },
-  { id: "fish", label: "Fish", ready: false },
-  { id: "game", label: "Game birds", ready: false },
+/** Research lab foods — reference targets; only brisket uses the collagen hold model today. */
+const RESEARCH_FOOD_GROUPS = [
+  {
+    id: "smoke",
+    label: "Smoke & hold",
+    foods: [
+      { id: "brisket", label: "Brisket", pullC: 90.5, holdC: 65.5, ready: true, doneLabel: "Pull temp" },
+      { id: "beef-chuck", label: "Beef chuck", pullC: 88, holdC: 65.5, ready: false, doneLabel: "Pull temp" },
+      { id: "beef-shortrib", label: "Short rib", pullC: 88.5, holdC: 65.5, ready: false, doneLabel: "Pull temp" },
+      { id: "pork-shoulder", label: "Pork shoulder", pullC: 88, holdC: 65.5, ready: false, doneLabel: "Pull temp" },
+      { id: "pork-ribs", label: "Pork ribs", pullC: 90, holdC: 65.5, ready: false, doneLabel: "Pull temp" },
+    ],
+  },
+  {
+    id: "poultry",
+    label: "Poultry",
+    foods: [
+      { id: "chicken-breast", label: "Chicken breast", pullC: 74, holdC: 60, ready: false, doneLabel: "Done temp" },
+      { id: "chicken-thigh", label: "Chicken thigh", pullC: 77, holdC: 60, ready: false, doneLabel: "Done temp" },
+      { id: "turkey-breast", label: "Turkey breast", pullC: 74, holdC: 60, ready: false, doneLabel: "Done temp" },
+      { id: "duck-breast", label: "Duck breast", pullC: 57.5, holdC: 55, ready: false, doneLabel: "Target temp" },
+    ],
+  },
+  {
+    id: "fish",
+    label: "Fish & seafood",
+    foods: [
+      { id: "salmon", label: "Salmon", pullC: 52, holdC: 50, ready: false, doneLabel: "Target temp" },
+      { id: "cod", label: "Cod", pullC: 54, holdC: 50, ready: false, doneLabel: "Target temp" },
+      { id: "tuna", label: "Tuna steak", pullC: 50, holdC: 48, ready: false, doneLabel: "Target temp" },
+      { id: "shrimp", label: "Shrimp", pullC: 54, holdC: 50, ready: false, doneLabel: "Target temp" },
+    ],
+  },
 ];
+
+function getResearchFoodById(foodId) {
+  for (const g of RESEARCH_FOOD_GROUPS) {
+    const f = g.foods.find((x) => x.id === foodId);
+    if (f) return { group: g, food: f };
+  }
+  return null;
+}
+
+function getActiveResearchFood() {
+  return getResearchFoodById(state.researchFoodId)?.food ?? null;
+}
+
+function formatResearchThermoTemp(c) {
+  if (state.tempUnit === "f") return `${Math.round(cToF(c))}°`;
+  return `${Number(c).toFixed(c % 1 === 0 ? 0 : 1)}°`;
+}
+
+function researchThermoFillPct(pullC) {
+  const min = 48;
+  const max = 98;
+  const pct = ((pullC - min) / (max - min)) * 100;
+  return Math.max(12, Math.min(92, pct));
+}
+
+function buildResearchThermoBtn({ kind, label, pullC, active, reference, dataset }) {
+  const btn = document.createElement("button");
+  btn.type = "button";
+  btn.className =
+    `research-thermo-btn research-thermo-btn--${kind}` +
+    (active ? " is-active" : "") +
+    (reference ? " is-reference" : "");
+  btn.setAttribute("role", "tab");
+  btn.setAttribute("aria-selected", active ? "true" : "false");
+  Object.entries(dataset).forEach(([k, v]) => {
+    btn.dataset[k] = v;
+  });
+  const fill = pullC != null ? researchThermoFillPct(pullC) : 55;
+  const tempHtml =
+    pullC != null ? `<span class="research-thermo-temp">${formatResearchThermoTemp(pullC)}</span>` : "";
+  btn.innerHTML = `<span class="research-thermo-tube" aria-hidden="true"><span class="research-thermo-fill" style="height:${fill}%"></span></span><span class="research-thermo-name">${label}</span>${tempHtml}`;
+  return btn;
+}
+
+function renderResearchThermoPicker() {
+  const groupsEl = $("researchThermoGroups");
+  const foodsEl = $("researchThermoFoods");
+  if (!groupsEl || !foodsEl) return;
+
+  groupsEl.replaceChildren();
+  foodsEl.replaceChildren();
+
+  RESEARCH_FOOD_GROUPS.forEach((g) => {
+    const btn = buildResearchThermoBtn({
+      kind: "group",
+      label: g.label,
+      pullC: g.foods[0]?.pullC,
+      active: g.id === state.researchGroupId,
+      reference: false,
+      dataset: { researchGroup: g.id },
+    });
+    btn.addEventListener("click", () => selectResearchGroup(g.id));
+    groupsEl.appendChild(btn);
+  });
+
+  const group = RESEARCH_FOOD_GROUPS.find((g) => g.id === state.researchGroupId) ?? RESEARCH_FOOD_GROUPS[0];
+  group.foods.forEach((f) => {
+    const btn = buildResearchThermoBtn({
+      kind: "food",
+      label: f.label,
+      pullC: f.pullC,
+      active: f.id === state.researchFoodId,
+      reference: !f.ready,
+      dataset: { researchFood: f.id },
+    });
+    btn.addEventListener("click", () => applyResearchFood(f.id));
+    foodsEl.appendChild(btn);
+  });
+}
+
+function selectResearchGroup(groupId) {
+  const group = RESEARCH_FOOD_GROUPS.find((g) => g.id === groupId);
+  if (!group?.foods.length) return;
+  state.researchGroupId = groupId;
+  applyResearchFood(group.foods[0].id);
+}
+
+function applyResearchFood(foodId) {
+  const hit = getResearchFoodById(foodId);
+  if (!hit) return;
+  const { group, food } = hit;
+  state.researchGroupId = group.id;
+  state.researchFoodId = food.id;
+
+  writeSimplePullCommittedC(food.pullC);
+  const pullHidden = $("pullTemp");
+  if (pullHidden) setTempInputFromC(pullHidden, food.pullC);
+  setTempInputFromC($("holdTemp"), food.holdC);
+  syncSimplePullFromModel();
+  syncHoldTempSummary();
+  updatePullTempBadge();
+  updatePullTempReminder();
+  renderHoldOptionsTable({ skipDebounce: true });
+  updateSimpleStepTabSummaries();
+  renderResearchThermoPicker();
+
+  const pullTitle = document.querySelector(".simple-planner-step--pull .simple-planner-step-title");
+  if (pullTitle) pullTitle.textContent = food.doneLabel;
+
+  const note = $("researchFoodModelNote");
+  if (note) {
+    note.textContent = food.ready
+      ? `${food.label}: hold table uses the brisket collagen model at these estimated temps.`
+      : `${food.label}: reference pull/hold targets — hold times still use the brisket model until this food is built.`;
+  }
+}
 
 function initResearchLab() {
   if (!IS_RESEARCH_LAB) return;
-  const header = document.querySelector(".site-header");
-  if (!header || document.getElementById("researchProteinBar")) return;
+  const picker = $("researchFoodPicker");
+  if (!picker) return;
+  picker.hidden = false;
 
-  const bar = document.createElement("div");
-  bar.id = "researchProteinBar";
-  bar.className = "research-protein-bar";
-  bar.setAttribute("role", "region");
-  bar.setAttribute("aria-label", "Protein research (estimation models)");
-
-  const title = document.createElement("p");
-  title.className = "research-protein-title";
-  title.textContent = "Research lab — pick a protein (brisket model live; others planned)";
-
-  const chips = document.createElement("div");
-  chips.className = "research-protein-chips";
-  chips.setAttribute("role", "list");
-
-  RESEARCH_PROTEINS.forEach((p) => {
-    const btn = document.createElement("button");
-    btn.type = "button";
-    btn.className = "research-protein-chip" + (p.ready ? " is-active" : " is-soon");
-    btn.dataset.protein = p.id;
-    btn.setAttribute("role", "listitem");
-    btn.textContent = p.label + (p.ready ? "" : " · soon");
-    btn.disabled = !p.ready;
-    if (!p.ready) {
-      btn.title = "Collagen / hold model for " + p.label + " is not built yet.";
-    }
-    chips.appendChild(btn);
-  });
-
-  const note = document.createElement("p");
-  note.className = "research-protein-note";
-  note.textContent =
-    "Charts, render tables, timeline, and rest cooling use the brisket collagen model today. More meats = new curves and hold math, not just labels.";
-
-  bar.append(title, chips, note);
-  header.insertAdjacentElement("afterend", bar);
-
-  document.title = "Smoke Lab — research (private lab)";
+  document.title = "Smoke Lab — research";
   const tagline = document.querySelector(".tagline");
-  if (tagline) tagline.textContent = "Full dashboard · estimation models · not the public planner";
+  if (tagline) tagline.textContent = "Pick a food · estimate pull, hold & serve";
+  const heroLead = document.querySelector(".simple-hero-lead");
+  if (heroLead) heroLead.textContent = "Thermometer picks set starting temps — then use Pull, Serve, Hold.";
+  const heroTitle = document.querySelector(".simple-hero h2");
+  if (heroTitle) heroTitle.textContent = "Research planner";
+
+  if (!getResearchFoodById(state.researchFoodId)) {
+    state.researchGroupId = RESEARCH_FOOD_GROUPS[0].id;
+    state.researchFoodId = RESEARCH_FOOD_GROUPS[0].foods[0].id;
+  }
+  applyResearchFood(state.researchFoodId);
 }
 
 function activatePanel(panelId) {
@@ -3987,7 +4117,6 @@ function startSmokeLabApp() {
       initHoldTempSummary();
       if (shouldLoadHeavyPanels()) initExpandSections();
       wireGlobalNav();
-      initResearchLab();
       syncHoldTempSummary();
       wireShareLinks();
       $("openSources")?.addEventListener("click", openSourcesPanel);
@@ -4021,6 +4150,7 @@ function startSmokeLabApp() {
         initPublicSimpleMode();
         syncSimplePullFromModel();
       }
+      if (IS_RESEARCH_LAB) initResearchLab();
       updatePullTempBadge();
       return refreshAllForUnits({ weight: shouldLoadHeavyPanels() });
     });
